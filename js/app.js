@@ -248,6 +248,11 @@
             updateStepper(step);
         }
 
+        // Populate preview when entering Step 6
+        if (sectionId === 'section-step6') {
+            populatePreview();
+        }
+
         // Track current step
         if (step > 0) {
             var app = getOrCreateApplication();
@@ -572,15 +577,63 @@
             $(this).find('input[type="radio"]').prop('checked', true).trigger('change');
         });
 
+        // -- Course Preferences: Program → Course cascading --
+        var programCourses = {
+            'Bachelor of Commerce': ['B.Com Hons Accounting & Finance', 'B.Com Hons Marketing', 'B.Com General'],
+            'Bachelor of Science': ['B.Sc. Physics', 'B.Sc. Chemistry', 'B.Sc. Mathematics', 'B.Sc. Computer Science'],
+            'Bachelor of Arts': ['B.A. Political Science', 'B.A. English (Hons)', 'B.A. Economics', 'B.A. History']
+        };
+        $(document).on('change', '[name="pref1Program"], [name="pref2Program"], [name="pref3Program"]', function () {
+            var program = $(this).val();
+            var prefNum = $(this).attr('name').replace('Program', 'Course');
+            var $courseSelect = $('[name="' + prefNum + '"]');
+            $courseSelect.html('<option selected>Select Course</option>');
+            if (program && programCourses[program]) {
+                $.each(programCourses[program], function (_, c) {
+                    $courseSelect.append('<option>' + c + '</option>');
+                });
+            }
+            updateSelectionSummary();
+        });
+        $(document).on('change', '[name="pref1Course"], [name="pref2Course"], [name="pref3Course"]', function () {
+            updateSelectionSummary();
+        });
+
+        function updateSelectionSummary() {
+            for (var i = 1; i <= 3; i++) {
+                var prog = $('[name="pref' + i + 'Program"]').val();
+                var course = $('[name="pref' + i + 'Course"]').val();
+                var hasSelection = course && course !== 'Select Course';
+                var $wrap = $('#summaryPref' + i);
+                var $badge = $('#summaryBadge' + i);
+                var $body = $('#summaryBody' + i);
+                var $courseText = $('#summaryCourse' + i);
+                var $subLabel = $('#summarySubLabel' + i);
+                if (hasSelection) {
+                    $wrap.css('opacity', '1');
+                    $badge.text('SELECTED').css({ background: '#dcfce7', color: '#166534' });
+                    $body.css({ background: 'rgba(0,107,88,0.05)', 'border-left': '4px solid var(--clr-primary)' });
+                    $courseText.text(course).removeClass('fst-italic fw-medium').addClass('fw-bold').css('color', '');
+                    if ($subLabel.length) $subLabel.show();
+                } else {
+                    if (i > 1) $wrap.css('opacity', '.4');
+                    $badge.text('NOT SET').css({ background: '#f1f5f9', color: '#64748b' });
+                    $body.css({ background: '#f8fafc', 'border-left': '4px dashed #cbd5e1' });
+                    $courseText.text('No course selected').removeClass('fw-bold').addClass('fst-italic fw-medium').css('color', '#94a3b8');
+                    if ($subLabel.length) $subLabel.hide();
+                }
+            }
+        }
+
         // -- Academic: Add Subject --
         $(document).on('click', '.btn-add-subject', function () {
             var $tbody = $('#subjectsTable tbody');
             var n = $tbody.find('tr').length + 1;
             $tbody.append(
                 '<tr><td><input type="text" class="form-control form-control-sm" name="subject_' + n + '" placeholder="Subject ' + n + '"></td>' +
-                '<td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_' + n + '" placeholder="0" min="0" max="100"></td>' +
-                '<td class="text-center fw-semibold align-middle">100</td>' +
-                '<td class="text-end align-middle"><span class="badge rounded-pill px-2 py-1 subject-status" style="background:rgba(188,201,195,0.2);color:var(--clr-on-surface-variant);">—</span></td>' +
+                '<td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_' + n + '" placeholder="0" min="0"></td>' +
+                '<td class="text-center align-middle"><input type="number" class="form-control form-control-sm text-center total-marks-input" name="total_' + n + '" value="100" min="1"></td>' +
+                '<td class="text-end align-middle"><select class="form-select form-select-sm subject-status-select" style="max-width:140px;"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></td>' +
                 '<td class="text-end align-middle"><button type="button" class="btn btn-link p-0 btn-remove-subject" style="color:var(--clr-error);"><span class="material-symbols-outlined" style="font-size:18px;">close</span></button></td></tr>'
             );
             recalcAggregate();
@@ -590,6 +643,7 @@
             recalcAggregate();
         });
         $(document).on('input', '.marks-input', function () { recalcAggregate(); updateSubjectStatus($(this)); });
+        $(document).on('input', '.total-marks-input', function () { recalcAggregate(); });
 
         // -- Upload zone click handler --
         $(document).on('change', '.upload-zone input[type="file"]', function () {
@@ -681,10 +735,11 @@
 
     function recalcAggregate() {
         var total = 0, obtained = 0, count = 0;
-        $('.marks-input').each(function () {
-            var v = parseInt($(this).val()) || 0;
-            obtained += v; total += 100; count++;
-            updateSubjectStatus($(this));
+        $('#subjectsTable tbody tr').each(function () {
+            var v = parseInt($(this).find('.marks-input').val()) || 0;
+            var t = parseInt($(this).find('.total-marks-input').val()) || 100;
+            obtained += v; total += t; count++;
+            updateSubjectStatus($(this).find('.marks-input'));
         });
         var pct = total > 0 ? ((obtained / total) * 100).toFixed(1) : '0.0';
         $('#aggregatePercent').text(pct + '%');
@@ -694,13 +749,13 @@
 
     function updateSubjectStatus($input) {
         var v = parseInt($input.val());
-        var $badge = $input.closest('tr').find('.subject-status');
+        var $select = $input.closest('tr').find('.subject-status-select');
         if (isNaN(v) || $input.val() === '') {
-            $badge.text('—').css({ 'background': 'rgba(188,201,195,0.2)', 'color': 'var(--clr-on-surface-variant)' });
+            $select.val('');
         } else if (v >= 33) {
-            $badge.text('Pass').css({ 'background': 'rgba(107,217,188,0.2)', 'color': 'var(--clr-on-primary-container)' });
+            $select.val('pass');
         } else {
-            $badge.text('Fail').css({ 'background': 'rgba(186,26,26,0.1)', 'color': 'var(--clr-error)' });
+            $select.val('fail');
         }
     }
 
@@ -748,12 +803,15 @@
         var totalObt = 0, totalMax = 0;
         // Read from the actual form inputs if available
         $('#subjectsTable tbody tr').each(function () {
-            var subj = $(this).find('input[name^="subject_"]').val();
+            var subj = $(this).find('input[name^="subject_"]').val() || '';
             var marks = parseInt($(this).find('.marks-input').val()) || 0;
-            if (subj) {
-                $tbody.append('<tr><td class="px-3">' + $('<span>').text(subj).html() + '</td><td class="px-3 fw-semibold">' + marks + '</td><td class="px-3">100</td></tr>');
+            var totalM = parseInt($(this).find('.total-marks-input').val()) || 100;
+            var statusVal = $(this).find('.subject-status-select').val() || '';
+            var statusLabel = statusVal ? statusVal.charAt(0).toUpperCase() + statusVal.slice(1) : '—';
+            if (subj || marks > 0) {
+                $tbody.append('<tr><td class="px-3">' + $('<span>').text(subj).html() + '</td><td class="px-3 fw-semibold">' + marks + '</td><td class="px-3">' + totalM + '</td><td class="px-3">' + statusLabel + '</td></tr>');
                 totalObt += marks;
-                totalMax += 100;
+                totalMax += totalM;
             }
         });
         var aggPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : '0.0';
@@ -774,6 +832,13 @@
         $('#previewPayAmount').text('₹ ' + (s5.amount || 200) + '.00');
         $('#previewPayMethod').text(s5.paymentMethod || '—');
         $('#previewPayStatus').text(s5.status === 'paid' ? 'PAID' : 'PENDING');
+
+        // Hide payment edit button if already paid
+        if (s5.status === 'paid') {
+            $('#btnEditPayment').hide();
+        } else {
+            $('#btnEditPayment').show();
+        }
     }
 
     // ============================================================
