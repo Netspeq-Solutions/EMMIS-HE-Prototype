@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sikkim Higher Education - OTP Verification</title>
+    <meta name="description" content="Verify your identity with OTP to access the Sikkim Higher Education Admission Portal.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <style>
+        body { background-color: var(--clr-surface-variant); display: flex; flex-direction: column; min-height: 100vh; }
+    </style>
+</head>
+<body data-page="otp-login">
+
+    <!-- ===== HEADER ===== -->
+    <header class="py-3 px-4" style="background:rgba(234,239,235,0.5); backdrop-filter:blur(12px);">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="fw-bold fs-5 text-decoration-none" style="color:var(--clr-brand-teal);" href="index.html">Sikkim Higher Education</a>
+            <nav class="d-none d-md-flex gap-4">
+                <a href="#" class="text-decoration-none fw-medium" style="color:var(--clr-outline);">Admissions</a>
+                <a href="#" class="text-decoration-none fw-medium" style="color:var(--clr-outline);">Scholarships</a>
+                <a href="#" class="text-decoration-none fw-medium" style="color:var(--clr-outline);">Institutions</a>
+                <a href="#" class="text-decoration-none fw-medium" style="color:var(--clr-outline);">Support</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main class="flex-grow-1 d-flex align-items-center justify-content-center p-4">
+        <div class="bg-white rounded-3 p-4 p-sm-5 position-relative overflow-hidden shadow-lg" style="max-width:440px; width:100%; box-shadow:0 32px 64px rgba(0,0,0,0.04);">
+            <!-- Accent bar -->
+            <div class="position-absolute top-0 start-0 w-100" style="height:3px; background:linear-gradient(90deg, var(--clr-primary), var(--clr-secondary));"></div>
+
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width:64px; height:64px; background:var(--clr-surface-container);">
+                    <span class="material-symbols-outlined filled fs-3" style="color:var(--clr-primary); font-variation-settings:'FILL' 1;">security</span>
+                </div>
+                <h1 class="fs-4 fw-bold tracking-tight mb-1" style="color:var(--clr-on-surface);">Verification</h1>
+                <p class="small" style="color:var(--clr-on-surface-variant);">Resume Application or Track Status</p>
+            </div>
+
+            <!-- Form -->
+            <form id="otpForm">
+                <!-- Mobile Number -->
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" style="color:var(--clr-on-surface-variant);" for="mobileNumber">Mobile Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-surface-low border-end-0" style="border-color:var(--clr-outline-variant); color:var(--clr-on-surface-variant);">+91</span>
+                        <input type="tel" class="form-control border-start-0" id="mobileNumber" name="mobile" maxlength="10" pattern="[0-9]{10}" placeholder="Enter 10-digit number" value="9876543210" style="border-color:var(--clr-outline-variant);">
+                    </div>
+                </div>
+
+                <!-- Send OTP Button -->
+                <div class="d-grid mb-3">
+                    <button type="button" class="btn btn-outline-primary py-2 fw-semibold" id="btnSendOtp">
+                        <span class="material-symbols-outlined me-1" style="font-size:18px;">send</span> Send OTP
+                    </button>
+                </div>
+
+                <!-- OTP Status -->
+                <div class="d-flex align-items-center gap-2 p-3 rounded-2 mb-3" id="otpStatus" style="display:none !important; background:rgba(255,220,194,0.2); border:1px solid rgba(255,183,122,0.3);">
+                    <span class="material-symbols-outlined small" style="color:var(--clr-tertiary);">mark_email_read</span>
+                    <p class="mb-0 small" id="otpStatusText" style="color:var(--clr-on-surface-variant);">OTP sent successfully to +91 9876543210</p>
+                </div>
+
+                <!-- OTP Entry -->
+                <div id="otpSection" style="display:none;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label small fw-semibold mb-0" style="color:var(--clr-on-surface-variant);">Enter 6-digit OTP</label>
+                        <span class="small fw-semibold" style="color:var(--clr-primary);" id="otpTimer">01:45</span>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-between mb-3">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-grid gap-3 pt-2">
+                        <button type="button" class="btn btn-primary py-3 fw-semibold d-flex align-items-center justify-content-center gap-2" id="btnVerifyOtp">
+                            Verify &amp; Proceed <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>
+                        </button>
+                        <div class="text-center">
+                            <button type="button" class="btn btn-link small fw-medium text-decoration-underline d-none" id="btnResendOtp" style="color:var(--clr-secondary);">Resend OTP</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

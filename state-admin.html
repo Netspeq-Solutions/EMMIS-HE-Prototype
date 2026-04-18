@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Education Department — Sikkim Higher Education Portal</title>
+    <meta name="description" content="State-level analytics dashboard for monitoring online applications and admissions across Sikkim higher education institutions.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="admin-topbar">
+    <div class="d-flex align-items-center gap-3">
+        <span class="admin-brand">Sikkim Portal</span>
+        <span class="admin-role-badge" style="background:rgba(232,114,12,0.3);color:#fff;">State Education Dept</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <span class="text-white small fw-semibold d-none d-md-inline">Directorate of Higher Education</span>
+        <button class="btn btn-sm text-white fw-bold btn-admin-signout" style="background:rgba(255,255,255,0.1);">Sign Out</button>
+        <div class="rounded-circle overflow-hidden border border-2" style="width:36px;height:36px;border-color:rgba(255,255,255,0.2)!important;">
+            <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background:var(--clr-tertiary-container);">
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--clr-on-tertiary-container);">shield_person</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar-admin d-none d-md-flex">
+    <div class="px-3 pt-3 pb-2">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="material-symbols-outlined filled" style="color:var(--clr-tertiary);font-variation-settings:'FILL' 1;">account_balance</span>
+            <span class="fw-bold small" style="color:#4a2800;">Directorate of HE</span>
+        </div>
+    </div>
+    <span class="sidebar-section-label">Analytics</span>
+    <a href="#" class="sidebar-nav-item active" data-section="section-sa-dashboard"><span class="material-symbols-outlined">dashboard</span>Overview Dashboard</a>
+    <span class="sidebar-section-label">Reports</span>
+    <a href="#" class="sidebar-nav-item" data-section="section-sa-applications"><span class="material-symbols-outlined">description</span>Applications Report</a>
+    <a href="#" class="sidebar-nav-item" data-section="section-sa-admissions"><span class="material-symbols-outlined">how_to_reg</span>Admissions Report</a>
+    <a href="#" class="sidebar-nav-item" data-section="section-sa-analysis"><span class="material-symbols-outlined">analytics</span>Analysis</a>
+    <div class="mt-auto p-3">
+        <div class="p-3 rounded-3" style="background:rgba(135,82,30,0.06);">
+            <p class="small mb-1 fw-bold" style="color:var(--clr-tertiary);">Data Current As Of</p>
+            <p class="mb-0" style="font-size:.75rem;color:var(--clr-on-surface-variant);">Oct 18, 2024 · Session 2024-25</p>
+        </div>
+    </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="admin-main" style="margin-left:16rem; padding-top:56px;">
+
+<!-- ═══ GLOBAL FILTER BAR ═══ -->
+<div class="px-3 px-md-4 pt-4">
+    <div class="filter-bar" style="max-width:1400px;">
+        <span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px;">filter_list</span>
+        <select class="form-select sa-filter" id="filterSession"><option value="2024-25">Session 2024-25</option><option value="2023-24">Session 2023-24</option></select>
+        <select class="form-select sa-filter" id="filterDistrict"><option value="All">All Districts</option><option>Gangtok</option><option>Pakyong</option><option>Mangan</option><option>Gyalshing</option><option>Namchi</option><option>Soreng</option></select>
+        <select class="form-select sa-filter" id="filterCollege"><option value="All">All Colleges</option><option value="sgc">Sikkim Govt College</option><option value="dnt">Dentam College</option><option value="sac">Sikkim Arts College</option><option value="ngc">Namchi Govt. College</option><option value="mng">Mangan College</option><option value="srg">Soreng College</option></select>
+        <select class="form-select sa-filter" id="filterCourse"><option value="All">All Courses</option><option>B.A</option><option>B.Sc</option><option>B.Com</option><option>B.A Law</option></select>
+    </div>
+</div>
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: OVERVIEW DASHBOARD     ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="sa-section px-3 px-md-4 py-4" id="section-sa-dashboard">
+    <div class="container-fluid" style="max-width:1400px;">
+        <h1 class="fs-3 fw-bold tracking-tight mb-1">State-wide Analytics</h1>
+        <p class="text-on-surface-variant mb-4">Online Applications & Admissions — Higher Education, Sikkim</p>
+
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="admin-kpi">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="kpi-icon" style="background:rgba(0,107,88,0.1);"><span class="material-symbols-outlined" style="color:var(--clr-primary);">description</span></div>
+                    </div>
+                    <div class="kpi-value" id="saKpiApps">0</div>
+                    <div class="kpi-label mt-1">Total Applications</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="admin-kpi">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="kpi-icon" style="background:rgba(63,102,90,0.1);"><span class="material-symbols-outlined" style="color:var(--clr-secondary);">how_to_reg</span></div>
+                    </div>
+                    <div class="kpi-value" id="saKpiReg">0</div>
+                    <div class="kpi-label mt-1">Registrations Completed</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="admin-kpi">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="kpi-icon" style="background:rgba(135,82,30,0.1);"><span class="material-symbols-outlined" style="color:var(--clr-tertiary);">trending_up</span></div>
+                    </div>
+                    <div class="kpi-value" id="saKpiRatio">—</div>
+                    <div class="kpi-label mt-1">Conversion Rate</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="admin-kpi">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="kpi-icon" style="background:rgba(0,107,88,0.1);"><span class="material-symbols-outlined" style="color:var(--clr-primary);">school</span></div>
+                    </div>
+                    <div class="kpi-value" id="saKpiColleges">0</div>
+                    <div class="kpi-label mt-1">Active Colleges</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-7">
+                <div class="card p-4 rounded-3 h-100">
+                    <h6 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:18px;">bar_chart</span>District-wise Applications</h6>
+                    <div class="chart-bar-h" id="districtBars"></div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card p-4 rounded-3 h-100">
+                    <h6 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:18px;">pie_chart</span>Course-wise Distribution</h6>
+                    <div class="d-flex align-items-center justify-content-center gap-4 flex-wrap">
+                        <div class="chart-donut" id="courseDonut">
+                            <div class="donut-center">
+                                <span class="donut-value" id="courseDonutTotal">0</span>
+                                <span class="donut-label">Total</span>
+                            </div>
+                        </div>
+                        <div id="courseDonutLegend"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card p-4 rounded-3 h-100">
+                    <h6 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:18px;">wc</span>Gender Distribution</h6>
+                    <div class="mb-3">
+                        <div class="d-flex" style="height:32px;border-radius:.5rem;overflow:hidden;">
+                            <div id="genderMalePct" style="background:var(--clr-primary);display:flex;align-items:center;justify-content:center;transition:width .6s ease;"><span class="small fw-bold text-white" style="font-size:.7rem;white-space:nowrap;">Male: 0</span></div>
+                            <div id="genderFemalePct" style="background:var(--clr-tertiary);display:flex;align-items:center;justify-content:center;transition:width .6s ease;"><span class="small fw-bold text-white" style="font-size:.7rem;white-space:nowrap;">Female: 0</span></div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-4">
+                        <div class="d-flex align-items-center gap-2"><span class="rounded-circle d-inline-block" style="width:10px;height:10px;background:var(--clr-primary);"></span><span class="small fw-semibold">Male</span></div>
+                        <div class="d-flex align-items-center gap-2"><span class="rounded-circle d-inline-block" style="width:10px;height:10px;background:var(--clr-tertiary);"></span><span class="small fw-semibold">Female</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-4 rounded-3 h-100">
+                    <h6 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:18px;">show_chart</span>Monthly Application Trend</h6>
+                    <div class="chart-bar-h" id="monthlyTrend"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: APPLICATIONS REPORT    ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="sa-section px-3 px-md-4 py-4" id="section-sa-applications" style="display:none;">
+    <div class="container-fluid" style="max-width:1400px;">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h2 class="fs-3 fw-bold tracking-tight mb-1">Applications Report</h2>
+                <p class="text-on-surface-variant mb-0" id="appReportCount">—</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-1" id="btnExportApps"><span class="material-symbols-outlined" style="font-size:16px;">download</span>Export CSV</button>
+                <button class="btn btn-surface btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-1 btn-print-report"><span class="material-symbols-outlined" style="font-size:16px;">print</span>Print</button>
+            </div>
+        </div>
+        <div class="card p-0 rounded-3 overflow-hidden">
+            <div class="table-responsive">
+                <table class="data-table" id="appReportTable">
+                    <thead><tr><th>College</th><th>District</th><th>Course</th><th>Applications</th><th>Registered</th><th>Pending</th><th>Conversion %</th></tr></thead>
+                    <tbody id="appReportBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: ADMISSIONS REPORT      ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="sa-section px-3 px-md-4 py-4" id="section-sa-admissions" style="display:none;">
+    <div class="container-fluid" style="max-width:1400px;">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h2 class="fs-3 fw-bold tracking-tight mb-1">Admissions Report</h2>
+                <p class="text-on-surface-variant mb-0">College-wise seat fill, gender & community breakdown</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-1" id="btnExportAdm"><span class="material-symbols-outlined" style="font-size:16px;">download</span>Export CSV</button>
+                <button class="btn btn-surface btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-1 btn-print-report"><span class="material-symbols-outlined" style="font-size:16px;">print</span>Print</button>
+            </div>
+        </div>
+        <div class="card p-0 rounded-3 overflow-hidden">
+            <div class="table-responsive">
+                <table class="data-table" id="admReportTable">
+                    <thead><tr><th>College</th><th>Course</th><th>Seats</th><th>Registered</th><th>Vacant</th><th>Fill Rate</th><th>M / F</th><th>ST/SC/OBC/Gen</th></tr></thead>
+                    <tbody id="admReportBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: ANALYSIS               ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="sa-section px-3 px-md-4 py-4" id="section-sa-analysis" style="display:none;">
+    <div class="container-fluid" style="max-width:1400px;">
+        <h2 class="fs-3 fw-bold tracking-tight mb-1">Comparative Analysis</h2>
+        <p class="text-on-surface-variant mb-4">College performance and district-level admission patterns</p>
+
+        <!-- Session Comparison -->
+        <div class="card p-4 rounded-3 mb-4">
+            <h6 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-tertiary);font-size:18px;">compare_arrows</span>Session-over-Session Trend</h6>
+            <div class="row g-4 text-center">
+                <div class="col-4">
+                    <div class="p-3 rounded-3 bg-surface-low">
+                        <p class="small text-on-surface-variant mb-1" id="trendCurrentLabel">2024-25</p>
+                        <p class="fs-3 fw-bold mb-0" id="trendCurrent">0</p>
+                        <p class="small fw-semibold mb-0" style="color:var(--clr-primary);">Current Session</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 rounded-3 bg-surface-low">
+                        <p class="small text-on-surface-variant mb-1" id="trendPreviousLabel">2023-24</p>
+                        <p class="fs-3 fw-bold mb-0" id="trendPrevious">0</p>
+                        <p class="small fw-semibold mb-0" style="color:var(--clr-on-surface-variant);">Previous Session</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 rounded-3 bg-surface-low">
+                        <p class="small text-on-surface-variant mb-1">Growth</p>
+                        <p class="fs-3 fw-bold mb-0 kpi-delta" id="trendGrowth">—</p>
+                        <p class="small fw-semibold mb-0">Year-on-Year</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- College Performance -->
+        <div class="card p-4 rounded-3 mb-4">
+            <h6 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:18px;">leaderboard</span>College Performance — Applications vs Seat Fill</h6>
+            <div id="collegePerformance"></div>
+        </div>
+
+        <!-- District Summary Cards -->
+        <div class="card p-4 rounded-3">
+            <h6 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:18px;">location_city</span>District Summary</h6>
+            <div class="row g-3" id="districtSummaryCards"></div>
+        </div>
+    </div>
+</section>
+
+</div><!-- end admin-main -->
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/state-admin.js"></script>
+<script>
+    $(function(){
+        function adjustLayout(){
+            if($(window).width()>=768){ $('.admin-main').css('margin-left','16rem'); }
+            else { $('.admin-main').css('margin-left','0'); }
+        }
+        $(window).on('resize', adjustLayout);
+        adjustLayout();
+    });
+</script>
+</body>
+</html>

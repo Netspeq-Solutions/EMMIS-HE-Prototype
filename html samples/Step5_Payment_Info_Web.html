@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Final Payments - Sikkim State Higher Education Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#6bd9bc",
+                        "on-error-container": "#93000a",
+                        "outline": "#6d7a75",
+                        "inverse-surface": "#2c322f",
+                        "on-surface-variant": "#3d4945",
+                        "primary-fixed": "#89f6d8",
+                        "secondary-fixed-dim": "#a6cfc1",
+                        "surface-tint": "#006b58",
+                        "on-primary-container": "#005d4c",
+                        "secondary-container": "#bfe9da",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#bcc9c3",
+                        "on-background": "#171d1b",
+                        "on-secondary-container": "#446a5e",
+                        "surface": "#f5fbf7",
+                        "on-secondary-fixed": "#002019",
+                        "secondary-fixed": "#c1ebdd",
+                        "surface-container-highest": "#dee4e0",
+                        "on-tertiary-fixed-variant": "#6b3b06",
+                        "surface-bright": "#f5fbf7",
+                        "on-primary-fixed": "#002019",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "on-surface": "#171d1b",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#2e1500",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f0f5f1",
+                        "inverse-on-surface": "#edf2ee",
+                        "tertiary-container": "#ffb77a",
+                        "secondary": "#3f665a",
+                        "primary": "#006b58",
+                        "background": "#f5fbf7",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed-variant": "#274e43",
+                        "surface-container-high": "#e4e9e6",
+                        "primary-fixed-dim": "#6cd9bc",
+                        "on-tertiary-container": "#794612",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed-variant": "#005141",
+                        "surface-dim": "#d6dbd8",
+                        "surface-variant": "#dee4e0",
+                        "surface-container": "#eaefeb",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#6cd9bc",
+                        "tertiary-fixed": "#ffdcc2",
+                        "tertiary": "#87521e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f5fbf7; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="text-on-surface bg-background antialiased overflow-hidden">
+<!-- TopNavBar from JSON -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-3 bg-slate-50 dark:bg-slate-900 shadow-sm dark:shadow-none">
+<div class="flex items-center gap-4">
+<h1 class="text-lg font-bold tracking-tighter text-teal-800 dark:text-teal-400">Sikkim Government College, Burtuk</h1>
+</div>
+<div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+<button class="p-2 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-2 pl-2 border-l border-outline-variant">
+<span class="material-symbols-outlined text-teal-700" data-icon="account_circle">account_circle</span>
+<span class="text-sm font-medium text-slate-800 dark:text-slate-100">SGC-2024-0892</span>
+</div>
+</div>
+</header>
+<div class="flex h-screen pt-14">
+<!-- SideNavBar from JSON -->
+<aside class="fixed left-0 top-14 h-[calc(100vh-3.5rem)] flex flex-col pt-8 bg-slate-100 dark:bg-slate-800 w-72 border-r-0">
+<div class="px-8 mb-8">
+<h2 class="text-teal-700 dark:text-teal-400 text-sm font-bold tracking-wider uppercase">Admission 2024</h2>
+<p class="text-xs text-slate-500 mt-1">Application ID: SGC-2024-0892</p>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="text-slate-600 dark:text-slate-400 pl-10 py-3 text-sm font-medium flex items-center gap-3 hover:text-teal-600 transition-all cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-lg" data-icon="info">info</span>
+<span>Primary Information</span>
+</div>
+<div class="text-slate-600 dark:text-slate-400 pl-10 py-3 text-sm font-medium flex items-center gap-3 hover:text-teal-600 transition-all cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-lg" data-icon="person">person</span>
+<span>Personal Details</span>
+</div>
+<div class="text-slate-600 dark:text-slate-400 pl-10 py-3 text-sm font-medium flex items-center gap-3 hover:text-teal-600 transition-all cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-lg" data-icon="school">school</span>
+<span>Academic History</span>
+</div>
+<div class="text-slate-600 dark:text-slate-400 pl-10 py-3 text-sm font-medium flex items-center gap-3 hover:text-teal-600 transition-all cursor-not-allowed opacity-75">
+<span class="material-symbols-outlined text-lg" data-icon="account_tree">account_tree</span>
+<span>Course Preferences</span>
+</div>
+<!-- Active Tab: Final Payments -->
+<div class="bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-400 rounded-l-full ml-4 pl-6 py-3 font-bold shadow-sm flex items-center gap-3">
+<span class="material-symbols-outlined text-lg" data-icon="payments">payments</span>
+<span>Final Payments</span>
+</div>
+<div class="text-slate-600 dark:text-slate-400 pl-10 py-3 text-sm font-medium flex items-center gap-3 hover:text-teal-600 transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="fact_check">fact_check</span>
+<span>Preview &amp; Final Submit</span>
+</div>
+</nav>
+<div class="p-8">
+<div class="bg-primary-container/20 rounded-xl p-4">
+<p class="text-[10px] uppercase font-bold text-teal-800 tracking-widest mb-1">Status</p>
+<p class="text-xs text-teal-900 font-medium leading-relaxed">Payment stage reached. Complete transaction to finalize.</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-72 flex-1 overflow-y-auto no-scrollbar bg-background p-12">
+<div class="max-w-5xl mx-auto">
+<!-- Header Section -->
+<header class="mb-12">
+<div class="flex items-center gap-2 mb-4">
+<span class="px-3 py-1 bg-tertiary-container text-on-tertiary-container text-[10px] font-extrabold uppercase rounded-full tracking-widest">Step 5 of 6</span>
+<div class="flex items-center gap-1 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="school">school</span>
+<span class="font-medium">Sikkim Government College, Burtuk</span>
+</div>
+</div>
+<h1 class="text-4xl font-extrabold text-on-surface tracking-tight mb-3">Step 5: Final Payments</h1>
+<p class="text-lg text-on-surface-variant max-w-2xl leading-relaxed">Please review your fee breakdown and proceed to the secure payment gateway to complete your application.</p>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left: Payment Redirect Card -->
+<section class="lg:col-span-7 space-y-6">
+<div class="bg-surface-container-lowest rounded-xl p-8 border border-surface-container-highest shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 p-8 opacity-5">
+<span class="material-symbols-outlined text-9xl" data-icon="payments">payments</span>
+</div>
+<div class="flex flex-col items-center text-center">
+<div class="w-16 h-16 bg-primary-container/20 text-primary rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-3xl" data-icon="swap_horiz">swap_horiz</span>
+</div>
+<h2 class="text-2xl font-bold text-on-surface mb-3 tracking-tight">Payment Redirection</h2>
+<p class="text-on-surface-variant mb-8 leading-relaxed max-w-md">You will be redirected to our secure payment gateway to complete your transaction. Please do not close or refresh the browser until the process is finished.</p>
+<button class="w-full sm:w-auto bg-primary hover:bg-surface-tint text-on-primary px-8 py-4 rounded-lg font-bold flex items-center justify-center gap-3 transition-all transform active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+                                    Proceed to Secure Payment
+                                </button>
+<div class="mt-12 w-full">
+<p class="text-[10px] font-bold text-outline uppercase tracking-widest mb-6 flex items-center justify-center gap-4">
+<span class="h-[1px] w-12 bg-outline-variant"></span>
+                                        Supported Payment Methods
+                                        <span class="h-[1px] w-12 bg-outline-variant"></span>
+</p>
+<div class="flex justify-center items-center gap-8 text-on-surface-variant">
+<div class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-2xl" data-icon="account_balance">account_balance</span>
+<span class="text-[10px] font-medium">NET BANKING</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-2xl" data-icon="credit_card">credit_card</span>
+<span class="text-[10px] font-medium">MASTERCARD</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-80 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-2xl" data-icon="qr_code_2">qr_code_2</span>
+<span class="text-[10px] font-medium">UPI PAY</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Security Badges -->
+<div class="flex flex-wrap justify-between gap-4 px-2">
+<div class="flex items-center gap-2 text-on-surface-variant/70">
+<span class="material-symbols-outlined text-sm" data-icon="verified_user">verified_user</span>
+<span class="text-[11px] font-semibold uppercase tracking-tight">100% Secure Transaction</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant/70">
+<span class="material-symbols-outlined text-sm" data-icon="encrypted">encrypted</span>
+<span class="text-[11px] font-semibold uppercase tracking-tight">SSL Encrypted</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant/70">
+<span class="material-symbols-outlined text-sm" data-icon="security">security</span>
+<span class="text-[11px] font-semibold uppercase tracking-tight">PCI DSS Compliant</span>
+</div>
+</div>
+</section>
+<!-- Right: Fee Breakdown Card -->
+<aside class="lg:col-span-5">
+<div class="bg-white rounded-xl shadow-sm border border-surface-container-highest overflow-hidden">
+<div class="p-6 border-b border-surface-container-highest bg-surface-container-low/50">
+<h3 class="text-sm font-bold text-on-surface flex items-center gap-2 uppercase tracking-wider">
+<span class="material-symbols-outlined text-primary text-base" data-icon="receipt_long">receipt_long</span>
+                                    Fee Breakdown
+                                </h3>
+</div>
+<div class="p-8">
+<div class="flex justify-between items-center mb-6">
+<span class="text-on-surface-variant font-medium">Application Processing Fee</span>
+<span class="text-on-surface font-extrabold text-xl">₹200.00</span>
+</div>
+<div class="p-4 bg-primary-container/10 rounded-lg border border-primary-container/20 mb-8">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="info">info</span>
+<p class="text-xs text-on-secondary-container leading-relaxed">Payments are processed through our secure partner gateway. Additional gateway charges, taxes, and convenience fees may be applied on the payment page.</p>
+</div>
+</div>
+<div class="space-y-4 pt-4 border-t border-surface-container-highest">
+<div class="flex items-center justify-between text-[11px] text-outline font-medium uppercase tracking-tighter">
+<span>Subtotal</span>
+<span>₹200.00</span>
+</div>
+<div class="flex items-center justify-between text-sm font-bold text-teal-800">
+<span>Payable Now</span>
+<span>₹200.00*</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Info -->
+<div class="mt-6 p-6 bg-tertiary-container/10 rounded-xl border border-tertiary-container/20">
+<h4 class="text-xs font-bold text-on-tertiary-container mb-2 uppercase tracking-wide">Important Note</h4>
+<p class="text-xs text-on-tertiary-container/80 leading-relaxed">Ensure your internet connection is stable. Any payment failure or duplicate deduction will be rectified within 5-7 working days.</p>
+</div>
+</aside>
+</div>
+<!-- Help & Support Banner -->
+<div class="mt-12 bg-surface-container-low border border-surface-container-highest rounded-xl p-6 flex items-start gap-4">
+<div class="w-10 h-10 bg-secondary-container text-on-secondary-container rounded-full flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</div>
+<div>
+<p class="text-sm text-on-surface leading-relaxed mb-2">
+                            If your payment is debited but the status doesn't update, <strong>please wait 30 minutes</strong> before trying again.
+                        </p>
+<p class="text-xs text-on-surface-variant flex items-center gap-1">
+                            For assistance, contact our technical desk at 
+                            <a class="text-primary font-bold hover:underline" href="mailto:support.admissions@sikkim.gov.in">support.admissions@sikkim.gov.in</a>
+</p>
+</div>
+</div>
+<!-- Footer Navigation -->
+<div class="mt-16 pt-8 border-t border-surface-container-highest flex flex-col sm:flex-row justify-between items-center gap-6">
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary font-bold text-sm transition-colors group" href="#">
+<span class="material-symbols-outlined text-base group-hover:-translate-x-1 transition-transform" data-icon="arrow_back">arrow_back</span>
+                        Back to Course Preferences
+                    </a>
+<div class="flex items-center gap-4">
+<span class="text-xs text-outline italic">Final step after payment</span>
+<button class="bg-surface-container-highest text-outline px-8 py-3 rounded-lg font-bold text-sm cursor-not-allowed opacity-60">
+                            Proceed to Submit
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

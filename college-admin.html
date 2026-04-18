@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Admin — Sikkim Higher Education Portal</title>
+    <meta name="description" content="College administration dashboard for managing student admissions, registrations, and merit lists.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="admin-topbar">
+    <div class="d-flex align-items-center gap-3">
+        <span class="admin-brand">Sikkim Portal</span>
+        <span class="admin-role-badge">College Admin</span>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <span class="text-white small fw-semibold d-none d-md-inline">Sikkim Government College, Burtuk</span>
+        <button class="btn btn-sm text-white fw-bold btn-admin-signout" style="background:rgba(255,255,255,0.1);">Sign Out</button>
+        <div class="rounded-circle overflow-hidden border border-2" style="width:36px;height:36px;border-color:rgba(255,255,255,0.2)!important;">
+            <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background:var(--clr-primary-container);">
+                <span class="material-symbols-outlined" style="font-size:20px;color:var(--clr-on-primary-container);">person</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar-admin d-none d-md-flex">
+    <div class="px-3 pt-3 pb-2">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="material-symbols-outlined filled" style="color:var(--clr-primary);font-variation-settings:'FILL' 1;">school</span>
+            <span class="fw-bold small" style="color:#0f4a2a;">Session 2024-25</span>
+        </div>
+    </div>
+    <span class="sidebar-section-label">Overview</span>
+    <a href="#" class="sidebar-nav-item active" data-section="section-ca-dashboard"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
+    <span class="sidebar-section-label">Registration</span>
+    <a href="#" class="sidebar-nav-item" data-section="section-ca-register-search"><span class="material-symbols-outlined">person_search</span>Search & Register</a>
+    <span class="sidebar-section-label">Merit Lists</span>
+    <a href="#" class="sidebar-nav-item" data-section="section-ca-merit-upload"><span class="material-symbols-outlined">upload_file</span>Upload New</a>
+    <a href="#" class="sidebar-nav-item" data-section="section-ca-merit-manage"><span class="material-symbols-outlined">format_list_numbered</span>Manage Lists</a>
+    <div class="mt-auto p-3">
+        <div class="p-3 rounded-3" style="background:rgba(0,107,88,0.05);">
+            <p class="small mb-1 fw-bold" style="color:var(--clr-primary);">Need Help?</p>
+            <p class="mb-0" style="font-size:.75rem;color:var(--clr-on-surface-variant);">Contact EMMIS support at helpdesk@sikkim.edu</p>
+        </div>
+    </div>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="admin-main" style="margin-left:16rem; padding-top:56px;">
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: DASHBOARD              ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-dashboard">
+    <div class="container-fluid" style="max-width:1400px;">
+        <!-- Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h1 class="fs-3 fw-bold tracking-tight mb-1">College Dashboard</h1>
+                <p class="text-on-surface-variant mb-0">Sikkim Government College, Burtuk — Session 2024-25</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary px-4 py-2 fw-bold d-flex align-items-center gap-2" id="btnQuickRegister"><span class="material-symbols-outlined" style="font-size:18px;">person_add</span>Register Student</button>
+                <button class="btn btn-outline-primary px-4 py-2 fw-bold d-flex align-items-center gap-2" id="btnQuickMerit"><span class="material-symbols-outlined" style="font-size:18px;">upload_file</span>Upload Merit List</button>
+            </div>
+        </div>
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="admin-kpi">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="kpi-icon" style="background:rgba(0,107,88,0.1);"><span class="material-symbols-outlined" style="color:var(--clr-primary);">description</span></div>
+                    </div>
+                    <div class="kpi-value" id="kpiTotalApps">0</div>
+                    <div class="kpi-label mt-1">Total Applications</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="admin-kpi">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="kpi-icon" style="background:rgba(63,102,90,0.1);"><span class="material-symbols-outlined" style="color:var(--clr-secondary);">how_to_reg</span></div>
+                    </div>
+                    <div class="kpi-value" id="kpiAdmitted">0</div>
+                    <div class="kpi-label mt-1">Merit Listed</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="admin-kpi">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="kpi-icon" style="background:rgba(135,82,30,0.1);"><span class="material-symbols-outlined" style="color:var(--clr-tertiary);">badge</span></div>
+                    </div>
+                    <div class="kpi-value" id="kpiRegistered">0</div>
+                    <div class="kpi-label mt-1">Registered</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="admin-kpi">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="kpi-icon" style="background:rgba(186,26,26,0.08);"><span class="material-symbols-outlined" style="color:var(--clr-error);">event_seat</span></div>
+                    </div>
+                    <div class="kpi-value" id="kpiSeatsLeft">0</div>
+                    <div class="kpi-label mt-1">Seats Remaining</div>
+                </div>
+            </div>
+        </div>
+        <!-- Course-wise Table -->
+        <div class="card p-4 rounded-3 mb-4">
+            <h5 class="fw-bold d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="color:var(--clr-primary);">table_chart</span>Course-wise Application Stats</h5>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>Course</th><th>Applications</th><th>Merit Listed</th><th>Registered</th><th>Vacant</th><th>Fill Rate</th></tr></thead>
+                    <tbody id="courseStatsBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Charts Row -->
+        <div class="row g-4">
+            <!-- Gender Donut -->
+            <div class="col-md-5">
+                <div class="card p-4 rounded-3 h-100">
+                    <h6 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:18px;">pie_chart</span>Gender Distribution</h6>
+                    <div class="d-flex align-items-center justify-content-center gap-4 flex-wrap">
+                        <div class="chart-donut" id="genderDonut">
+                            <div class="donut-center">
+                                <span class="donut-value" id="kpiTotalApps2">0</span>
+                                <span class="donut-label">Total</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-2"><span class="rounded-circle d-inline-block" style="width:12px;height:12px;background:var(--clr-primary);"></span><span class="small fw-semibold">Male: <strong id="genderMaleCount">0</strong></span></div>
+                            <div class="d-flex align-items-center gap-2"><span class="rounded-circle d-inline-block" style="width:12px;height:12px;background:var(--clr-tertiary);"></span><span class="small fw-semibold">Female: <strong id="genderFemaleCount">0</strong></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Community Bars -->
+            <div class="col-md-7">
+                <div class="card p-4 rounded-3 h-100">
+                    <h6 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:18px;">bar_chart</span>Community-wise Report</h6>
+                    <div class="chart-bar-h" id="communityBars"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: REGISTRATION SEARCH    ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-register-search" style="display:none;">
+    <div class="container-fluid" style="max-width:1100px;">
+        <div class="text-center mb-4 pt-4">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width:64px;height:64px;background:rgba(0,107,88,0.1);">
+                <span class="material-symbols-outlined fs-2" style="color:var(--clr-primary);">person_search</span>
+            </div>
+            <h2 class="fs-3 fw-bold tracking-tight mb-2">Student Registration</h2>
+            <p class="text-on-surface-variant" style="max-width:500px;margin:0 auto;">Search by application number or student name to begin the registration process.</p>
+        </div>
+        <div class="autocomplete-wrap mx-auto mb-5" style="max-width:600px;">
+            <div class="input-group input-group-lg">
+                <span class="input-group-text bg-surface-low border-end-0"><span class="material-symbols-outlined text-on-surface-variant">search</span></span>
+                <input type="text" class="form-control border-start-0 bg-surface-low reg-search-input" placeholder="Type application no. or student name..." style="border-color:var(--clr-outline-variant);" autocomplete="off">
+            </div>
+            <div class="autocomplete-dropdown reg-search-dropdown"></div>
+        </div>
+        <!-- Registered Students List -->
+        <div id="registeredStudentsList">
+            <h5 class="fw-bold d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:20px;">how_to_reg</span>Recently Registered</h5>
+            <div class="card p-0 rounded-3 overflow-hidden mb-4" id="registeredTableWrap" style="display:none;">
+                <div class="table-responsive">
+                    <table class="data-table"><thead><tr><th>App No</th><th>Student Name</th><th>Course</th><th>Roll No</th><th>Stage</th><th>Action</th></tr></thead>
+                    <tbody id="registeredBody"></tbody></table>
+                </div>
+            </div>
+            <div id="registeredEmpty" class="text-center py-4">
+                <p class="text-on-surface-variant small mb-0">No students registered yet. Search above to start.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: REGISTRATION FORM      ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-register-form" style="display:none;">
+    <div class="container-fluid" style="max-width:1100px;">
+        <!-- Persistent Search Bar -->
+        <div class="autocomplete-wrap mb-4" style="max-width:100%;">
+            <div class="input-group">
+                <span class="input-group-text bg-surface-low border-end-0"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px;">search</span></span>
+                <input type="text" class="form-control border-start-0 bg-surface-low reg-search-input" placeholder="Quick search: switch to another student..." style="border-color:var(--clr-outline-variant);font-size:.875rem;" autocomplete="off">
+            </div>
+            <div class="autocomplete-dropdown reg-search-dropdown"></div>
+        </div>
+
+        <!-- Student Header -->
+        <div class="card p-4 rounded-3 mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:56px;height:56px;background:var(--clr-primary-container);">
+                        <span class="material-symbols-outlined fs-3" style="color:var(--clr-on-primary-container);">person</span>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0" id="regName">—</h4>
+                        <p class="small text-on-surface-variant mb-0"><span id="regAppNo" class="fw-semibold" style="font-family:monospace;color:var(--clr-primary);">—</span> · <span id="regCourse">—</span> · Marks: <span id="regMarks">—</span> · <span id="regGender">—</span> · <span id="regCommunity">—</span></p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <span id="regMeritBadges"></span>
+                    <span class="badge rounded-pill px-3 py-2 fw-bold" id="regStageBadge">—</span>
+                    <button class="btn btn-surface btn-sm fw-bold d-flex align-items-center gap-1" id="btnBackToSearch"><span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>Back</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booth Stepper -->
+        <div class="py-3 mb-4">
+            <div class="booth-stepper">
+                <div class="booth-step active" data-booth="1"><span class="material-symbols-outlined booth-icon">verified_user</span>Verification</div>
+                <div class="booth-connector" data-after-booth="1"></div>
+                <div class="booth-step" data-booth="2"><span class="material-symbols-outlined booth-icon">event_seat</span>Seat Allocation</div>
+                <div class="booth-connector" data-after-booth="2"></div>
+                <div class="booth-step" data-booth="3"><span class="material-symbols-outlined booth-icon">payments</span>Fee Collection</div>
+            </div>
+        </div>
+
+        <!-- BOOTH 1: Verification & Registration -->
+        <div class="booth-tab" id="booth1">
+            <div class="card p-4 p-md-5 rounded-3">
+                <h5 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);">fact_check</span>Verification &amp; Registration</h5>
+
+                <!-- Document Pending Alert -->
+                <div class="alert d-flex align-items-center gap-2 rounded-3 mb-4" id="docPendingAlert" style="display:none;background:var(--clr-error-container);color:var(--clr-on-error-container);border:1px solid rgba(186,26,26,0.2);">
+                    <span class="material-symbols-outlined" style="font-size:20px;">warning</span>
+                    <span class="small fw-semibold" id="docPendingText">Some documents are pending verification.</span>
+                </div>
+
+                <!-- ── Online Application Details (Read-only) ── -->
+                <h6 class="fw-bold d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-secondary);">description</span>Online Application Details <span class="badge bg-surface-high rounded-pill text-on-surface-variant" style="font-size:.625rem;">Submitted Data</span></h6>
+
+                <!-- Section: Primary Information (Step 1) -->
+                <div class="d-flex align-items-center gap-2 mb-2"><span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-primary);">info</span><span class="small fw-bold text-uppercase" style="font-size:.65rem;letter-spacing:.06em;color:var(--clr-primary);">Primary Information</span></div>
+                <div class="p-3 rounded-3 bg-surface-low mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">Application No</span><strong id="roAppNo" style="font-family:monospace;color:var(--clr-primary);">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">Class XII Roll No</span><strong id="roRollNo">—</strong></p></div>
+                        <div class="col-md-6"><p class="mb-0"><span class="small text-on-surface-variant d-block">Full Name</span><strong id="roName">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Board</span><strong id="roBoard">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Stream</span><strong id="roStream">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Mobile</span><strong id="roMobile">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Gender</span><strong id="roGender">—</strong></p></div>
+                        <div class="col-md-4"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Email</span><strong id="roEmail">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Category</span><strong id="roCategory">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">COI / RC / Domicile No</span><strong id="roCOI">—</strong></p></div>
+                        <div class="col-md-2"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">PwD</span><strong id="roPWD">—</strong></p></div>
+                    </div>
+                </div>
+
+                <!-- Section: Personal Details (Step 2) -->
+                <div class="d-flex align-items-center gap-2 mb-2"><span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-primary);">person</span><span class="small fw-bold text-uppercase" style="font-size:.65rem;letter-spacing:.06em;color:var(--clr-primary);">Personal Details</span></div>
+                <div class="p-3 rounded-3 bg-surface-low mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">Date of Birth</span><strong id="roDob">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">Community</span><strong id="roCommunity">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">District</span><strong id="roDistrict">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">State</span><strong id="roState">—</strong></p></div>
+                        <div class="col-md-4"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Father / Guardian</span><strong id="roFather">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Father's Contact</span><strong id="roFatherContact">—</strong></p></div>
+                        <div class="col-md-5"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Mother's Name</span><strong id="roMother">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Pincode</span><strong id="roPincode">—</strong></p></div>
+                        <div class="col-md-9"><p class="mb-0 mt-2"><span class="small text-on-surface-variant d-block">Permanent Address</span><strong id="roAddress">—</strong></p></div>
+                    </div>
+                </div>
+
+                <!-- Section: Academic History (Step 3) -->
+                <div class="d-flex align-items-center gap-2 mb-2"><span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-primary);">school</span><span class="small fw-bold text-uppercase" style="font-size:.65rem;letter-spacing:.06em;color:var(--clr-primary);">Academic History — Class XII</span></div>
+                <div class="p-3 rounded-3 bg-surface-low mb-3">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless mb-0" style="font-size:.85rem;">
+                            <thead><tr class="text-uppercase small fw-bold" style="font-size:.65rem;letter-spacing:.05em;color:var(--clr-secondary);border-bottom:1px solid var(--clr-surface-variant);"><th class="py-2">Subject</th><th class="py-2 text-center">Marks</th><th class="py-2 text-center">Total</th><th class="py-2 text-end">Status</th></tr></thead>
+                            <tbody id="roSubjectsBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-end pt-2 border-top mt-2">
+                        <span class="fw-bold small" style="color:var(--clr-primary);">Aggregate: <span id="roAggregate">—</span></span>
+                    </div>
+                </div>
+
+                <!-- Section: Course Preferences (Step 4) -->
+                <div class="d-flex align-items-center gap-2 mb-2"><span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-primary);">account_balance</span><span class="small fw-bold text-uppercase" style="font-size:.65rem;letter-spacing:.06em;color:var(--clr-primary);">Course Preferences</span></div>
+                <div class="p-3 rounded-3 bg-surface-low mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-4"><p class="mb-0"><span class="small text-on-surface-variant d-block">Course Applied</span><strong id="roCourseApplied">—</strong></p></div>
+                        <div class="col-md-4"><p class="mb-0"><span class="small text-on-surface-variant d-block">Marks %</span><strong id="roMarks">—</strong></p></div>
+                    </div>
+                    <div class="row g-2 mt-1">
+                        <div class="col-md-4"><p class="mb-0"><span class="small text-on-surface-variant d-block">Preference 1</span><strong id="roPref1" class="small">—</strong></p></div>
+                        <div class="col-md-4"><p class="mb-0"><span class="small text-on-surface-variant d-block">Preference 2</span><strong id="roPref2" class="small">—</strong></p></div>
+                        <div class="col-md-4"><p class="mb-0"><span class="small text-on-surface-variant d-block">Preference 3</span><strong id="roPref3" class="small">—</strong></p></div>
+                    </div>
+                </div>
+
+                <!-- Section: Application Fee Payment (Step 5) -->
+                <div class="d-flex align-items-center gap-2 mb-2"><span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-primary);">payments</span><span class="small fw-bold text-uppercase" style="font-size:.65rem;letter-spacing:.06em;color:var(--clr-primary);">Application Fee Payment</span></div>
+                <div class="p-3 rounded-3 bg-surface-low mb-4">
+                    <div class="row g-2">
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">Transaction ID</span><strong id="roTxnId" style="font-family:monospace;">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">Amount</span><strong id="roFeeAmount">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">Status</span><strong id="roFeeStatus">—</strong></p></div>
+                        <div class="col-md-3"><p class="mb-0"><span class="small text-on-surface-variant d-block">Payment Method</span><strong id="roPayMethod">—</strong></p></div>
+                    </div>
+                </div>
+
+                <!-- Corrections Section -->
+                <h6 class="fw-bold d-flex align-items-center gap-2 mb-3 pt-3 border-top"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-tertiary);">edit_note</span>Corrections <span class="small fw-normal text-on-surface-variant">(Edit only if different from submitted data)</span></h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6"><label class="form-label">Full Name</label><input type="text" class="form-control" id="regEditName" placeholder="Leave blank if no correction"></div>
+                    <div class="col-md-3"><label class="form-label">Date of Birth</label><input type="date" class="form-control" id="regEditDob"></div>
+                    <div class="col-md-3"><label class="form-label">Mobile</label><input type="tel" class="form-control" id="regEditMobile" placeholder="Leave blank if same"></div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6"><label class="form-label">Father's / Guardian's Name</label><input type="text" class="form-control" id="regEditFather" placeholder="Leave blank if no correction"></div>
+                    <div class="col-md-6"><label class="form-label">Address</label><input type="text" class="form-control" id="regEditAddress" placeholder="Leave blank if no correction"></div>
+                </div>
+
+                <!-- Documents -->
+                <h6 class="fw-bold d-flex align-items-center gap-2 mb-3 pt-3 border-top"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-tertiary);">checklist</span>Document Verification Checklist</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6"><div class="form-check"><input class="form-check-input doc-check" type="checkbox" id="docMarksheet"><label class="form-check-label small fw-medium" for="docMarksheet">Class XII Marksheet (Original verified)</label></div></div>
+                    <div class="col-md-6"><div class="form-check"><input class="form-check-input doc-check" type="checkbox" id="docCommunity"><label class="form-check-label small fw-medium" for="docCommunity">Community Certificate</label></div></div>
+                    <div class="col-md-6"><div class="form-check"><input class="form-check-input doc-check" type="checkbox" id="docCOI"><label class="form-check-label small fw-medium" for="docCOI">COI / Domicile Certificate</label></div></div>
+                    <div class="col-md-6"><div class="form-check"><input class="form-check-input doc-check" type="checkbox" id="docPhoto"><label class="form-check-label small fw-medium" for="docPhoto">Passport Photo (Physical copy)</label></div></div>
+                    <div class="col-md-6"><div class="form-check"><input class="form-check-input doc-check" type="checkbox" id="docTC"><label class="form-check-label small fw-medium" for="docTC">Transfer Certificate</label></div></div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Upload Supporting Documents</label>
+                        <div class="upload-zone d-flex align-items-center justify-content-center gap-2 py-3" style="height:auto;">
+                            <span class="material-symbols-outlined text-outline">cloud_upload</span>
+                            <span class="small text-on-surface-variant">Click to upload (PDF/JPG)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end pt-3 border-top">
+                    <button class="btn btn-primary px-5 py-2 fw-bold d-flex align-items-center gap-2" id="btnSaveVerification"><span class="material-symbols-outlined" style="font-size:18px;">how_to_reg</span>Register</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOOTH 2: Seat Allocation -->
+        <div class="booth-tab" id="booth2" style="display:none;">
+            <div class="card p-4 p-md-5 rounded-3">
+                <h5 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);">event_seat</span>Seat Allocation</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6"><label class="form-label">Allocated Course *</label><select class="form-select" id="regAllocCourse"></select></div>
+                    <div class="col-md-3"><label class="form-label">College Roll No *</label><input type="text" class="form-control" id="regRollNo"></div>
+                    <div class="col-md-3"><label class="form-label">Section / Batch</label><select class="form-select" id="regSection"><option value="A">Section A</option><option value="B">Section B</option><option value="C">Section C</option></select></div>
+                </div>
+                <h6 class="fw-bold d-flex align-items-center gap-2 mb-3 pt-3 border-top"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-secondary);">library_books</span>Subject / Elective Selection</h6>
+                <div class="row g-2 mb-4" id="regElectives"></div>
+                <div class="d-flex justify-content-end pt-3 border-top">
+                    <button class="btn btn-primary px-5 py-2 fw-bold d-flex align-items-center gap-2" id="btnSaveSeat"><span class="material-symbols-outlined" style="font-size:18px;">check</span>Confirm Allocation</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOOTH 3: Fee Collection -->
+        <div class="booth-tab" id="booth3" style="display:none;">
+            <div class="card p-4 p-md-5 rounded-3">
+                <h5 class="fw-bold d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);">payments</span>Fee Collection</h5>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-4 rounded-3 bg-surface-low">
+                            <p class="small fw-bold text-uppercase mb-3" style="letter-spacing:.05em;color:var(--clr-on-surface-variant);">Fee Breakdown</p>
+                            <div class="d-flex justify-content-between mb-2"><span class="small text-on-surface-variant">Tuition Fee</span><span class="small fw-bold" id="regFeeAmount">₹5,000.00</span></div>
+                            <div class="d-flex justify-content-between mb-2"><span class="small text-on-surface-variant">Lab / Library Fee</span><span class="small fw-bold">Included</span></div>
+                            <div class="pt-2 border-top d-flex justify-content-between"><span class="fw-bold">Total Payable</span><span class="fw-bold fs-5" style="color:var(--clr-primary);" id="regFeeTotal">₹5,000.00</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row g-3">
+                            <div class="col-12"><label class="form-label">Payment Mode *</label><select class="form-select" id="regPayMode"><option value="">Select Mode</option><option value="Cash">Cash</option><option value="DD">Demand Draft</option><option value="Online">Online Transfer</option><option value="Scholarship">Scholarship / Fee Waiver</option></select></div>
+                            <div class="col-12"><label class="form-label">Receipt / Reference No</label><input type="text" class="form-control" id="regReceiptNo" placeholder="Auto-generated if blank"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end pt-3 border-top gap-3">
+                    <button class="btn btn-primary px-5 py-2 fw-bold d-flex align-items-center gap-2" id="btnSaveFee"><span class="material-symbols-outlined" style="font-size:18px;">receipt_long</span>Collect Fee & Generate Receipt</button>
+                </div>
+                <!-- Receipt (hidden until fee collected) -->
+                <div id="receiptSection" style="display:none;" class="mt-4 pt-4 border-top">
+                    <div class="print-receipt p-4 border rounded-3">
+                        <div class="receipt-header">
+                            <h5 class="fw-bold mb-1">Sikkim Government College, Burtuk</h5>
+                            <p class="small text-on-surface-variant mb-2">Fee Receipt — Session 2024-25</p>
+                            <span class="material-symbols-outlined filled" style="font-size:48px;color:var(--clr-primary);font-variation-settings:'FILL' 1;">check_circle</span>
+                        </div>
+                        <div class="py-3">
+                            <div class="receipt-row"><span class="label">Student Name</span><span class="value" id="rcptName">—</span></div>
+                            <div class="receipt-row"><span class="label">Application No</span><span class="value" id="rcptAppNo">—</span></div>
+                            <div class="receipt-row"><span class="label">Roll No</span><span class="value" id="rcptRollNo">—</span></div>
+                            <div class="receipt-row"><span class="label">Course</span><span class="value" id="rcptCourse">—</span></div>
+                            <div class="receipt-row"><span class="label">Payment Mode</span><span class="value" id="rcptMode">—</span></div>
+                            <div class="receipt-row"><span class="label">Receipt No</span><span class="value" id="rcptNo">—</span></div>
+                            <div class="receipt-row"><span class="label">Date</span><span class="value" id="rcptDate">—</span></div>
+                            <div class="receipt-row receipt-total"><span class="label">Amount Paid</span><span class="value" style="color:var(--clr-primary);" id="rcptAmount">—</span></div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button class="btn btn-outline-primary px-4 py-2 fw-bold d-flex align-items-center gap-2 mx-auto" id="btnPrintReceipt"><span class="material-symbols-outlined">print</span>Print Receipt</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: MERIT LIST UPLOAD      ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-merit-upload" style="display:none;">
+    <div class="container-fluid" style="max-width:900px;">
+        <h2 class="fs-3 fw-bold tracking-tight mb-1">Upload Merit List</h2>
+        <p class="text-on-surface-variant mb-4">Upload an Excel or CSV file with your offline-prepared merit list.</p>
+        <div class="card p-4 p-md-5 rounded-3">
+            <div class="row g-3 mb-4">
+                <div class="col-md-8"><label class="form-label fw-bold small">Merit List Name *</label><input type="text" class="form-control" id="mlUploadName" placeholder="e.g., Merit List 1"></div>
+                <div class="col-md-4"><label class="form-label fw-bold small">Date *</label><input type="date" class="form-control" id="mlUploadDate"></div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold small d-flex align-items-center gap-2">Upload File (Excel / CSV) *</label>
+                <p class="small text-on-surface-variant mb-2">File must have columns: <strong>Application ID</strong>, <strong>Program</strong>, <strong>Course</strong> &nbsp;·&nbsp; <a href="#" id="btnDownloadTemplate" class="fw-bold text-decoration-none" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">download</span> Download Template</a></p>
+                <div class="upload-zone position-relative d-flex flex-column align-items-center justify-content-center gap-2 py-5" id="mlDropZone">
+                    <span class="material-symbols-outlined fs-1 text-outline" id="mlDropIcon">cloud_upload</span>
+                    <p class="fw-semibold mb-1" id="mlDropLabel">Click to upload or drag &amp; drop</p>
+                    <p class="small mb-0" style="color:var(--clr-secondary);" id="mlDropHint">.xlsx, .xls, .csv — Max 5 MB</p>
+                    <input type="file" id="mlFileInput" accept=".xlsx,.xls,.csv" class="position-absolute top-0 start-0 w-100 h-100" style="opacity:0;cursor:pointer;">
+                </div>
+            </div>
+            <!-- Preview area (hidden until Validate) -->
+            <div id="mlPreviewArea" style="display:none;" class="mb-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <h6 class="fw-bold small mb-0 d-flex align-items-center gap-2"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">fact_check</span>Preview</h6>
+                    <span class="badge rounded-pill px-2 py-1" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);" id="mlPreviewMatchCount">0 matched</span>
+                    <span class="badge rounded-pill px-2 py-1" id="mlPreviewUnmatchBadge" style="background:rgba(186,26,26,0.1);color:var(--clr-error);display:none;"><span id="mlPreviewUnmatchCount">0</span> not found</span>
+                </div>
+                <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
+                    <table class="data-table">
+                        <thead><tr><th>#</th><th>Application ID</th><th>Student Name</th><th>Marks</th><th>Program</th><th>Course</th><th>Status</th></tr></thead>
+                        <tbody id="mlPreviewBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-3">
+                <button class="btn btn-surface px-4 py-2 fw-bold" onclick="window.EMMIS_CA && EMMIS_CA.showSection('section-ca-merit-manage')">Cancel</button>
+                <button class="btn btn-outline-primary px-4 py-2 fw-bold d-flex align-items-center gap-2" id="btnValidateMerit" style="display:none;"><span class="material-symbols-outlined" style="font-size:18px;">fact_check</span>Validate</button>
+                <button class="btn btn-primary px-5 py-2 fw-bold d-flex align-items-center gap-2" id="btnUploadMerit" style="display:none;"><span class="material-symbols-outlined" style="font-size:18px;">check</span>Create Merit List</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: MERIT LIST MANAGE      ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-merit-manage" style="display:none;">
+    <div class="container-fluid" style="max-width:1200px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fs-3 fw-bold tracking-tight mb-1">Merit Lists</h2>
+                <p class="text-on-surface-variant mb-0">Upload &amp; manage offline-prepared merit lists linked to online applications.</p>
+            </div>
+            <button class="btn btn-primary px-4 py-2 fw-bold d-flex align-items-center gap-2" onclick="window.EMMIS_CA && EMMIS_CA.showSection('section-ca-merit-upload')"><span class="material-symbols-outlined" style="font-size:18px;">add</span>New Merit List</button>
+        </div>
+        <div class="row g-4" id="meritListCards"></div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════╗ -->
+<!-- ║   SECTION: MERIT LIST DETAIL      ║ -->
+<!-- ╚═══════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-merit-detail" style="display:none;">
+    <div class="container-fluid" style="max-width:1300px;">
+        <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 mb-3 p-0" id="btnBackToMeritList" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>Back to Merit Lists</button>
+        <div class="d-flex flex-wrap justify-content-between align-items-start mb-4 gap-3">
+            <div>
+                <h2 class="fs-3 fw-bold tracking-tight mb-1" id="mlDetailName">—</h2>
+                <p class="text-on-surface-variant mb-0">Published: <span id="mlDetailDate">—</span> · <span id="mlDetailTotal">0</span> entries</p>
+            </div>
+            <button class="btn btn-error btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-1" id="btnDeleteMeritList" data-ml-id=""><span class="material-symbols-outlined" style="font-size:16px;">delete</span>Delete List</button>
+        </div>
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card p-3 rounded-3 text-center">
+                    <p class="fs-4 fw-bold mb-0" id="mlSummaryTotal">0</p>
+                    <p class="small text-on-surface-variant mb-0">Total Entries</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3 rounded-3 text-center">
+                    <p class="fs-4 fw-bold mb-0" id="mlSummaryMatched" style="color:var(--clr-primary);">0</p>
+                    <p class="small text-on-surface-variant mb-0">Matched</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3 rounded-3 text-center">
+                    <p class="fs-4 fw-bold mb-0" id="mlSummaryUnmatched" style="color:var(--clr-error);">0</p>
+                    <p class="small text-on-surface-variant mb-0">Not Found</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3 rounded-3 text-center">
+                    <p class="fs-4 fw-bold mb-0" id="mlSummaryRegistered" style="color:var(--clr-tertiary);">0</p>
+                    <p class="small text-on-surface-variant mb-0">Registered</p>
+                </div>
+            </div>
+        </div>
+        <!-- Entries Table -->
+        <div class="card p-4 rounded-3">
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead><tr><th>#</th><th>Application ID</th><th>Student Name</th><th>Marks</th><th>Program</th><th>Course</th><th>Linked</th><th>Registration</th></tr></thead>
+                    <tbody id="mlDetailBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+</div><!-- end admin-main -->
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="js/college-admin.js"></script>
+<script>
+    $(function(){
+        function adjustLayout(){
+            if($(window).width()>=768){
+                $('.admin-main').css('margin-left','16rem');
+            } else {
+                $('.admin-main').css('margin-left','0');
+            }
+        }
+        $(window).on('resize', adjustLayout);
+        adjustLayout();
+    });
+</script>
+</body>
+</html>

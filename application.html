@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sikkim Higher Education - Application Portal</title>
+    <meta name="description" content="Complete your online admission application for Sikkim Higher Education institutions.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="application">
+
+<!-- ===== TOP NAVBAR ===== -->
+<header class="navbar navbar-dark fixed-top px-3 py-2 shadow" style="background:rgba(15,74,42,0.85); backdrop-filter:blur(12px); z-index:1050;">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <span class="navbar-brand fw-bold tracking-tighter mb-0 fs-5">Sikkim Portal</span>
+        </div>
+        <nav class="d-none d-md-flex gap-4 align-items-center">
+            <a href="#" class="text-white-50 text-decoration-none fw-bold">Guidelines</a>
+            <a href="#" class="text-white-50 text-decoration-none fw-bold">Colleges</a>
+            <a href="#" class="text-white-50 text-decoration-none fw-bold">Support</a>
+        </nav>
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-sm text-white fw-bold btn-sign-out" style="background:rgba(255,255,255,0.1);">Sign Out</button>
+            <div class="rounded-circle overflow-hidden border border-2" style="width:36px;height:36px;border-color:rgba(255,255,255,0.2)!important;">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB70Li49woNLK7igwjm2bjw7JNziqttmgGk5IdquG0QV2lQzrYFDc1WvnyHRVuylwINua-lLsfhwcDtbcZ2Y2zPQ33YMCN-WwiIVUJYFwjHoDGn0Eo-OXGSL_vyFHlF346j7J3dwMvOXhep8GSng4cjZxsvYlWH2ermhNo16YSg2_5sAdZ6R3rw8N24Nez18wcH_qrDopDJiwE_aZqNF3NFVAnqPDQmBp0f7BmE8jeBg4TxhFwmNWy0ZFjp9aE9ZCQPV4uQBDaiyWgJ" class="w-100 h-100" style="object-fit:cover;" alt="Profile">
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===== SIDEBAR (Steps 1-6) ===== -->
+<aside class="sidebar-portal d-none d-md-flex" id="appSidebar">
+    <div class="sidebar-header">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="material-symbols-outlined filled" style="color:var(--clr-primary); font-variation-settings:'FILL' 1;">shield</span>
+            <span class="fw-black fs-6" style="color:#0f4a2a;">Admission 2024</span>
+        </div>
+        <p class="small text-secondary mb-0" style="font-size:.75rem;">Application ID: SK-2093</p>
+    </div>
+    <nav class="sidebar-nav d-flex flex-column gap-1">
+        <a href="#" class="sidebar-nav-item btn-go-dashboard" data-step="0"><span class="material-symbols-outlined">dashboard</span>My Applications</a>
+        <hr class="my-1" style="border-color:var(--clr-outline-variant); opacity:.3;">
+        <a href="#" class="sidebar-nav-item" data-step="1"><span class="material-symbols-outlined">info</span>Primary Information</a>
+        <a href="#" class="sidebar-nav-item" data-step="2"><span class="material-symbols-outlined">person</span>Personal Details</a>
+        <a href="#" class="sidebar-nav-item" data-step="3"><span class="material-symbols-outlined">school</span>Academic History</a>
+        <a href="#" class="sidebar-nav-item" data-step="4"><span class="material-symbols-outlined">account_balance</span>Course Preferences</a>
+        <a href="#" class="sidebar-nav-item" data-step="5"><span class="material-symbols-outlined">payments</span>Final Payments</a>
+        <a href="#" class="sidebar-nav-item" data-step="6"><span class="material-symbols-outlined">assignment_turned_in</span>Preview &amp; Submit</a>
+    </nav>
+</aside>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-content-with-sidebar" style="margin-left:0; padding-top:56px;">
+
+<!-- Sticky College Header (shown on steps 1-6) -->
+<div id="collegeStickyHeader" style="display:none;">
+<div class="college-header-sticky d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between" style="margin-left:0;">
+    <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center justify-content-center bg-white rounded-2 shadow-sm" style="width:48px;height:48px;">
+            <span class="material-symbols-outlined" style="color:var(--clr-primary); font-size:28px;">account_balance</span>
+        </div>
+        <div>
+            <h2 class="fw-bold fs-5 mb-0 tracking-tight" style="color:var(--clr-on-surface);">Sikkim Government College, Burtuk</h2>
+            <p class="mb-0 small" style="color:var(--clr-on-surface-variant);">Directorate of Technical Education</p>
+        </div>
+    </div>
+    <div class="text-end d-none d-sm-block mt-2 mt-md-0">
+        <p class="text-uppercase fw-bold mb-0" style="font-size:.65rem; letter-spacing:.1em; color:var(--clr-secondary);">Phase I Admission</p>
+        <p class="mb-0 small fw-medium" style="color:var(--clr-on-surface);">Session 2024-25</p>
+    </div>
+</div>
+</div>
+
+<!-- Progress Stepper (shown on steps 1-6) -->
+<div class="px-3 px-md-4 py-3" id="stepperBar" style="display:none;">
+    <div class="mx-auto stepper" style="max-width:700px;">
+        <div class="stepper-step" data-step="1"><div class="stepper-dot"></div><span class="stepper-label">Primary Info</span></div>
+        <div class="stepper-line" data-after-step="1"></div>
+        <div class="stepper-step" data-step="2"><div class="stepper-dot"></div><span class="stepper-label">Personal</span></div>
+        <div class="stepper-line" data-after-step="2"></div>
+        <div class="stepper-step" data-step="3"><div class="stepper-dot"></div><span class="stepper-label">Academic</span></div>
+        <div class="stepper-line" data-after-step="3"></div>
+        <div class="stepper-step" data-step="4"><div class="stepper-dot"></div><span class="stepper-label">Course Pref</span></div>
+        <div class="stepper-line" data-after-step="4"></div>
+        <div class="stepper-step" data-step="5"><div class="stepper-dot"></div><span class="stepper-label">Payment</span></div>
+        <div class="stepper-line" data-after-step="5"></div>
+        <div class="stepper-step" data-step="6"><div class="stepper-dot"></div><span class="stepper-label">Preview</span></div>
+    </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║     SECTION: DASHBOARD                    ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="app-section px-3 px-md-5 py-4" id="section-dashboard">
+    <div class="container-fluid" style="max-width:1200px;">
+        <div class="mb-5">
+            <h2 class="fs-2 fw-bold tracking-tight mb-1">My Applications</h2>
+            <p class="text-on-surface-variant">Manage and track your admission progress across various institutions.</p>
+        </div>
+        <!-- Stats Row -->
+        <div class="row g-4 mb-5">
+            <div class="col-sm-4"><div class="stat-card"><div class="stat-label">Total Applications</div><div class="stat-value">3</div><span class="material-symbols-outlined stat-icon">school</span></div></div>
+            <div class="col-sm-4"><div class="stat-card"><div class="stat-label">Drafts</div><div class="stat-value">1</div><span class="material-symbols-outlined stat-icon">edit_document</span></div></div>
+            <div class="col-sm-4"><div class="stat-card"><div class="stat-label">Submitted</div><div class="stat-value">2</div><span class="material-symbols-outlined stat-icon">task_alt</span></div></div>
+        </div>
+        <!-- Filters -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm"><div class="input-group"><span class="input-group-text bg-surface-low border-end-0"><span class="material-symbols-outlined text-on-surface-variant">search</span></span><input type="text" class="form-control border-start-0 bg-surface-low" id="dashboardSearch" placeholder="Search by College or ID..." style="border-color:var(--clr-outline-variant);"></div></div>
+            <div class="col-sm-auto"><select class="form-select bg-surface-low" style="border-color:var(--clr-outline-variant);"><option value="all">All Statuses</option><option value="draft">Draft</option><option value="submitted">Submitted</option><option value="incomplete">Incomplete</option></select></div>
+        </div>
+        <!-- Application Cards -->
+        <div class="row g-4">
+            <!-- Card 1: Submitted -->
+            <div class="col-12 col-lg-6">
+                <div class="card application-card h-100">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="rounded-circle bg-surface-container d-flex align-items-center justify-content-center overflow-hidden" style="width:48px;height:48px;"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKg4H9haR6MYvK999WfWcWKpCB0GMd2fi5qhP4vSR6NdPvYAZAS7lhjKgOWfQ_u9Kxkvxafg4wrXhc4ZfmGQSbd3wRmWENOFE5kMXaymakAq-8lw3z7ifII1yGymo_2dQCN77zcwLuiFwg1ZR-n_n3vECMsAtaSqpqCfKH0rFkTRzQQ1xPH0lWC3zi2AT92Qn10yf2FQNEcVsxrmv3EkMueQXmuHSfPZM-e-NySVsFcZUpCm0BfHvavrNAE0kGEeb70KgGcYowWNw6" class="w-100 h-100" style="object-fit:cover;" alt=""></div>
+                                <div><h5 class="fw-bold mb-0 fs-6">Sikkim University</h5><p class="mb-0 small text-on-surface-variant">ID: 2026001522</p></div>
+                            </div>
+                            <span class="badge badge-submitted rounded-pill px-3 py-1 small">Submitted</span>
+                        </div>
+                        <p class="fw-medium mb-1">B.Com Hons</p>
+                        <p class="small text-on-surface-variant d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>Applied: Oct 12, 2023</p>
+                        <div class="mt-auto pt-3 border-top" style="border-color:rgba(188,201,195,0.2)!important;">
+                            <button class="btn btn-primary btn-sm w-100 fw-medium btn-track-status">Track Status</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 2: Draft -->
+            <div class="col-12 col-lg-6">
+                <div class="card application-card h-100">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="rounded-circle bg-surface-container d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><span class="material-symbols-outlined text-outline fs-4">account_balance</span></div>
+                                <div><h5 class="fw-bold mb-0 fs-6">Nar Bahadur Bhandari Degree College</h5><p class="mb-0 small text-on-surface-variant">ID: 2026002198</p></div>
+                            </div>
+                            <span class="badge badge-draft rounded-pill px-3 py-1 small">Draft</span>
+                        </div>
+                        <p class="fw-medium mb-1">B.A. Political Science</p>
+                        <p class="small text-on-surface-variant d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>Started: Nov 05, 2023</p>
+                        <div class="mt-auto pt-3 border-top" style="border-color:rgba(188,201,195,0.2)!important;">
+                            <button class="btn btn-surface btn-sm w-100 fw-medium btn-continue-app">Continue</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Card 3: Incomplete -->
+            <div class="col-12 col-lg-6">
+                <div class="card application-card h-100 position-relative overflow-hidden">
+                    <div class="position-absolute top-0 start-0 h-100" style="width:4px; background:var(--clr-tertiary);"></div>
+                    <div class="card-body p-4 d-flex flex-column ps-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="rounded-circle bg-surface-container d-flex align-items-center justify-content-center overflow-hidden" style="width:48px;height:48px;"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKN_fBXjwQuTYRE1Mvid00faZJeYHU8JvuWzOq070uNTqYe_yUTPouTeSSNLqoLvhP7Wjg5QO3p1AZOloQwkP2uqZc4QV3A_5MiW3QWYKZkAS6uvxcqBPcJhNIqQ1VM4YdDY0im96RqtPAslLSBpoilNzWTIRlwkbunWIZnAZcasP1upxG-ecfNvrpFrc-PddAbAMpwKE8JqBQlOMROoN1r9h9xW5kLpAwWzuX_GW8Mqmmr0CKG3Evu3NDltcD5KGhx5d5NtVFcG48" class="w-100 h-100" style="object-fit:cover;" alt=""></div>
+                                <div><h5 class="fw-bold mb-0 fs-6">Sikkim Manipal University</h5><p class="mb-0 small text-on-surface-variant">ID: 2026003441</p></div>
+                            </div>
+                            <span class="badge badge-incomplete rounded-pill px-3 py-1 small">Incomplete</span>
+                        </div>
+                        <p class="fw-medium mb-1">B.Tech Computer Science</p>
+                        <p class="small d-flex align-items-center gap-1" style="color:var(--clr-error);"><span class="material-symbols-outlined" style="font-size:14px;">error</span>Missing Documents</p>
+                        <div class="mt-auto pt-3 border-top" style="border-color:rgba(188,201,195,0.2)!important;">
+                            <button class="btn btn-tertiary btn-sm w-100 fw-medium btn-continue-app">Complete Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Ghost Card: New Application -->
+            <div class="col-12 col-lg-6">
+                <div class="card h-100 d-flex align-items-center justify-content-center text-center p-4 btn-new-application" style="border:2px dashed var(--clr-outline-variant); background:transparent; cursor:pointer; min-height:250px;" role="button">
+                    <div>
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 bg-surface-high" style="width:64px;height:64px;"><span class="material-symbols-outlined fs-2">add</span></div>
+                        <h5 class="fw-bold mb-2">Apply to another course</h5>
+                        <p class="small text-on-surface-variant mb-3">Explore more programs and submit a new application.</p>
+                        <span class="fw-medium d-inline-flex align-items-center gap-1" style="color:var(--clr-primary);">Apply New <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║     SECTION: STEP 1 — PRIMARY INFO        ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="app-section px-3 px-md-5 py-4" id="section-step1" style="display:none;">
+    <div class="mx-auto" style="max-width:1100px;">
+        <div class="row g-4">
+            <div class="col-md-8 order-2 order-md-1">
+        <div class="card p-4 p-md-5 rounded-4 position-relative overflow-hidden">
+            <div class="position-absolute top-0 end-0 rounded-circle" style="width:256px;height:256px;background:rgba(137,246,216,0.1);filter:blur(60px);margin:-128px -128px 0 0;"></div>
+            <div class="position-relative" style="z-index:1;">
+                <h1 class="fs-3 fw-extrabold tracking-tight mb-1">Primary Information</h1>
+                <p class="text-on-surface-variant mb-4">Please ensure all mandatory fields are filled correctly as per your official documents.</p>
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Class XII Roll No *</label><input type="text" class="form-control" name="rollNo" placeholder="Enter roll number"></div>
+                        <div class="col-md-6"><label class="form-label">Candidate Name *</label><input type="text" class="form-control" name="candidateName" placeholder="Enter full name as per marksheet"></div>
+                    </div>
+                    <div class="row g-3 mb-3 mt-3">
+                        <div class="col-md-6"><label class="form-label">Board *</label><select class="form-select" name="board"><option value="" disabled selected>Select Board</option><option>CBSE</option><option>ICSE</option><option>Sikkim Board</option><option>Other</option></select></div>
+                        <div class="col-md-6">
+                            <label class="form-label">Stream *</label>
+                            <select class="form-select" name="stream"><option value="" disabled selected>Select Stream</option><option>Arts</option><option>Commerce</option><option>Science</option><option>Vocational</option></select>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6"><label class="form-label">Mobile / WhatsApp No *</label><div class="input-group"><span class="input-group-text">+91</span><input type="tel" class="form-control" name="mobile" placeholder="9876543210"></div></div>
+                        <div class="col-md-6"><label class="form-label">Gender *</label><select class="form-select" name="gender"><option value="" disabled selected>Select Gender</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Email ID (Optional)</label><input type="email" class="form-control" name="email" placeholder="example@email.com"></div>
+                    <!-- Category Toggle -->
+                    <div class="p-4 rounded-3 bg-surface-low mb-3">
+                        <label class="form-label">Category *</label>
+                        <div class="radio-pill-group">
+                            <label class="radio-pill active" onclick=""><input type="radio" name="category" value="Sikkimese" checked>Sikkimese</label>
+                            <label class="radio-pill" onclick=""><input type="radio" name="category" value="Non-Sikkimese">Non-Sikkimese</label>
+                        </div>
+                        <div id="sikkimeseFields" class="row g-3 mt-3">
+                            <div class="col-md-6"><label class="form-label small fw-bold text-uppercase" style="font-size:.7rem; color:var(--clr-secondary);">COI / RC / Domicile No *</label><input type="text" class="form-control" name="coiNumber" placeholder="Enter Certificate Number"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold text-uppercase" style="font-size:.7rem; color:var(--clr-secondary);">Upload Certificate *</label><div class="upload-zone d-flex align-items-center justify-content-between p-3 position-relative" style="cursor:pointer;"><span class="small text-on-surface-variant upload-label">Choose File (PDF/JPG)</span><span class="material-symbols-outlined" style="color:var(--clr-secondary);">cloud_upload</span><input type="file" class="position-absolute top-0 start-0 w-100 h-100" style="opacity:0; cursor:pointer;" accept=".pdf,.jpg,.jpeg,.png"></div></div>
+                        </div>
+                    </div>
+                    <!-- PWD -->
+                    <div class="mb-3">
+                        <label class="form-label">Persons with Disability *</label>
+                        <div class="d-flex gap-4">
+                            <label class="d-flex align-items-center gap-2 cursor-pointer"><input type="radio" name="pwd" value="Yes" class="form-check-input" style="width:1.2em;height:1.2em;">Yes</label>
+                            <label class="d-flex align-items-center gap-2 cursor-pointer"><input type="radio" name="pwd" value="No" class="form-check-input" checked style="width:1.2em;height:1.2em;">No</label>
+                        </div>
+                        <div id="pwdUpload" style="display:none;" class="mt-3"><div class="upload-zone d-flex align-items-center justify-content-center gap-3 p-3"><span class="material-symbols-outlined" style="color:var(--clr-secondary);">medical_services</span><span class="small fw-medium" style="color:var(--clr-secondary);">Upload Disability Certificate</span></div></div>
+                    </div>
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-end align-items-center pt-4 border-top">
+                        <button type="button" class="btn btn-gradient px-5 py-3 d-flex align-items-center gap-2 btn-save-next">Save &amp; Next <span class="material-symbols-outlined">arrow_forward</span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+            </div>
+            <!-- Right sidebar: Step 1 Info -->
+            <div class="col-md-4 order-1 order-md-2">
+                <div class="card p-4 rounded-3 position-sticky" style="top:10rem;">
+                    <h6 class="fw-bold d-flex align-items-center gap-2 mb-3" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:18px;">info</span>Instructions</h6>
+                    <ul class="small mb-0" style="line-height:1.8; color:var(--clr-on-surface-variant); padding-left:1rem;">
+                        <li>Enter your name exactly as it appears on your Class XII marksheet.</li>
+                        <li>Ensure your mobile number is active — OTP will be sent for verification.</li>
+                        <li>Sikkimese applicants must upload COI/RC certificate.</li>
+                        <li>All fields marked with * are mandatory.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║     SECTION: STEP 2 — PERSONAL DETAILS    ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="app-section px-3 px-md-5 py-4" id="section-step2" style="display:none;">
+    <div class="mx-auto" style="max-width:1100px;">
+        <div class="row g-4">
+            <div class="col-md-8 order-2 order-md-1">
+                <div class="card p-4 p-md-5 rounded-4">
+                    <form>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label">Date of Birth *</label><input type="date" class="form-control" name="dob"></div>
+                            <div class="col-md-6"><label class="form-label">Community *</label><select class="form-select" name="community"><option value="">Select Community</option><option>ST</option><option>SC</option><option>OBC</option><option>General</option></select></div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label">Father's Name *</label><input type="text" class="form-control" name="fatherName" placeholder="Full name as per record"></div>
+                            <div class="col-md-6"><label class="form-label">Father's/Guardian's Contact *</label><div class="input-group"><span class="input-group-text">+91</span><input type="tel" class="form-control" name="fatherContact" placeholder="10-digit number"></div></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Mother's Name *</label><input type="text" class="form-control" name="motherName" placeholder="Full name as per record"></div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label">Country *</label><select class="form-select" name="country"><option selected>India</option><option>Nepal</option><option>Bhutan</option><option>Bangladesh</option><option>Other</option></select></div>
+                            <div class="col-md-6"><label class="form-label">State *</label><select class="form-select" name="state"><option value="" disabled>Select State</option><option selected>Sikkim</option><option>West Bengal</option><option>Assam</option><option>Meghalaya</option><option>Arunachal Pradesh</option><option>Nagaland</option><option>Manipur</option><option>Mizoram</option><option>Tripura</option><option>Bihar</option><option>Jharkhand</option><option>Odisha</option><option>Other</option></select></div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6"><label class="form-label">District *</label><select class="form-select" name="district"><option value="">Select District</option><option>Gangtok</option><option>Gyalshing</option><option>Mangan</option><option>Namchi</option><option>Pakyong</option><option>Soreng</option></select></div>
+                            <div class="col-md-6"><label class="form-label">Pincode *</label><input type="text" class="form-control" name="pincode" placeholder="737xxx"></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label">Permanent Address *</label><textarea class="form-control" name="permanentAddress" rows="3" placeholder="Building No, Street, Village/Locality..."></textarea></div>
+                        <!-- Photo & Signature -->
+                        <div class="pt-4 border-top mb-3">
+                            <h6 class="fw-bold small d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="font-size:18px;">add_a_photo</span>Photograph &amp; Signature</h6>
+                            <div class="row g-4">
+                                <div class="col-auto">
+                                    <label class="form-label small fw-bold text-uppercase" style="font-size:.65rem;">Recent Passport Photo *</label>
+                                    <div class="upload-zone d-flex flex-column align-items-center justify-content-center gap-2" style="width:120px;height:150px;"><span class="material-symbols-outlined fs-2 text-outline">account_circle</span><p class="mb-0 fw-bold text-uppercase" style="font-size:.5625rem; color:var(--clr-outline);">Upload</p><p class="mb-0" style="font-size:.5rem; color:var(--clr-outline-variant);">JPG/PNG, max 200KB</p></div>
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label small fw-bold text-uppercase" style="font-size:.65rem;">Signature *</label>
+                                    <div class="upload-zone d-flex flex-column align-items-center justify-content-center gap-2" style="width:200px;height:80px;"><span class="material-symbols-outlined text-outline">draw</span><p class="mb-0 fw-bold text-uppercase" style="font-size:.5625rem; color:var(--clr-outline);">Upload Signature</p></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="d-flex flex-wrap justify-content-between align-items-center pt-4 border-top gap-3">
+                            <button type="button" class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-primary);"><span class="material-symbols-outlined">arrow_back</span>Back</button>
+                            <div class="d-flex gap-3">
+                                <button type="button" class="btn btn-surface px-4 py-2 fw-bold btn-save-draft">Save Draft</button>
+                                <button type="button" class="btn btn-gradient px-5 py-3 fw-bold btn-save-next">Save &amp; Next</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-4 order-1 order-md-2">
+                <div class="p-4 rounded-3 bg-surface-low mb-3"><h6 class="fw-bold d-flex align-items-center gap-2 mb-2" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:18px;">info</span>Personal Information</h6><p class="small mb-0" style="color:var(--clr-on-surface-variant); line-height:1.6;">Please provide your permanent details as they appear in your official certificates. Fields marked with * are mandatory.</p></div>
+                <div class="p-4 rounded-3" style="background:rgba(191,233,218,0.1); border-left:4px solid var(--clr-secondary);"><h6 class="fw-bold text-uppercase small mb-2" style="font-size:.7rem; color:var(--clr-secondary); letter-spacing:.05em;">Notice</h6><p class="small mb-0" style="color:var(--clr-on-secondary-container); line-height:1.6;">Ensure your Community certificate is ready for upload if applying under reserved categories.</p></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║     SECTION: STEP 3 — ACADEMIC HISTORY    ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="app-section px-3 px-md-5 py-4" id="section-step3" style="display:none;">
+    <div class="mx-auto" style="max-width:1100px;">
+        <div class="row g-4">
+            <div class="col-md-8 order-2 order-md-1">
+                <h2 class="fs-3 fw-bold tracking-tight mb-1">Academic Qualification Details</h2>
+                <p class="text-secondary fw-medium mb-4">Please provide your Class XII academic performance data accurately.</p>
+                <!-- Marks Table -->
+                <div class="card p-4 rounded-3 mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined p-2 rounded-2" style="background:var(--clr-secondary-fixed); color:var(--clr-primary);">menu_book</span><h5 class="fw-bold mb-0">Class XII Details</h5></div>
+                    <div class="table-responsive">
+                        <table class="table table-borderless mb-0" id="subjectsTable">
+                            <thead><tr class="text-uppercase small fw-bold" style="font-size:.7rem; letter-spacing:.05em; color:var(--clr-secondary); border-bottom:1px solid var(--clr-surface-variant);"><th class="py-3">Subject Name</th><th class="py-3">Marks Obtained</th><th class="py-3 text-center">Total Marks</th><th class="py-3 text-end">Status</th><th class="py-3 text-end" style="width:40px;"></th></tr></thead>
+                            <tbody>
+                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_1" placeholder="Subject 1 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_1" placeholder="0" min="0" max="100"></td><td class="text-center fw-semibold align-middle">100</td><td class="text-end align-middle"><span class="badge rounded-pill px-2 py-1 subject-status" style="background:rgba(188,201,195,0.2);color:var(--clr-on-surface-variant);">—</span></td><td></td></tr>
+                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_2" placeholder="Subject 2 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_2" placeholder="0" min="0" max="100"></td><td class="text-center fw-semibold align-middle">100</td><td class="text-end align-middle"><span class="badge rounded-pill px-2 py-1 subject-status" style="background:rgba(188,201,195,0.2);color:var(--clr-on-surface-variant);">—</span></td><td></td></tr>
+                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_3" placeholder="Subject 3 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_3" placeholder="0" min="0" max="100"></td><td class="text-center fw-semibold align-middle">100</td><td class="text-end align-middle"><span class="badge rounded-pill px-2 py-1 subject-status" style="background:rgba(188,201,195,0.2);color:var(--clr-on-surface-variant);">—</span></td><td></td></tr>
+                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_4" placeholder="Subject 4 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_4" placeholder="0" min="0" max="100"></td><td class="text-center fw-semibold align-middle">100</td><td class="text-end align-middle"><span class="badge rounded-pill px-2 py-1 subject-status" style="background:rgba(188,201,195,0.2);color:var(--clr-on-surface-variant);">—</span></td><td></td></tr>
+                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_5" placeholder="Subject 5 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_5" placeholder="0" min="0" max="100"></td><td class="text-center fw-semibold align-middle">100</td><td class="text-end align-middle"><span class="badge rounded-pill px-2 py-1 subject-status" style="background:rgba(188,201,195,0.2);color:var(--clr-on-surface-variant);">—</span></td><td></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 mt-3">
+                        <button class="btn btn-link p-0 fw-bold small text-decoration-none d-flex align-items-center gap-1 btn-add-subject" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:16px;">add_circle</span>Add Subject</button>
+                        <span class="small text-on-surface-variant">(Minimum 5 subjects required)</span>
+                    </div>
+                </div>
+                <!-- Document Upload -->
+                <div class="card p-4 rounded-3 mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined p-2 rounded-2" style="background:var(--clr-tertiary-fixed); color:var(--clr-tertiary);">upload_file</span><h5 class="fw-bold mb-0">Document Verification</h5></div>
+                    <label class="form-label fw-bold small">Class XII Marksheet (Original/Self-Attested)</label>
+                    <div class="upload-zone position-relative py-5"><span class="material-symbols-outlined d-block text-center mb-2 fs-1 text-outline">cloud_upload</span><p class="text-center fw-semibold mb-1">Click to upload or drag and drop</p><p class="text-center small" style="color:var(--clr-secondary);">Accepted formats: JPG, PNG, PDF (Max size: 2MB)</p><input type="file" class="position-absolute top-0 start-0 w-100 h-100" style="opacity:0; cursor:pointer;"></div>
+                </div>
+                <!-- Actions -->
+                <div class="card p-4 rounded-3 d-flex flex-row justify-content-between align-items-center gap-3">
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>Back</button>
+                        <button class="btn btn-outline-primary fw-bold px-4 btn-save-draft"><span class="material-symbols-outlined me-1" style="font-size:18px;">save</span>Save Draft</button>
+                    </div>
+                    <button class="btn btn-primary fw-bold px-5 py-2 d-flex align-items-center gap-2 btn-save-next">Save &amp; Next <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span></button>
+                </div>
+            </div>
+            <!-- Right Sidebar -->
+            <div class="col-md-4 order-1 order-md-2">
+                <div class="card p-4 rounded-3 text-white position-relative overflow-hidden mb-3" style="background:var(--clr-primary);">
+                    <div class="position-relative" style="z-index:1;"><p class="small fw-medium text-uppercase mb-1" style="opacity:.8;letter-spacing:.1em;">Calculation Summary</p><h3 class="display-6 fw-extrabold mb-3" id="aggregatePercent">53.7%</h3><div class="pt-3 border-top" style="border-color:rgba(255,255,255,0.2)!important;"><div class="d-flex justify-content-between small mb-2"><span style="opacity:.8;">Total Subjects</span><span class="fw-bold" id="totalSubjects">3</span></div><div class="d-flex justify-content-between small"><span style="opacity:.8;">Total Marks Obtained</span><span class="fw-bold" id="totalObtained">161 / 300</span></div></div></div>
+                    <div class="position-absolute" style="bottom:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%;filter:blur(32px);"></div>
+                </div>
+                <div class="p-4 rounded-3" style="background:rgba(193,235,221,0.3); border:1px solid var(--clr-secondary-fixed);">
+                    <div class="d-flex align-items-start gap-2"><span class="material-symbols-outlined filled" style="color:var(--clr-primary); font-variation-settings:'FILL' 1;">lightbulb</span><div><h6 class="small fw-bold mb-1" style="color:var(--clr-on-secondary-container);">Admission Tip</h6><p class="small mb-0" style="color:var(--clr-on-secondary-container); line-height:1.6;">Best 4 subjects calculation will be performed automatically during rank list generation.</p></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║   SECTION: STEP 4 — COURSE PREFERENCES    ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="app-section px-3 px-md-5 py-4" id="section-step4" style="display:none;">
+    <div class="mx-auto" style="max-width:1100px;">
+        <div class="row g-4">
+        <div class="col-md-8 order-2 order-md-1">
+            <div class="mb-4"><span class="badge rounded-pill fw-bold px-3 py-1 mb-2" style="font-size:.625rem; background:var(--clr-tertiary-container); color:var(--clr-on-tertiary-container);">STEP 4 OF 6</span><h2 class="display-6 fw-black tracking-tight">Course Preferences</h2><p class="fs-6 text-on-surface-variant" style="max-width:600px;">Select your desired programs in order of priority. Your first choice is mandatory.</p></div>
+            <!-- Priority 1 -->
+            <div class="priority-card mb-4">
+                <div class="d-flex align-items-center gap-2 mb-4"><div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width:32px;height:32px;background:var(--clr-primary);">1</div><h5 class="fw-bold mb-0">Priority 1 <span class="small fw-normal ms-2" style="color:var(--clr-error);">(MANDATORY)</span></h5></div>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label fw-bold small">Program Selection</label><select class="form-select" name="pref1Program"><option>Select Program</option><option selected>Bachelor of Commerce</option><option>Bachelor of Science</option><option>Bachelor of Arts</option></select></div>
+                    <div class="col-md-6"><label class="form-label fw-bold small">Specific Course/Honors</label><select class="form-select" name="pref1Course"><option>Select Course</option><option selected>B.Com Hons Accounting &amp; Finance</option><option>B.Com Hons Marketing</option><option>B.Com General</option></select></div>
+                </div>
+            </div>
+            <!-- Priority 2 -->
+            <div class="priority-card optional mb-4">
+                <div class="d-flex align-items-center gap-2 mb-4"><div class="rounded-circle d-flex align-items-center justify-content-center fw-bold bg-surface-highest" style="width:32px;height:32px;color:var(--clr-on-surface-variant);">2</div><h5 class="fw-bold mb-0">Priority 2 <span class="small fw-normal ms-2 text-on-surface-variant">(OPTIONAL)</span></h5></div>
+                <div class="row g-3"><div class="col-md-6"><label class="form-label fw-bold small">Program Selection</label><select class="form-select" name="pref2Program"><option selected>Select Program</option><option>Bachelor of Commerce</option><option>Bachelor of Science</option><option>Bachelor of Arts</option></select></div><div class="col-md-6"><label class="form-label fw-bold small">Specific Course/Honors</label><select class="form-select" name="pref2Course"><option selected>Select Course</option></select></div></div>
+            </div>
+            <!-- Priority 3 -->
+            <div class="priority-card optional mb-4">
+                <div class="d-flex align-items-center gap-2 mb-4"><div class="rounded-circle d-flex align-items-center justify-content-center fw-bold bg-surface-highest" style="width:32px;height:32px;color:var(--clr-on-surface-variant);">3</div><h5 class="fw-bold mb-0">Priority 3 <span class="small fw-normal ms-2 text-on-surface-variant">(OPTIONAL)</span></h5></div>
+                <div class="row g-3"><div class="col-md-6"><label class="form-label fw-bold small">Program Selection</label><select class="form-select" name="pref3Program"><option selected>Select Program</option><option>Bachelor of Commerce</option><option>Bachelor of Science</option><option>Bachelor of Arts</option></select></div><div class="col-md-6"><label class="form-label fw-bold small">Specific Course/Honors</label><select class="form-select" name="pref3Course"><option selected>Select Course</option></select></div></div>
+            </div>
+            <!-- Declaration -->
+            <div class="declaration-box mb-4"><label class="d-flex align-items-start gap-3 cursor-pointer"><input type="checkbox" class="form-check-input mt-1" style="width:1.4em;height:1.4em;"><span class="small fw-medium" style="color:var(--clr-on-tertiary-fixed-var); line-height:1.7;">I hereby declare that all information provided in this course preference selection is true, complete and correct to the best of my knowledge.</span></label></div>
+            <!-- Actions -->
+            <div class="d-flex justify-content-between align-items-center pt-3 pb-5">
+                <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-secondary);"><span class="material-symbols-outlined">arrow_back</span>Back</button>
+                <div class="d-flex gap-3"><button class="btn btn-secondary-container px-4 py-2 fw-bold btn-save-draft" style="background:var(--clr-secondary-container); color:var(--clr-on-secondary-container); border:none; border-radius:.75rem;">Save Draft</button><button class="btn btn-primary px-5 py-2 fw-bold btn-save-next">Save &amp; Next</button></div>
+            </div>
+        </div>
+        <!-- Selection Summary Sidebar -->
+        <div class="col-md-4 order-1 order-md-2">
+            <div class="card p-4 rounded-4 position-sticky" style="top:10rem;">
+                <h5 class="fw-black d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined" style="color:var(--clr-primary);">analytics</span>Selection Summary</h5>
+                <div class="mb-4"><div class="d-flex justify-content-between small fw-black text-uppercase mb-2" style="letter-spacing:.05em; color:var(--clr-on-surface-variant);"><span>Priority 1</span><span class="badge rounded-1 px-2" style="font-size:.5625rem; background:#dcfce7; color:#166534;">SELECTED</span></div><div class="p-3 rounded-3" style="background:rgba(0,107,88,0.05); border-left:4px solid var(--clr-primary);"><p class="small fw-bold mb-0">B.Com (Hons) Accounting &amp; Finance</p><p class="mb-0" style="font-size:.6875rem; color:var(--clr-primary);">First Choice (Mandatory)</p></div></div>
+                <div class="mb-4" style="opacity:.4;"><div class="d-flex justify-content-between small fw-black text-uppercase mb-2" style="letter-spacing:.05em; color:var(--clr-on-surface-variant);"><span>Priority 2</span><span class="badge rounded-1 px-2" style="font-size:.5625rem; background:#f1f5f9; color:#64748b;">NOT SET</span></div><div class="p-3 rounded-3" style="background:#f8fafc; border-left:4px dashed #cbd5e1;"><p class="small fw-medium fst-italic mb-0" style="color:#94a3b8;">No course selected</p></div></div>
+                <div class="mb-3" style="opacity:.4;"><div class="d-flex justify-content-between small fw-black text-uppercase mb-2" style="letter-spacing:.05em; color:var(--clr-on-surface-variant);"><span>Priority 3</span><span class="badge rounded-1 px-2" style="font-size:.5625rem; background:#f1f5f9; color:#64748b;">NOT SET</span></div><div class="p-3 rounded-3" style="background:#f8fafc; border-left:4px dashed #cbd5e1;"><p class="small fw-medium fst-italic mb-0" style="color:#94a3b8;">No course selected</p></div></div>
+                <div class="pt-3 border-top"><div class="d-flex align-items-start gap-2 p-3 rounded-3" style="background:rgba(135,82,30,0.1);"><span class="material-symbols-outlined small" style="color:var(--clr-tertiary);">info</span><p class="small mb-0" style="color:var(--clr-on-tertiary-container); line-height:1.5;">Adding more preferences increases your chances of securing admission.</p></div></div>
+            </div>
+        </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║     SECTION: STEP 5 — PAYMENT             ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="app-section px-3 px-md-5 py-4" id="section-step5" style="display:none;">
+    <div class="mx-auto" style="max-width:1100px;">
+        <div class="mb-4"><span class="badge rounded-pill fw-bold px-3 py-1 mb-2" style="font-size:.625rem; background:var(--clr-tertiary-container); color:var(--clr-on-tertiary-container);">STEP 5 OF 6</span><h1 class="display-6 fw-extrabold tracking-tight mb-1">Final Payments</h1><p class="fs-6 text-on-surface-variant" style="max-width:600px;">Review your fee breakdown and proceed to the secure payment gateway.</p></div>
+        <div class="row g-4">
+            <!-- Payment Redirect -->
+            <div class="col-md-8 order-2 order-md-1">
+                <div class="card p-5 rounded-3 position-relative overflow-hidden text-center">
+                    <div class="position-absolute top-0 end-0 p-4" style="opacity:.05;"><span class="material-symbols-outlined" style="font-size:8rem;">payments</span></div>
+                    <div class="d-inline-flex mx-auto align-items-center justify-content-center rounded-circle mb-4" style="width:64px;height:64px;background:rgba(107,217,188,0.2);"><span class="material-symbols-outlined fs-2" style="color:var(--clr-primary);">swap_horiz</span></div>
+                    <h4 class="fw-bold tracking-tight mb-2">Payment Redirection</h4>
+                    <p class="text-on-surface-variant mb-4" style="max-width:400px; margin:0 auto; line-height:1.6;">You will be redirected to our secure payment gateway. Please do not close or refresh.</p>
+                    <button class="btn btn-primary px-5 py-3 fw-bold d-inline-flex align-items-center gap-2 shadow-lg mx-auto btn-pay-now"><span class="material-symbols-outlined">lock</span>Proceed to Secure Payment</button>
+                    <!-- Payment Success (hidden) -->
+                    <div id="paymentSuccess" class="mt-4 p-3 rounded-2 text-start" style="display:none; background:rgba(107,217,188,0.1);border:1px solid rgba(107,217,188,0.3);"><div class="d-flex align-items-center gap-2"><span class="material-symbols-outlined filled" style="color:var(--clr-primary); font-variation-settings:'FILL' 1;">check_circle</span><div><p class="fw-bold mb-0" style="color:var(--clr-on-primary-container);">PAID</p><p class="small mb-0" style="color:var(--clr-on-primary-container);">Transaction ID: <span id="txnId"></span></p></div></div></div>
+                    <!-- Payment Methods -->
+                    <div class="mt-5">
+                        <p class="small fw-bold text-uppercase text-center text-outline" style="font-size:.625rem; letter-spacing:.1em;">—— Supported Payment Methods ——</p>
+                        <div class="d-flex justify-content-center gap-5 mt-3 text-on-surface-variant">
+                            <div class="text-center" style="opacity:.7;"><span class="material-symbols-outlined fs-4">account_balance</span><br><span style="font-size:.625rem;">NET BANKING</span></div>
+                            <div class="text-center" style="opacity:.7;"><span class="material-symbols-outlined fs-4">credit_card</span><br><span style="font-size:.625rem;">CARD</span></div>
+                            <div class="text-center" style="opacity:.7;"><span class="material-symbols-outlined fs-4">qr_code_2</span><br><span style="font-size:.625rem;">UPI PAY</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap justify-content-between gap-3 mt-3 px-2 text-on-surface-variant" style="opacity:.7;">
+                    <div class="d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">verified_user</span><span style="font-size:.6875rem;" class="fw-semibold text-uppercase">100% Secure</span></div>
+                    <div class="d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">encrypted</span><span style="font-size:.6875rem;" class="fw-semibold text-uppercase">SSL Encrypted</span></div>
+                    <div class="d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">security</span><span style="font-size:.6875rem;" class="fw-semibold text-uppercase">PCI DSS</span></div>
+                </div>
+            </div>
+            <!-- Fee Breakdown -->
+            <div class="col-md-4 order-1 order-md-2">
+                <div class="card rounded-3 overflow-hidden mb-3">
+                    <div class="p-4 bg-surface-low border-bottom"><h6 class="fw-bold text-uppercase small d-flex align-items-center gap-2 mb-0" style="letter-spacing:.05em;"><span class="material-symbols-outlined" style="color:var(--clr-primary); font-size:16px;">receipt_long</span>Fee Breakdown</h6></div>
+                    <div class="p-4">
+                        <div class="d-flex justify-content-between mb-4"><span class="fw-medium text-on-surface-variant">Application Processing Fee</span><span class="fw-extrabold fs-5">₹200.00</span></div>
+                        <div class="p-3 rounded-2 mb-4" style="background:rgba(107,217,188,0.1);border:1px solid rgba(107,217,188,0.2);"><div class="d-flex gap-2"><span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:18px;">info</span><p class="small mb-0" style="color:var(--clr-on-secondary-container); line-height:1.5;">Additional gateway charges may be applied on the payment page.</p></div></div>
+                        <div class="pt-3 border-top"><div class="d-flex justify-content-between small text-outline text-uppercase mb-2" style="font-size:.6875rem;"><span>Subtotal</span><span>₹200.00</span></div><div class="d-flex justify-content-between fw-bold" style="color:#0f4a2a;"><span>Payable Now</span><span>₹200.00*</span></div></div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-3" style="background:rgba(255,220,194,0.1);border:1px solid rgba(255,183,122,0.2);"><h6 class="fw-bold text-uppercase small mb-2" style="font-size:.7rem; color:var(--clr-on-tertiary-container);">Important Note</h6><p class="small mb-0" style="color:var(--clr-on-tertiary-container); line-height:1.5;">Ensure stable internet. Any failure or duplicate deduction will be rectified within 5-7 working days.</p></div>
+            </div>
+        </div>
+        <!-- Footer Nav -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center pt-5 mt-4 border-top gap-3">
+            <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-on-surface-variant);"><span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>Back to Course Preferences</button>
+            <div class="d-flex align-items-center gap-3"><span class="fst-italic small text-outline">Final step after payment</span><button class="btn btn-surface px-5 py-2 fw-bold btn-proceed-preview" disabled style="opacity:.6;">Proceed to Submit</button></div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║   SECTION: STEP 6 — PREVIEW & SUBMIT      ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="app-section px-3 px-md-5 py-4" id="section-step6" style="display:none;">
+    <div class="mx-auto" style="max-width:1100px;">
+        <div class="row g-4">
+            <div class="col-md-8 order-2 order-md-1">
+                <div class="mb-4 ps-3" style="border-left:4px solid var(--clr-primary);"><h1 class="fs-3 fw-extrabold tracking-tight mb-1">Final Review</h1><p class="text-secondary fs-6">Please review all details carefully before submission. Changes cannot be made after.</p></div>
+
+                <!-- Primary Information -->
+                <div class="card p-4 rounded-3 mb-3">
+                    <div class="d-flex justify-content-between mb-3"><h6 class="small fw-bold text-uppercase" style="letter-spacing:.1em; color:var(--clr-secondary);"><span class="material-symbols-outlined me-1" style="font-size:16px; vertical-align:middle;">info</span>Primary Information</h6><button class="btn btn-link p-0 small fw-semibold text-decoration-none btn-edit-section" data-step="1" style="color:var(--clr-primary);">Edit Section</button></div>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Roll No</p><p class="small fw-semibold mb-0" id="previewRollNo">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Candidate Name</p><p class="small fw-semibold mb-0" id="previewName2">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Board</p><p class="small fw-semibold mb-0" id="previewBoard">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Stream</p><p class="small fw-semibold mb-0" id="previewStream">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Mobile</p><p class="small fw-semibold mb-0" id="previewMobile">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Gender</p><p class="small fw-semibold mb-0" id="previewGender">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Email</p><p class="small fw-semibold mb-0" id="previewEmail">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Category</p><p class="small fw-semibold mb-0" id="previewCategory">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">COI/RC No</p><p class="small fw-semibold mb-0" id="previewCOI">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">PWD</p><p class="small fw-semibold mb-0" id="previewPWD">—</p></div>
+                    </div>
+                </div>
+
+                <!-- Personal Details -->
+                <div class="card p-4 rounded-3 mb-3">
+                    <div class="d-flex justify-content-between mb-3"><h6 class="small fw-bold text-uppercase" style="letter-spacing:.1em; color:var(--clr-secondary);"><span class="material-symbols-outlined me-1" style="font-size:16px; vertical-align:middle;">person</span>Personal Details</h6><button class="btn btn-link p-0 small fw-semibold text-decoration-none btn-edit-section" data-step="2" style="color:var(--clr-primary);">Edit Section</button></div>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Date of Birth</p><p class="small fw-semibold mb-0" id="previewDob">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Community</p><p class="small fw-semibold mb-0" id="previewCommunity">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Father's Name</p><p class="small fw-semibold mb-0" id="previewFather">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Father's Contact</p><p class="small fw-semibold mb-0" id="previewFatherContact">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Mother's Name</p><p class="small fw-semibold mb-0" id="previewMother">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Country</p><p class="small fw-semibold mb-0" id="previewCountry">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">State</p><p class="small fw-semibold mb-0" id="previewState">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">District</p><p class="small fw-semibold mb-0" id="previewDistrict">—</p></div>
+                        <div class="col-6 col-md-4"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Pincode</p><p class="small fw-semibold mb-0" id="previewPincode">—</p></div>
+                        <div class="col-12"><p class="small text-on-surface-variant mb-1" style="font-size:.7rem;">Permanent Address</p><p class="small fw-semibold mb-0" id="previewAddress" style="line-height:1.6;">—</p></div>
+                    </div>
+                </div>
+
+                <!-- Academic History -->
+                <div class="card p-4 rounded-3 mb-3">
+                    <div class="d-flex justify-content-between mb-3"><h6 class="small fw-bold text-uppercase" style="letter-spacing:.1em; color:var(--clr-secondary);"><span class="material-symbols-outlined me-1" style="font-size:16px; vertical-align:middle;">school</span>Academic History</h6><button class="btn btn-link p-0 small fw-semibold text-decoration-none btn-edit-section" data-step="3" style="color:var(--clr-primary);">Edit Section</button></div>
+                    <div class="table-responsive rounded-2 border mb-3">
+                        <table class="table table-sm mb-0">
+                            <thead class="bg-surface-container"><tr class="fw-bold small" style="color:var(--clr-on-surface-variant);"><th class="py-2 px-3">Subject</th><th class="py-2 px-3">Marks Obtained</th><th class="py-2 px-3">Total Marks</th></tr></thead>
+                            <tbody id="previewSubjectsBody"></tbody>
+                            <tfoot class="bg-surface-low fw-bold"><tr><td class="px-3 py-2" style="color:var(--clr-primary);" id="previewAggregate">Aggregate: —</td><td class="px-3 py-2" colspan="2" id="previewTotalMarks">Total: —</td></tr></tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Course Preferences -->
+                <div class="card p-4 rounded-3 mb-3">
+                    <div class="d-flex justify-content-between mb-3"><h6 class="small fw-bold text-uppercase" style="letter-spacing:.1em; color:var(--clr-secondary);"><span class="material-symbols-outlined me-1" style="font-size:16px; vertical-align:middle;">list_alt</span>Course Preferences</h6><button class="btn btn-link p-0 small fw-semibold text-decoration-none btn-edit-section" data-step="4" style="color:var(--clr-primary);">Edit Section</button></div>
+                    <div class="row g-3">
+                        <div class="col-md-4"><div class="p-3 rounded-2 bg-surface border" style="border-color:var(--clr-surface-container)!important;"><p class="text-uppercase fw-bold mb-2" style="font-size:.5625rem; letter-spacing:.1em; color:var(--clr-secondary);">Priority 1</p><p class="small fw-bold mb-0" style="color:var(--clr-primary);" id="previewPref1Prog">—</p><p class="mb-0" style="font-size:.75rem; color:var(--clr-on-surface-variant);" id="previewPref1Course">—</p></div></div>
+                        <div class="col-md-4"><div class="p-3 rounded-2 bg-surface border" style="border-color:var(--clr-surface-container)!important;"><p class="text-uppercase fw-bold mb-2" style="font-size:.5625rem; letter-spacing:.1em; color:var(--clr-secondary);">Priority 2</p><p class="small fw-bold mb-0" id="previewPref2Prog">—</p><p class="mb-0" style="font-size:.75rem; color:var(--clr-on-surface-variant);" id="previewPref2Course">—</p></div></div>
+                        <div class="col-md-4"><div class="p-3 rounded-2 bg-surface border" style="border-color:var(--clr-surface-container)!important;"><p class="text-uppercase fw-bold mb-2" style="font-size:.5625rem; letter-spacing:.1em; color:var(--clr-secondary);">Priority 3</p><p class="small fw-bold mb-0" id="previewPref3Prog">—</p><p class="mb-0" style="font-size:.75rem; color:var(--clr-on-surface-variant);" id="previewPref3Course">—</p></div></div>
+                    </div>
+                </div>
+
+                <!-- Payment Status -->
+                <div class="card p-4 rounded-3 mb-4">
+                    <div class="d-flex justify-content-between mb-3"><h6 class="small fw-bold text-uppercase" style="letter-spacing:.1em; color:var(--clr-secondary);"><span class="material-symbols-outlined me-1" style="font-size:16px; vertical-align:middle;">receipt_long</span>Payment Status</h6><button class="btn btn-link p-0 small fw-semibold text-decoration-none btn-edit-section" data-step="5" style="color:var(--clr-primary);">Edit Section</button></div>
+                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:rgba(107,217,188,0.15);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-white d-flex align-items-center justify-content-center shadow-sm" style="width:40px;height:40px;"><span class="material-symbols-outlined filled" style="color:var(--clr-primary);font-variation-settings:'FILL' 1;">check_circle</span></div>
+                            <div><p class="fw-bold mb-0" style="color:var(--clr-on-primary-container);" id="previewPayStatus">PAID</p><p class="small mb-0" style="color:var(--clr-on-primary-container);">Transaction ID: <span id="previewTxnId">—</span></p></div>
+                        </div>
+                        <div class="text-end"><p class="fs-5 fw-bold mb-0" style="color:var(--clr-on-primary-container);" id="previewPayAmount">₹ —</p><p class="small mb-0" style="color:var(--clr-on-primary-container);" id="previewPayMethod">—</p></div>
+                    </div>
+                </div>
+
+                <!-- Declaration -->
+                <div class="declaration-box mb-4"><label class="d-flex align-items-start gap-3 cursor-pointer"><input type="checkbox" class="form-check-input mt-1" id="declarationCheck" style="width:1.2em;height:1.2em;"><span class="small fw-medium" style="line-height:1.7;">I hereby declare that all information provided in this application is true, complete, and correct to the best of my knowledge. I understand that if any information is found false, my candidature/admission is liable to be canceled without any notice or compensation.</span></label></div>
+                <!-- Actions -->
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-end pt-3 pb-5">
+                    <button class="btn btn-outline-primary px-5 py-3 fw-bold d-flex align-items-center justify-content-center gap-2 btn-print-draft no-print"><span class="material-symbols-outlined">print</span>Print Draft</button>
+                    <button class="btn btn-primary px-5 py-3 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg btn-submit-application"><span class="material-symbols-outlined">send</span>Submit Application</button>
+                </div>
+            </div>
+
+            <!-- Right sidebar: Applicant Photo & Summary -->
+            <div class="col-md-4 order-1 order-md-2">
+                <div class="card p-4 rounded-3 text-center mb-3 position-sticky" style="top:10rem;">
+                    <div class="d-inline-flex mx-auto align-items-center justify-content-center rounded-circle overflow-hidden mb-3 border border-3" style="width:120px;height:120px;border-color:var(--clr-primary)!important;">
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB70Li49woNLK7igwjm2bjw7JNziqttmgGk5IdquG0QV2lQzrYFDc1WvnyHRVuylwINua-lLsfhwcDtbcZ2Y2zPQ33YMCN-WwiIVUJYFwjHoDGn0Eo-OXGSL_vyFHlF346j7J3dwMvOXhep8GSng4cjZxsvYlWH2ermhNo16YSg2_5sAdZ6R3rw8N24Nez18wcH_qrDopDJiwE_aZqNF3NFVAnqPDQmBp0f7BmE8jeBg4TxhFwmNWy0ZFjp9aE9ZCQPV4uQBDaiyWgJ" class="w-100 h-100" style="object-fit:cover;" alt="Applicant Photo" id="previewPhoto">
+                    </div>
+                    <h5 class="fw-bold mb-1" id="previewName" style="color:var(--clr-on-surface);">—</h5>
+                    <p class="small text-on-surface-variant mb-3" id="previewAppId">Application ID: —</p>
+                    <div class="text-start">
+                        <div class="d-flex justify-content-between py-2 border-bottom small"><span class="text-on-surface-variant">College</span><span class="fw-semibold" id="previewCollege">—</span></div>
+                        <div class="d-flex justify-content-between py-2 border-bottom small"><span class="text-on-surface-variant">Stream</span><span class="fw-semibold" id="previewStreamSide">—</span></div>
+                        <div class="d-flex justify-content-between py-2 border-bottom small"><span class="text-on-surface-variant">Aggregate</span><span class="fw-semibold" style="color:var(--clr-primary);" id="previewAggSide">—</span></div>
+                        <div class="d-flex justify-content-between py-2 small"><span class="text-on-surface-variant">Payment</span><span class="fw-semibold" style="color:var(--clr-primary);" id="previewPaySide">—</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║   SECTION: STEP 7 — ACKNOWLEDGEMENT       ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="app-section px-3 py-5" id="section-step7" style="display:none;">
+    <div class="d-flex align-items-center justify-content-center" style="min-height:calc(100vh - 56px);">
+    <div class="card success-card rounded-3 shadow-lg overflow-hidden w-100" style="max-width:720px; border:1px solid rgba(222,228,224,0.5);">
+        <!-- Header -->
+        <div class="text-center py-5 px-4 position-relative bg-surface-low">
+            <div class="success-glow"><div class="glow-circle"></div></div>
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4 position-relative" style="width:80px;height:80px;background:var(--clr-primary-container); box-shadow:0 4px 24px rgba(107,217,188,0.3); z-index:1;"><span class="material-symbols-outlined filled display-5" style="color:var(--clr-on-primary-container);font-variation-settings:'FILL' 1;">check_circle</span></div>
+            <h1 class="fs-3 fw-bold tracking-tight mb-2 position-relative" style="color:var(--clr-primary); z-index:1;">Application Submitted Successfully!</h1>
+            <p class="text-on-surface-variant fs-6 position-relative" style="z-index:1; max-width:500px; margin:0 auto; line-height:1.6;">Your application has been received and is currently being processed by the Sikkim State Higher Education Directorate.</p>
+        </div>
+        <!-- Content -->
+        <div class="p-4 p-md-5 d-flex flex-column gap-4">
+            <div class="text-center"><span class="small fw-medium text-on-surface-variant d-block mb-2">Application Reference Number</span><div class="d-inline-flex align-items-center gap-2 bg-surface-container py-2 px-4 rounded-2 border" style="border-color:var(--clr-surface-variant)!important;"><span class="material-symbols-outlined" style="color:var(--clr-primary);">tag</span><span class="fw-semibold fs-5 font-monospace tracking-widest">SKM-2025-GDC-00841</span></div></div>
+            <!-- Preferences Summary -->
+            <div class="bg-surface-low rounded-2 p-4 border" style="border-color:rgba(222,228,224,0.5)!important;">
+                <h6 class="small fw-semibold text-uppercase d-flex align-items-center gap-2 mb-3" style="letter-spacing:.1em; color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:16px;">summarize</span>Summary of Preferences</h6>
+                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">First Preference</span><span class="fw-medium">Government Degree College, Gangtok</span><br><span class="small text-on-surface-variant">B.A. Political Science (Hons.)</span></div><span class="badge rounded-1 px-2 py-1 small fw-semibold" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);">Priority 1</span></div>
+                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Second Preference</span><span class="fw-medium">Sikkim Government College, Namchi</span><br><span class="small text-on-surface-variant">B.A. History</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 2</span></div>
+                <div class="d-flex justify-content-between align-items-start"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Third Preference</span><span class="fw-medium">Nar Bahadur Bhandari Degree College</span><br><span class="small text-on-surface-variant">B.A. Sociology</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 3</span></div>
+            </div>
+            <!-- Actions -->
+            <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                <button class="btn btn-primary px-4 py-3 fw-medium d-flex align-items-center justify-content-center gap-2 btn-download-ack"><span class="material-symbols-outlined">download</span>Download Acknowledgement PDF</button>
+                <button class="btn btn-outline-primary px-4 py-3 fw-medium d-flex align-items-center justify-content-center gap-2 btn-back-dashboard"><span class="material-symbols-outlined">track_changes</span>Track Application Status</button>
+            </div>
+        </div>
+        <!-- Footer note -->
+        <div class="bg-surface-low py-3 px-4 text-center border-top" style="border-color:var(--clr-surface-variant)!important;"><p class="small text-on-surface-variant d-flex align-items-center justify-content-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:16px;">mail</span>An email confirmation has been sent to your registered address.</p></div>
+    </div>
+    </div>
+</section>
+
+</div><!-- end main-content-with-sidebar -->
+
+<!-- Submit Confirmation Modal -->
+<div class="modal fade" id="submitConfirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-3 border-0 shadow-lg">
+    <div class="modal-body text-center p-5">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width:64px;height:64px;background:rgba(137,246,216,0.2);"><span class="material-symbols-outlined fs-2" style="color:var(--clr-primary);">help</span></div>
+        <h4 class="fw-bold mb-2">Confirm Submission?</h4>
+        <p class="text-on-surface-variant mb-4">Once submitted, you will not be able to make changes to your application. Are you sure you want to proceed?</p>
+        <div class="d-flex gap-3 justify-content-center">
+            <button type="button" class="btn btn-outline-primary px-4 py-2 fw-bold" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary px-5 py-2 fw-bold" id="btnConfirmSubmit">Yes, Submit</button>
+        </div>
+    </div>
+</div></div></div>
+
+<!-- Mobile Bottom Nav -->
+<div class="mobile-bottom-nav d-md-none">
+    <a href="#" class="nav-tab btn-go-dashboard"><span class="material-symbols-outlined filled" style="font-variation-settings:'FILL' 1;">description</span><span>Apply</span></a>
+    <a href="index.html" class="nav-tab"><span class="material-symbols-outlined">school</span><span>Colleges</span></a>
+    <a href="#" class="nav-tab"><span class="material-symbols-outlined">receipt_long</span><span>Status</span></a>
+    <a href="#" class="nav-tab"><span class="material-symbols-outlined">person</span><span>Profile</span></a>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/app.js"></script>
+<script>
+    // Adjust sidebar margin on desktop
+    $(function(){
+        function adjustLayout(){
+            if($(window).width()>=768 && !$('#appSidebar').hasClass('d-none')){
+                $('.main-content-with-sidebar').css('margin-left','16rem');
+                $('.college-header-sticky').css('margin-left','0');
+            } else {
+                $('.main-content-with-sidebar').css('margin-left','0');
+            }
+        }
+        $(window).on('resize', adjustLayout);
+        // observe sidebar visibility
+        var observer = new MutationObserver(adjustLayout);
+        observer.observe(document.getElementById('appSidebar'), {attributes:true, attributeFilter:['class']});
+        adjustLayout();
+    });
+</script>
+</body>
+</html>

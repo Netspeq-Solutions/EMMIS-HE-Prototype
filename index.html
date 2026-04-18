@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colleges | Sikkim Higher Education Admission Portal</title>
+    <meta name="description" content="Explore premier higher education institutions across Sikkim. Apply online for admissions to government colleges.">
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Google Fonts & Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="college-listing" class="bg-surface">
+
+    <!-- ===== TOP NAVBAR ===== -->
+    <nav class="navbar navbar-expand-md navbar-dark navbar-portal fixed-top px-3 px-md-4" id="mainNavbar">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold tracking-tight" href="index.html" style="border-bottom:4px solid var(--clr-saffron-dark);">Sikkim Admission Portal</a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto gap-1">
+                    <li class="nav-item"><a class="nav-link active fw-semibold" href="#">Institutions</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="#">Scholarships</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="#">Guidelines</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" href="#">Help Desk</a></li>
+                </ul>
+                <a href="login.html" class="btn btn-outline-light btn-sm fw-semibold px-4 btn-sign-in">Sign In</a>
+            </div>
+        </div>
+    </nav>
+
+    <main style="margin-top:64px; padding-bottom:6rem;">
+
+        <!-- ===== HERO BANNER ===== -->
+        <section class="py-5 text-center text-white position-relative overflow-hidden" style="background:linear-gradient(135deg, var(--clr-primary), var(--clr-primary-container)); min-height:220px;">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="opacity:0.1; background-image:url('https://lh3.googleusercontent.com/aida-public/AB6AXuDDTGon4ZGOhMpmh9vsZE7AOOd_FCS54v2IHuunKtngx4Ka_86jLjH7FOW-w1yROOJMn1fFgdW6IAByDZkrJ2xzZusTRA77qNWWRAwHwv2QovDrpEhQxiNGjcbtV-FjRJuDPcyB9m0xJRR-jBP5RzPcBCLXCFO0JUMeXGZ48PUzSfBGyY3Qq1L7mTvMMqe2CV-_Rej7JPXbvYQI5a9RynSpWg7RE9BzRNDN0MwU2V8aupIu0ZyO5ecIOj9WYR-sC4SnIWblMns03N1x'); background-size:cover; background-position:center;"></div>
+            <div class="container position-relative" style="z-index:10;">
+                <h1 class="display-5 fw-bold mb-2 tracking-tight">Find Your College. Apply Online.</h1>
+                <p class="mb-4 fw-medium" style="color:var(--clr-on-primary-container);">Explore premier higher education institutions across the Himalayan state.</p>
+                <div class="mx-auto" style="max-width:560px;">
+                    <div class="input-group input-group-lg shadow-lg rounded-pill overflow-hidden">
+                        <span class="input-group-text bg-white border-0 ps-4"><span class="material-symbols-outlined" style="color:var(--clr-primary)">search</span></span>
+                        <input type="text" class="form-control border-0 py-3" id="collegeSearch" placeholder="Search by college name, course or city..." style="box-shadow:none;">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== FILTER BAR ===== -->
+        <div class="sticky-top bg-surface-low shadow-sm py-3 px-3 px-md-4" style="top:64px; z-index:40;">
+            <div class="container-fluid">
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <!-- District Filters -->
+                    <div class="d-flex align-items-center gap-2 filter-group filter-group-district overflow-auto flex-nowrap">
+                        <span class="text-uppercase fw-bold small" style="font-size:.65rem; letter-spacing:.1em; color:var(--clr-on-tertiary-fixed-var);">Districts:</span>
+                        <button class="filter-pill active" data-value="all">All</button>
+                        <button class="filter-pill" data-value="Gangtok">Gangtok</button>
+                        <button class="filter-pill" data-value="Pakyong">Pakyong</button>
+                        <button class="filter-pill" data-value="Mangan">Mangan</button>
+                        <button class="filter-pill" data-value="Gyalshing">Gyalshing</button>
+                        <button class="filter-pill" data-value="Namchi">Namchi</button>
+                        <button class="filter-pill" data-value="Soreng">Soreng</button>
+                    </div>
+                    <div class="vr d-none d-md-block" style="height:24px; opacity:.3;"></div>
+                    <!-- Course Filters -->
+                    <div class="d-flex align-items-center gap-2 filter-group filter-group-stream overflow-auto flex-nowrap">
+                        <span class="text-uppercase fw-bold small" style="font-size:.65rem; letter-spacing:.1em; color:var(--clr-on-tertiary-fixed-var);">Courses:</span>
+                        <button class="filter-pill active" data-value="all">All</button>
+                        <button class="filter-pill" data-value="B.A">B.A</button>
+                        <button class="filter-pill" data-value="B.Sc">B.Sc</button>
+                        <button class="filter-pill" data-value="B.Com">B.Com</button>
+                        <button class="filter-pill" data-value="B.A Law">B.A Law</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== COLLEGE GRID ===== -->
+        <div class="container-fluid py-5 px-3 px-md-4">
+            <div class="row g-4" id="collegeGrid">
+
+                <!-- College Card 1: Urgent -->
+                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                    <div class="college-card h-100" data-name="Sikkim Government College" data-district="Gangtok" data-stream="B.Com">
+                        <div class="college-card-banner urgent"><span class="material-symbols-outlined" style="font-size:14px">timer</span> REGISTRATION OPEN – ENDS SOON!</div>
+                        <div class="card-body d-flex flex-column flex-grow-1 p-4">
+                            <div class="mb-3">
+                                <span class="text-uppercase fw-bold d-block mb-1" style="font-size:.625rem; letter-spacing:.1em; color:var(--clr-secondary);">Government</span>
+                                <h5 class="fw-bold mb-1 tracking-tight" style="color:var(--clr-on-tertiary-fixed);">Sikkim Government College</h5>
+                                <div class="d-flex align-items-center gap-1 small" style="color:var(--clr-on-tertiary-fixed-var);"><span class="material-symbols-outlined" style="font-size:14px">location_on</span>Tadong, Gangtok</div>
+                            </div>
+                            <div class="d-flex flex-column gap-3 mb-4">
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background:rgba(137,246,216,0.2);">
+                                    <div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; color:var(--clr-on-primary-fixed-var);">Opening Date</span><span class="fw-bold small" style="color:var(--clr-primary);">Oct 01, 2024</span></div>
+                                    <div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; color:var(--clr-on-primary-fixed-var);">Closing Date</span><span class="fw-bold small" style="color:var(--clr-primary);">Oct 15, 2024</span></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-surface-low">
+                                    <div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; color:var(--clr-on-tertiary-fixed-var);">Merit List Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Oct 18, 2024</span></div>
+                                    <div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; color:var(--clr-on-tertiary-fixed-var);">Admission Registration</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Oct 20 – Oct 25, 2024</span></div>
+                                </div>
+                                <div class="p-3 rounded-3" style="background:rgba(191,233,218,0.1); border:1px solid rgba(191,233,218,0.2);">
+                                    <span class="d-block text-uppercase fw-bold mb-1" style="font-size:.625rem; color:var(--clr-on-secondary-container);">Important Notification</span>
+                                    <p class="mb-0 small" style="color:var(--clr-on-tertiary-fixed-var); line-height:1.5;">Verification of original documents starts from Oct 18.</p>
+                                </div>
+                            </div>
+                            <div class="mt-auto d-grid gap-2">
+                                <button class="btn btn-primary py-2 btn-apply-now" data-college-id="1">Apply Now</button>
+                                <button class="btn btn-sm text-center d-flex align-items-center justify-content-center gap-1 btn-toggle-courses" style="color:var(--clr-on-tertiary-fixed-var); font-size:.75rem; font-weight:600;">View Course Details <span class="material-symbols-outlined" style="font-size:16px">expand_more</span></button>
+                            </div>
+                            <!-- Expandable Courses -->
+                            <div class="college-courses mt-3 pt-3 border-top" style="display:none;">
+                                <h6 class="fw-bold text-uppercase small mb-2" style="letter-spacing:.05em; color:var(--clr-on-tertiary-fixed);">Offered Courses</h6>
+                                <div class="p-3 rounded-3 bg-surface-low mb-2">
+                                    <div class="d-flex justify-content-between mb-1"><div><strong class="small">Bachelor of Arts (B.A.)</strong><br><span style="font-size:.65rem; color:var(--clr-on-tertiary-fixed-var);">3 Years • ₹4,500/year</span></div></div>
+                                    <div class="d-flex flex-wrap gap-1 mt-2">
+                                        <span class="badge rounded-1 fw-medium" style="font-size:.5625rem; background:#fff; border:1px solid var(--clr-outline-variant); color:var(--clr-on-tertiary-fixed-var);">Political Science</span>
+                                        <span class="badge rounded-1 fw-medium" style="font-size:.5625rem; background:#fff; border:1px solid var(--clr-outline-variant); color:var(--clr-on-tertiary-fixed-var);">History</span>
+                                        <span class="badge rounded-1 fw-medium" style="font-size:.5625rem; background:#fff; border:1px solid var(--clr-outline-variant); color:var(--clr-on-tertiary-fixed-var);">English</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- College Card 2: Open -->
+                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                    <div class="college-card h-100" data-name="Dentam College" data-district="Pakyong" data-stream="B.Sc">
+                        <div class="college-card-banner open"><span class="material-symbols-outlined" style="font-size:14px">check_circle</span> REGISTRATION OPEN</div>
+                        <div class="ratio ratio-16x9"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB62An-EyTiBUhcc9FtgvL2gRpj4YoRNUJ5FM4XAcfM1O0Q72N4Xg1lhOHJiL70Vg7RUQP7A-j0LTyDYZ9aSXo6Vl3t2PiZF0RN9jiSL1Ks0Tmi5l12caq_5yu8w_5f1V5fzDnB_hrG71PD0IxZv3GIwWv6namjxP9XWwIq7mia9XYXHgWQZK4RrvoWtuCI9ECmlNSeoIa-7qGcX0iuNEk1XGMwxepggxF5m_Nm0aiGj3I0lqbqK5xWDN_J3r7LpuWtx7qn3oKcLYXA" class="w-100 h-100" style="object-fit:cover;" alt="Dentam College"></div>
+                        <div class="card-body d-flex flex-column flex-grow-1 p-4">
+                            <div class="mb-3">
+                                <span class="text-uppercase fw-bold d-block mb-1" style="font-size:.625rem; letter-spacing:.1em; color:var(--clr-secondary);">Government</span>
+                                <h5 class="fw-bold mb-1 tracking-tight" style="color:var(--clr-on-tertiary-fixed);">Dentam College</h5>
+                                <div class="d-flex align-items-center gap-1 small" style="color:var(--clr-on-tertiary-fixed-var);"><span class="material-symbols-outlined" style="font-size:14px">location_on</span>Rangpo, East Sikkim</div>
+                            </div>
+                            <div class="d-flex flex-column gap-3 mb-4">
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-surface-low">
+                                    <div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Opening Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Oct 05, 2024</span></div>
+                                    <div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Closing Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Nov 05, 2024</span></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-surface-low">
+                                    <div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Merit List Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Nov 10, 2024</span></div>
+                                    <div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Admission Registration</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Nov 12 – Nov 18, 2024</span></div>
+                                </div>
+                                <div class="p-3 rounded-3 bg-surface-low">
+                                    <span class="d-block text-uppercase fw-bold mb-1" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Notification</span>
+                                    <p class="mb-0 small" style="color:var(--clr-on-tertiary-fixed-var); line-height:1.5;">Scholarship exams for B.Tech are scheduled for next month.</p>
+                                </div>
+                            </div>
+                            <div class="mt-auto d-grid gap-2">
+                                <button class="btn btn-primary py-2 btn-apply-now" data-college-id="2">Apply Now</button>
+                                <button class="btn btn-sm text-center d-flex align-items-center justify-content-center gap-1 btn-toggle-courses" style="color:var(--clr-on-tertiary-fixed-var); font-size:.75rem; font-weight:600;">View Course Details <span class="material-symbols-outlined" style="font-size:16px">expand_more</span></button>
+                            </div>
+                            <div class="college-courses mt-3 pt-3 border-top" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- College Card 3: Urgent -->
+                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                    <div class="college-card h-100" data-name="Sikkim Arts College" data-district="Gyalshing" data-stream="B.A">
+                        <div class="college-card-banner urgent"><span class="material-symbols-outlined" style="font-size:14px">timer</span> REGISTRATION OPEN – ENDS SOON!</div>
+                        <div class="card-body d-flex flex-column flex-grow-1 p-4">
+                            <div class="mb-3">
+                                <span class="text-uppercase fw-bold d-block mb-1" style="font-size:.625rem; letter-spacing:.1em; color:var(--clr-secondary);">Government</span>
+                                <h5 class="fw-bold mb-1 tracking-tight" style="color:var(--clr-on-tertiary-fixed);">Sikkim Arts College</h5>
+                                <div class="d-flex align-items-center gap-1 small" style="color:var(--clr-on-tertiary-fixed-var);"><span class="material-symbols-outlined" style="font-size:14px">location_on</span>Gyalshing, West Sikkim</div>
+                            </div>
+                            <div class="d-flex flex-column gap-3 mb-4">
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background:rgba(137,246,216,0.2);">
+                                    <div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-primary-fixed-var);">Opening Date</span><span class="fw-bold small" style="color:var(--clr-primary);">Sep 25, 2024</span></div>
+                                    <div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-primary-fixed-var);">Closing Date</span><span class="fw-bold small" style="color:var(--clr-primary);">Oct 12, 2024</span></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-surface-low">
+                                    <div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Merit List Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Oct 15, 2024</span></div>
+                                    <div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Admission Registration</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Oct 17 – Oct 22, 2024</span></div>
+                                </div>
+                                <div class="p-3 rounded-3" style="background:rgba(191,233,218,0.1); border:1px solid rgba(191,233,218,0.2);">
+                                    <span class="d-block text-uppercase fw-bold mb-1" style="font-size:.625rem; color:var(--clr-on-secondary-container);">Important Notification</span>
+                                    <p class="mb-0 small" style="color:var(--clr-on-tertiary-fixed-var); line-height:1.5;">Limited seats available for Master of Fine Arts program.</p>
+                                </div>
+                            </div>
+                            <div class="mt-auto d-grid gap-2">
+                                <button class="btn btn-primary py-2 btn-apply-now" data-college-id="3">Apply Now</button>
+                                <button class="btn btn-sm text-center d-flex align-items-center justify-content-center gap-1 btn-toggle-courses" style="color:var(--clr-on-tertiary-fixed-var); font-size:.75rem; font-weight:600;">View Course Details <span class="material-symbols-outlined" style="font-size:16px">expand_more</span></button>
+                            </div>
+                            <div class="college-courses mt-3 pt-3 border-top" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- College Card 4: Open -->
+                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                    <div class="college-card h-100" data-name="Namchi Govt. College" data-district="Namchi" data-stream="B.A Law">
+                        <div class="college-card-banner open"><span class="material-symbols-outlined" style="font-size:14px">check_circle</span> REGISTRATION OPEN</div>
+                        <div class="ratio ratio-16x9"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIcbVe9LJGRGOVanTygT9EPSjq_9C-mSl_XGaH0R_EF_7f4UOzcK4ozeCbx2S_hcjNZBx-Y2tBjBw3b6o15OKKnM9DmSfFSM0_uyE80DHBr2l-DdTEzgVioNA8Docd1VVsjesyARkmZZZc1EpTje1TTWtAltIP3RHlcPhvugwwQGC3eg9Rm5UkL4Vo9UfeqVHVjgpCYc8YXaRgfDbFoYFI-zxTdlXAicUSrksSDGA8REmaGOnOAVyYQkUm9mFj2-_5kUgZdLbNRWMX" class="w-100 h-100" style="object-fit:cover;" alt="Namchi Govt. College"></div>
+                        <div class="card-body d-flex flex-column flex-grow-1 p-4">
+                            <div class="mb-3">
+                                <span class="text-uppercase fw-bold d-block mb-1" style="font-size:.625rem; letter-spacing:.1em; color:var(--clr-secondary);">Government</span>
+                                <h5 class="fw-bold mb-1 tracking-tight" style="color:var(--clr-on-tertiary-fixed);">Namchi Govt. College</h5>
+                                <div class="d-flex align-items-center gap-1 small" style="color:var(--clr-on-tertiary-fixed-var);"><span class="material-symbols-outlined" style="font-size:14px">location_on</span>Namchi, South Sikkim</div>
+                            </div>
+                            <div class="d-flex flex-column gap-3 mb-4">
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-surface-low">
+                                    <div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Opening Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Oct 10, 2024</span></div>
+                                    <div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Closing Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Nov 18, 2024</span></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-surface-low">
+                                    <div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Merit List Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Nov 22, 2024</span></div>
+                                    <div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Admission Registration</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">Nov 25 – Dec 01, 2024</span></div>
+                                </div>
+                                <div class="p-3 rounded-3 bg-surface-low">
+                                    <span class="d-block text-uppercase fw-bold mb-1" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Notification</span>
+                                    <p class="mb-0 small" style="color:var(--clr-on-tertiary-fixed-var); line-height:1.5;">New vocational streams introduced for the 2024 session.</p>
+                                </div>
+                            </div>
+                            <div class="mt-auto d-grid gap-2">
+                                <button class="btn btn-primary py-2 btn-apply-now" data-college-id="4">Apply Now</button>
+                                <button class="btn btn-sm text-center d-flex align-items-center justify-content-center gap-1 btn-toggle-courses" style="color:var(--clr-on-tertiary-fixed-var); font-size:.75rem; font-weight:600;">View Course Details <span class="material-symbols-outlined" style="font-size:16px">expand_more</span></button>
+                            </div>
+                            <div class="college-courses mt-3 pt-3 border-top" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Pagination -->
+            <div class="text-center mt-5 pt-4">
+                <button class="btn btn-surface px-5 py-3 fw-bold d-inline-flex align-items-center gap-2" id="btnLoadMore">Load More Institutions <span class="material-symbols-outlined">expand_more</span></button>
+                <p class="mt-3 small fw-medium" id="collegeShowingCount" style="color:var(--clr-on-tertiary-fixed-var);">Showing 4 of 12 Colleges in Sikkim</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="py-5 px-4" style="background:#f1f5f9;">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <span class="fw-bold fs-5" style="color:#0f4a2a;">Sikkim Higher Ed</span>
+                    <p class="text-secondary small mt-2 mb-3" style="max-width:24rem; line-height:1.7;">The unified portal for higher education in the state of Sikkim. Empowering students with access and information.</p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-secondary"><span class="material-symbols-outlined">public</span></a>
+                        <a href="#" class="text-secondary"><span class="material-symbols-outlined">mail</span></a>
+                        <a href="#" class="text-secondary"><span class="material-symbols-outlined">call</span></a>
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-flex flex-wrap justify-content-md-end gap-4 mb-3">
+                        <a href="#" class="text-secondary small">Privacy Policy</a>
+                        <a href="#" class="text-secondary small">Contact Us</a>
+                        <a href="#" class="text-secondary small">Technical Support</a>
+                        <a href="#" class="text-secondary small">Terms of Service</a>
+                    </div>
+                    <span class="text-secondary small">© 2024 Sikkim State Higher Education Council. All Rights Reserved.</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===== MOBILE BOTTOM NAV ===== -->
+    <div class="mobile-bottom-nav d-md-none">
+        <a href="#" class="nav-tab"><span class="material-symbols-outlined">home</span><span>Home</span></a>
+        <a href="#" class="nav-tab active"><span class="material-symbols-outlined filled" style="font-variation-settings:'FILL' 1;">school</span><span>Colleges</span></a>
+        <a href="#" class="nav-tab"><span class="material-symbols-outlined">rewarded_ads</span><span>Scholarships</span></a>
+        <a href="login.html" class="nav-tab"><span class="material-symbols-outlined">person</span><span>Profile</span></a>
+    </div>
+
+    <!-- jQuery + Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sikkim State Higher Education Portal - Course Preferences</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f0f5f1",
+                        "on-secondary-fixed": "#002019",
+                        "inverse-primary": "#6cd9bc",
+                        "surface": "#f5fbf7",
+                        "secondary-fixed-dim": "#a6cfc1",
+                        "outline": "#6d7a75",
+                        "background": "#f5fbf7",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed": "#c1ebdd",
+                        "on-primary-fixed-variant": "#005141",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#2e1500",
+                        "on-background": "#171d1b",
+                        "outline-variant": "#bcc9c3",
+                        "primary-fixed-dim": "#6cd9bc",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#6b3b06",
+                        "tertiary-fixed-dim": "#ffb77b",
+                        "secondary-container": "#bfe9da",
+                        "primary-fixed": "#89f6d8",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "primary": "#006b58",
+                        "inverse-on-surface": "#edf2ee",
+                        "surface-container-high": "#e4e9e6",
+                        "on-primary-container": "#005d4c",
+                        "surface-variant": "#dee4e0",
+                        "surface-bright": "#f5fbf7",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#274e43",
+                        "tertiary": "#87521e",
+                        "on-tertiary-container": "#794612",
+                        "inverse-surface": "#2c322f",
+                        "on-primary-fixed": "#002019",
+                        "surface-container": "#eaefeb",
+                        "on-surface": "#171d1b",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#006b58",
+                        "surface-container-highest": "#dee4e0",
+                        "tertiary-fixed": "#ffdcc2",
+                        "tertiary-container": "#ffb77a",
+                        "primary-container": "#6bd9bc",
+                        "on-surface-variant": "#3d4945",
+                        "on-secondary-container": "#446a5e",
+                        "surface-dim": "#d6dbd8",
+                        "secondary": "#3f665a"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .editorial-shadow {
+            box-shadow: 0 0 32px 0 rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen selection:bg-primary-container">
+<!-- TopNavBar -->
+<header class="bg-slate-50 dark:bg-slate-900 flex justify-between items-center px-8 py-4 w-full docked full-width top-0 z-50 shadow-sm dark:shadow-none font-sans tracking-tight leading-relaxed fixed">
+<div class="text-xl font-bold text-teal-800 dark:text-teal-300">Sikkim State Higher Education Portal</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-300 transition-colors" href="#">Guidelines</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-300 transition-colors" href="#">Institutions</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-300 transition-colors" href="#">Scholarships</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-300 transition-colors" href="#">Support</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="text-teal-700 dark:text-teal-400 font-medium px-4 py-2 hover:bg-teal-50 rounded-lg transition-all scale-95 duration-150">Help Desk</button>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg font-bold shadow-md hover:bg-primary/90 transition-all scale-95 duration-150">Save Draft</button>
+<div class="h-10 w-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a young student for profile avatar in an academic setting with soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL7g0acEDsfbSnfE9MNYjY2dq_xiQvg1nyaiw2oxCKn5jLJCZFpeuvTaaslQINdB21tDHb57HPHbvTylR5Z1dqBSTkdpfytQWTYmJ8_rcLpwwnweFpbCMZTgMBr0X2OoLr40lq8QDqnuH4eTkQHBPZHauYylOI7ECjpQw_8r_GKRrZOsoS41julBBLoZrvKlIwHBzS6493VkKsqpzqMkz-A4rp06cAicXLnaKxO-g8NP31pZPKekvXnq2THyKo5npiIz-1waSItNAA"/>
+</div>
+</div>
+</header>
+<div class="flex pt-20">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full flex flex-col pt-24 bg-slate-100 dark:bg-slate-950 w-64 border-r-0 font-sans text-sm font-medium">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div>
+<h2 class="text-lg font-black text-teal-800 dark:text-teal-200">Admission 2024</h2>
+<p class="text-xs text-slate-500 uppercase tracking-widest">SK-9928</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Manual override for SideNav labels and icons based on user request "6 steps" -->
+<a class="text-slate-500 dark:text-slate-400 py-3 pl-6 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 flex items-center gap-3 transition-all duration-300 hover:pl-7" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span>Primary Information</span>
+</a>
+<a class="text-slate-500 dark:text-slate-400 py-3 pl-6 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 flex items-center gap-3 transition-all duration-300 hover:pl-7" href="#">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+<span>Personal Details</span>
+</a>
+<a class="text-slate-500 dark:text-slate-400 py-3 pl-6 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 flex items-center gap-3 transition-all duration-300 hover:pl-7" href="#">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+<span>Academic History</span>
+</a>
+<a class="bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-300 rounded-l-full py-3 pl-6 font-bold shadow-sm flex items-center gap-3 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+<span>Course Preferences</span>
+</a>
+<a class="text-slate-500 dark:text-slate-400 py-3 pl-6 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 flex items-center gap-3 transition-all duration-300 hover:pl-7" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span>Final Payments</span>
+</a>
+<a class="text-slate-500 dark:text-slate-400 py-3 pl-6 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 flex items-center gap-3 transition-all duration-300 hover:pl-7" href="#">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+<span>Preview &amp; Final Submit</span>
+</a>
+</nav>
+<div class="p-6">
+<button class="w-full bg-slate-200 dark:bg-slate-800 text-on-surface text-xs font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-300 transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                    Download Prospectus
+                </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 p-12 min-h-screen">
+<!-- Sticky College Identity Header -->
+<div class="sticky top-[88px] z-40 bg-surface/90 backdrop-blur-md mb-8 py-4 -mx-12 px-12 border-b-0">
+<div class="flex items-center gap-4 bg-white px-6 py-4 rounded-2xl editorial-shadow border-l-4 border-primary">
+<div class="w-12 h-12 bg-surface-container-low rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">account_balance</span>
+</div>
+<div>
+<h1 class="text-xl font-extrabold text-on-surface tracking-tight">Sikkim Government College, Burtuk</h1>
+<p class="text-sm text-on-surface-variant font-medium">Course Preference Portal • Academic Session 2024-25</p>
+</div>
+</div>
+</div>
+<div class="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+<!-- Forms Section (Editorial Asymmetry) -->
+<div class="flex-1 space-y-12">
+<header class="space-y-2">
+<span class="inline-block py-1 px-3 bg-tertiary-container text-on-tertiary-container text-xs font-bold rounded-full uppercase tracking-widest">Step 4 of 6</span>
+<h2 class="text-4xl font-black text-on-surface leading-none">Course Preferences</h2>
+<p class="text-lg text-on-surface-variant leading-relaxed max-w-2xl">Select your desired programs and courses in order of priority. Your first choice is mandatory. Preferences 2 and 3 are optional but recommended.</p>
+</header>
+<!-- Priority Blocks -->
+<div class="space-y-8">
+<!-- Priority 1 (MANDATORY) -->
+<section class="bg-white rounded-3xl p-8 editorial-shadow transition-all hover:translate-x-1 duration-300">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold">1</div>
+<h3 class="text-xl font-bold text-on-surface">Priority 1 <span class="text-error text-sm font-normal ml-2 tracking-tighter">(MANDATORY)</span></h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant ml-1">Program Selection</label>
+<select class="w-full h-14 px-4 bg-surface-container-lowest rounded-xl border-none ring-1 ring-outline-variant focus:ring-2 focus:ring-primary focus:bg-primary/5 transition-all text-on-surface appearance-none">
+<option>Select Program</option>
+<option selected="">Bachelor of Commerce</option>
+<option>Bachelor of Science</option>
+<option>Bachelor of Arts</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant ml-1">Specific Course/Honors</label>
+<select class="w-full h-14 px-4 bg-surface-container-lowest rounded-xl border-none ring-1 ring-outline-variant focus:ring-2 focus:ring-primary focus:bg-primary/5 transition-all text-on-surface appearance-none">
+<option>Select Course</option>
+<option selected="">B.Com Hons Accounting &amp; Finance</option>
+<option>B.Com Hons Marketing</option>
+<option>B.Com General</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Priority 2 (OPTIONAL) -->
+<section class="bg-white/60 rounded-3xl p-8 editorial-shadow grayscale hover:grayscale-0 transition-all duration-300">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant font-bold">2</div>
+<h3 class="text-xl font-bold text-on-surface">Priority 2 <span class="text-on-surface-variant text-sm font-normal ml-2">(OPTIONAL)</span></h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-80">
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant ml-1">Program Selection</label>
+<select class="w-full h-14 px-4 bg-surface-container-lowest rounded-xl border-none ring-1 ring-outline-variant focus:ring-2 focus:ring-primary focus:bg-primary/5 transition-all text-on-surface appearance-none">
+<option selected="">Select Program</option>
+<option>Bachelor of Commerce</option>
+<option>Bachelor of Science</option>
+<option>Bachelor of Arts</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant ml-1">Specific Course/Honors</label>
+<select class="w-full h-14 px-4 bg-surface-container-lowest rounded-xl border-none ring-1 ring-outline-variant focus:ring-2 focus:ring-primary focus:bg-primary/5 transition-all text-on-surface appearance-none">
+<option selected="">Select Course</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Priority 3 (OPTIONAL) -->
+<section class="bg-white/60 rounded-3xl p-8 editorial-shadow grayscale hover:grayscale-0 transition-all duration-300">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant font-bold">3</div>
+<h3 class="text-xl font-bold text-on-surface">Priority 3 <span class="text-on-surface-variant text-sm font-normal ml-2">(OPTIONAL)</span></h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 opacity-80">
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant ml-1">Program Selection</label>
+<select class="w-full h-14 px-4 bg-surface-container-lowest rounded-xl border-none ring-1 ring-outline-variant focus:ring-2 focus:ring-primary focus:bg-primary/5 transition-all text-on-surface appearance-none">
+<option selected="">Select Program</option>
+<option>Bachelor of Commerce</option>
+<option>Bachelor of Science</option>
+<option>Bachelor of Arts</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-bold text-on-surface-variant ml-1">Specific Course/Honors</label>
+<select class="w-full h-14 px-4 bg-surface-container-lowest rounded-xl border-none ring-1 ring-outline-variant focus:ring-2 focus:ring-primary focus:bg-primary/5 transition-all text-on-surface appearance-none">
+<option selected="">Select Course</option>
+</select>
+</div>
+</div>
+</section>
+</div>
+<!-- Declaration -->
+<div class="bg-tertiary-fixed rounded-3xl p-8 editorial-shadow">
+<label class="flex items-start gap-4 cursor-pointer">
+<div class="pt-1">
+<input class="w-6 h-6 rounded border-tertiary text-primary focus:ring-primary" type="checkbox"/>
+</div>
+<span class="text-sm font-medium text-on-tertiary-fixed-variant leading-relaxed">
+                                I hereby declare that all information provided in this course preference selection is true, complete and correct to the best of my knowledge and belief. I understand that seat allocation is subject to merit and availability in the respective courses chosen above.
+                            </span>
+</label>
+</div>
+<!-- Actions -->
+<footer class="flex items-center justify-between pt-8 pb-16">
+<button class="flex items-center gap-2 px-8 py-3 text-secondary font-bold hover:bg-secondary/5 rounded-xl transition-all">
+<span class="material-symbols-outlined">arrow_back</span>
+                            Back
+                        </button>
+<div class="flex gap-4">
+<button class="px-8 py-3 bg-secondary-container text-on-secondary-container font-bold rounded-xl hover:bg-secondary-container/80 transition-all">
+                                Save Draft
+                            </button>
+<button class="px-10 py-3 bg-primary text-on-primary font-bold rounded-xl shadow-lg shadow-primary/20 hover:translate-y-[-2px] transition-all">
+                                Save &amp; Next
+                            </button>
+</div>
+</footer>
+</div>
+<!-- Right Sidebar: Selection Summary -->
+<aside class="w-full lg:w-80 shrink-0">
+<div class="bg-white rounded-3xl p-6 editorial-shadow sticky top-52">
+<h4 class="text-lg font-black text-on-surface mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+                            Selection Summary
+                        </h4>
+<div class="space-y-6">
+<div class="space-y-3">
+<div class="flex justify-between items-center text-xs font-black uppercase tracking-wider text-on-surface-variant">
+<span>Priority 1</span>
+<span class="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold">SELECTED</span>
+</div>
+<div class="p-4 bg-primary/5 rounded-2xl border-l-4 border-primary">
+<p class="text-sm font-bold text-on-surface">B.Com (Hons) Accounting &amp; Finance</p>
+<p class="text-[11px] text-primary mt-1">First Choice (Mandatory)</p>
+</div>
+</div>
+<div class="space-y-3 opacity-40">
+<div class="flex justify-between items-center text-xs font-black uppercase tracking-wider text-on-surface-variant">
+<span>Priority 2</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-bold">NOT SET</span>
+</div>
+<div class="p-4 bg-slate-50 rounded-2xl border-l-4 border-slate-300 border-dashed">
+<p class="text-sm font-medium text-slate-400 italic">No course selected</p>
+</div>
+</div>
+<div class="space-y-3 opacity-40">
+<div class="flex justify-between items-center text-xs font-black uppercase tracking-wider text-on-surface-variant">
+<span>Priority 3</span>
+<span class="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-bold">NOT SET</span>
+</div>
+<div class="p-4 bg-slate-50 rounded-2xl border-l-4 border-slate-300 border-dashed">
+<p class="text-sm font-medium text-slate-400 italic">No course selected</p>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-surface-variant">
+<div class="flex items-start gap-3 p-4 bg-tertiary/10 rounded-2xl">
+<span class="material-symbols-outlined text-tertiary text-lg">info</span>
+<p class="text-xs text-on-tertiary-container leading-relaxed">
+                                    Adding more preferences increases your chances of securing admission in the first round of counseling.
+                                </p>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</body></html>

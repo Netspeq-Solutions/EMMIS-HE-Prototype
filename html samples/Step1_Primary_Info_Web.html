@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sikkim Higher Education Portal | Step 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"on-tertiary-container": "#794612", "inverse-primary": "#6cd9bc", "surface-dim": "#d6dbd8", "primary-fixed": "#89f6d8", "on-secondary-fixed-variant": "#274e43", "surface-container-highest": "#dee4e0", "on-error-container": "#93000a", "on-secondary": "#ffffff", "secondary-fixed": "#c1ebdd", "on-secondary-fixed": "#002019", "tertiary-container": "#ffb77a", "surface-bright": "#f5fbf7", "secondary-fixed-dim": "#a6cfc1", "on-surface-variant": "#3d4945", "primary-container": "#6bd9bc", "on-primary-fixed-variant": "#005141", "surface-variant": "#dee4e0", surface: "#f5fbf7", "secondary-container": "#bfe9da", "on-primary-fixed": "#002019", "on-primary": "#ffffff", outline: "#6d7a75", background: "#f5fbf7", "tertiary-fixed-dim": "#ffb77b", "tertiary-fixed": "#ffdcc2", "surface-container-lowest": "#ffffff", "on-tertiary-fixed-variant": "#6b3b06", "on-primary-container": "#005d4c", secondary: "#3f665a", "outline-variant": "#bcc9c3", "on-tertiary-fixed": "#2e1500", "on-surface": "#171d1b", error: "#ba1a1a", "inverse-surface": "#2c322f", "primary-fixed-dim": "#6cd9bc", "surface-container-high": "#e4e9e6", primary: "#006b58", "inverse-on-surface": "#edf2ee", "error-container": "#ffdad6", "on-tertiary": "#ffffff", "surface-tint": "#006b58", "surface-container": "#eaefeb", "on-error": "#ffffff", "on-background": "#171d1b", "surface-container-low": "#f0f5f1", tertiary: "#87521e", "on-secondary-container": "#446a5e"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, fontFamily: {headline: ["Inter"], body: ["Inter"], label: ["Inter"], display: "Inter"}}}};</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fb;
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopAppBar Component (Immutable Content + Mandatory Styles) -->
+<header class="bg-emerald-900/80 backdrop-blur-md dark:bg-emerald-950/80 fixed top-0 w-full z-50 shadow-xl shadow-emerald-950/10">
+<div class="flex justify-between items-center px-8 py-4 w-full">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+<img alt="Sikkim Emblem" data-alt="Official state emblem of Sikkim featuring traditional Himalayan patterns and symbols in gold and red on white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3p604exczV9W57SuYRRekjDBncMxcsWiV8DFEEoWsEacfRnjG9DimXvgTgCHY1xLIfMnBZXCvgNrQCEmziOLjigF59w2G7f9c52e9UMnok0WKpWec58HqWoMu5uoLcxTd4WeEe-SKTJIc6XpZerW_uZU0Uk_4ASjoilWhRwmUOZOcJOdrrEyh5nnK4glMQVOcMvPgHjU9ui8-XR_bVh2HxiuGTl6gm5610orqE3kscgIOuQFwUpvo3IX8QnmmzX-ULh-zMHX7__HE"/>
+</div>
+<span class="text-xl font-bold tracking-tighter text-white">Sikkim Portal</span>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-emerald-100/70 hover:text-white transition-colors font-inter tracking-tight font-bold text-lg" href="#">Guidelines</a>
+<a class="text-emerald-100/70 hover:text-white transition-colors font-inter tracking-tight font-bold text-lg" href="#">Colleges</a>
+<a class="text-emerald-100/70 hover:text-white transition-colors font-inter tracking-tight font-bold text-lg" href="#">Support</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="bg-white/10 rounded-lg px-4 py-2 text-white hover:bg-white/20 transition-all duration-200 scale-95 active:scale-90 font-inter tracking-tight font-bold text-lg">Sign Out</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-emerald-100/20">
+<img alt="Student Profile" data-alt="Headshot of a professional young male student with a clean haircut and neutral expression, soft studio lighting on plain background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB70Li49woNLK7igwjm2bjw7JNziqttmgGk5IdquG0QV2lQzrYFDc1WvnyHRVuylwINua-lLsfhwcDtbcZ2Y2zPQ33YMCN-WwiIVUJYFwjHoDGn0Eo-OXGSL_vyFHlF346j7J3dwMvOXhep8GSng4cjZxsvYlWH2ermhNo16YSg2_5sAdZ6R3rw8N24Nez18wcH_qrDopDJiwE_aZqNF3NFVAnqPDQmBp0f7BmE8jeBg4TxhFwmNWy0ZFjp9aE9ZCQPV4uQBDaiyWgJ"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex pt-20">
+<!-- SideNavBar Component (Execution of style_shell_layout and mapping) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-slate-50 dark:bg-slate-900 flex flex-col pt-20 hidden md:flex border-r-0">
+<div class="px-6 py-8">
+<div class="flex items-center gap-3 mb-1">
+<span class="material-symbols-outlined text-emerald-900 dark:text-emerald-100" style="font-variation-settings: 'FILL' 1;">shield</span>
+<span class="text-lg font-black text-emerald-900 dark:text-emerald-100">Admission 2024</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium">Application ID: SK-2093</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">info</span>
+<span class="font-inter text-sm font-medium">Primary Information</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-inter text-sm font-medium">Personal Details</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-emerald-700 dark:text-emerald-300 font-bold border-r-4 border-emerald-700 dark:border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-inter text-sm font-medium">Academic History</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">account_balance</span>
+<span class="font-inter text-sm font-medium">Course Preferences</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-inter text-sm font-medium">Final Payments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">assignment_turned_in</span>
+<span class="font-inter text-sm font-medium">Preview &amp; Final Submit</span>
+</a>
+</nav>
+<div class="p-6">
+<button class="w-full py-3 bg-surface-container-high text-primary rounded-xl font-bold hover:bg-primary hover:text-white transition-all duration-300">
+                    Save Draft
+                </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-0 md:ml-64 p-4 md:p-12">
+<!-- Sticky College Header -->
+<div class="sticky top-20 z-40 bg-surface-container-low/95 backdrop-blur-sm px-6 py-4 rounded-xl mb-8 flex items-center justify-between border-b border-outline-variant/10">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm">
+<img alt="Academic Shield" data-alt="A sophisticated academic shield emblem in deep green and gold colors, representing high-quality higher education" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtEy7bfGa_ezTt3GgQ6RM8tthtRwd6cdnsHFxm2xzUu7KWBLU3HmFUUWuQBTUOrbu3bdvPpSM9VkU-Ud5qojI_CyYW72tFXEncLwBIN0_Mmqq-ukW5cSK8-HEj3UCn5LH8zh6ivqEk3YdH3R__NEDvt9sS9f_eTSRtl6r2StkG3fOmxyat5WKY5y3v_abq9dQTbx0w9-s1NAkKTfcpSnihvI-e4N-W1EQ-XuR_1wx31bnkC7Nq-HFl8fOLNjBgaoBmzcLOIJTsR_7r"/>
+</div>
+<div>
+<h2 class="text-on-tertiary-fixed font-bold text-xl tracking-tight">Sikkim State Government College</h2>
+<p class="text-on-tertiary-fixed-variant text-sm">Directorate of Technical Education</p>
+</div>
+</div>
+<div class="hidden sm:block text-right">
+<p class="text-xs uppercase tracking-widest text-secondary font-bold">Phase I Admission</p>
+<p class="text-sm font-medium text-on-tertiary-fixed">Session 2024-25</p>
+</div>
+</div>
+<!-- Soft Dots Progress Stepper -->
+<div class="max-w-4xl mx-auto mb-12">
+<div class="flex items-center justify-between">
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-4 h-4 rounded-full bg-primary ring-4 ring-primary-fixed"></div>
+<span class="text-xs font-bold text-primary">Primary Info</span>
+</div>
+<div class="flex-1 h-px bg-outline-variant mx-4 mt-2"></div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-4 h-4 rounded-full bg-outline-variant group-hover:bg-primary/50 transition-colors"></div>
+<span class="text-xs font-medium text-on-tertiary-fixed-variant">Personal Details</span>
+</div>
+<div class="flex-1 h-px bg-outline-variant mx-4 mt-2"></div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-4 h-4 rounded-full bg-outline-variant group-hover:bg-primary/50 transition-colors"></div>
+<span class="text-xs font-medium text-on-tertiary-fixed-variant">Marks Details</span>
+</div>
+<div class="flex-1 h-px bg-outline-variant mx-4 mt-2"></div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="w-4 h-4 rounded-full bg-outline-variant group-hover:bg-primary/50 transition-colors"></div>
+<span class="text-xs font-medium text-on-tertiary-fixed-variant">Course Preference</span>
+</div>
+</div>
+</div>
+<!-- Admission Form Canvas -->
+<div class="max-w-4xl mx-auto">
+<div class="bg-surface-container-lowest rounded-[24px] p-8 md:p-12 shadow-sm relative overflow-hidden">
+<!-- Subtle Background Accent -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-fixed/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+<div class="relative z-10">
+<h1 class="text-3xl font-extrabold text-on-tertiary-fixed mb-2 tracking-tight">Primary Information</h1>
+<p class="text-on-tertiary-fixed-variant mb-10 max-w-lg leading-relaxed">Please ensure all mandatory fields are filled correctly as per your official documents for the 2024 academic cycle.</p>
+<form class="space-y-8">
+<!-- Bento-style Grid for Top Fields -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Application No</label>
+<div class="bg-surface-container-low px-4 py-3 rounded-xl border border-outline-variant/10 text-on-surface-variant font-mono text-lg">
+                                        2026001522
+                                    </div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Class XII Roll No *</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-fixed focus:border-primary transition-all" placeholder="Enter roll number" type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Candidate Name *</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-fixed focus:border-primary transition-all" placeholder="Enter full name as per marksheet" type="text"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Board *</label>
+<select class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-fixed focus:border-primary transition-all">
+<option disabled="" selected="" value="">Select Board</option>
+<option value="CBSE">CBSE</option>
+<option value="ICSE">ICSE</option>
+<option value="Sikkim Board">Sikkim Board</option>
+<option value="Other">Other</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Stream *</label>
+<div class="flex gap-4">
+<label class="flex-1 relative cursor-pointer group">
+<input class="peer sr-only" name="stream" type="radio" value="Commerce"/>
+<div class="h-12 flex items-center justify-center rounded-xl border border-outline-variant/30 bg-surface-container-lowest peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all font-medium">Commerce</div>
+</label>
+<label class="flex-1 relative cursor-pointer group">
+<input class="peer sr-only" name="stream" type="radio" value="Science"/>
+<div class="h-12 flex items-center justify-center rounded-xl border border-outline-variant/30 bg-surface-container-lowest peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary transition-all font-medium">Science</div>
+</label>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Mobile / WhatsApp No *</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-tertiary-fixed-variant font-medium">+91</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl pl-14 pr-4 py-3 focus:ring-2 focus:ring-primary-fixed focus:border-primary transition-all" placeholder="9876543210" type="tel"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Gender *</label>
+<select class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-fixed focus:border-primary transition-all">
+<option disabled="" selected="" value="">Select Gender</option>
+<option value="Male">Male</option>
+<option value="Female">Female</option>
+<option value="Other">Other</option>
+</select>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Email ID (Optional)</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-fixed focus:border-primary transition-all" placeholder="example@email.com" type="email"/>
+</div>
+<!-- Category Segmented Toggle -->
+<div class="space-y-4 p-6 rounded-2xl bg-surface-container-low/50">
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Category *</label>
+<div class="flex p-1 bg-surface-container-low rounded-2xl border border-outline-variant/20">
+<label class="flex-1 relative cursor-pointer">
+<input checked="" class="peer sr-only" name="category" type="radio" value="Sikkimese"/>
+<div class="py-3 text-center rounded-xl peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-primary font-bold text-sm transition-all text-on-tertiary-fixed-variant">Sikkimese</div>
+</label>
+<label class="flex-1 relative cursor-pointer">
+<input class="peer sr-only" name="category" type="radio" value="Non-Sikkimese"/>
+<div class="py-3 text-center rounded-xl peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-primary font-bold text-sm transition-all text-on-tertiary-fixed-variant">Non-Sikkimese</div>
+</label>
+</div>
+</div>
+<!-- Conditional Sikkimese Content -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-500">
+<div class="space-y-2">
+<label class="block text-xs font-bold text-secondary uppercase tracking-tight">COI / RC / Domicile No *</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary-fixed focus:border-primary transition-all" placeholder="Enter Certificate Number" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold text-secondary uppercase tracking-tight">Upload Certificate *</label>
+<div class="border-2 border-dashed border-secondary/20 rounded-xl p-3 bg-surface-container-lowest flex items-center justify-between hover:border-secondary transition-all cursor-pointer group">
+<span class="text-sm text-on-tertiary-fixed-variant group-hover:text-secondary transition-colors">Choose File (PDF/JPG)</span>
+<span class="material-symbols-outlined text-secondary">cloud_upload</span>
+</div>
+</div>
+</div>
+</div>
+<!-- PWD Field -->
+<div class="space-y-4">
+<label class="block text-sm font-semibold text-on-tertiary-fixed-variant ml-1">Persons with Disability *</label>
+<div class="flex gap-8">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-5 h-5 text-primary border-outline-variant focus:ring-primary-fixed" name="pwd" type="radio" value="Yes"/>
+<span class="text-on-tertiary-fixed font-medium group-hover:text-primary transition-colors">Yes</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-5 h-5 text-primary border-outline-variant focus:ring-primary-fixed" name="pwd" type="radio" value="No"/>
+<span class="text-on-tertiary-fixed font-medium group-hover:text-primary transition-colors">No</span>
+</label>
+</div>
+<!-- Hidden unless Yes selected - shown for layout demonstration -->
+<div class="hidden">
+<div class="border-2 border-dashed border-secondary/20 rounded-xl p-4 bg-surface-container-lowest flex items-center justify-center gap-4 hover:border-secondary transition-all cursor-pointer">
+<span class="material-symbols-outlined text-secondary">medical_services</span>
+<span class="text-sm font-medium text-secondary">Upload Disability Certificate</span>
+</div>
+</div>
+</div>
+<div class="pt-8 flex justify-end items-center gap-6">
+<button class="text-primary font-bold hover:underline underline-offset-4 transition-all" type="button">
+                                    Discard Changes
+                                </button>
+<button class="bg-gradient-to-r from-primary to-primary-container text-white px-10 py-4 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2" type="submit">
+                                    Save &amp; Next
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<!-- Mobile Bottom Nav Spacer -->
+<div class="h-20 md:hidden"></div>
+</main>
+</div>
+<!-- Mobile Navigation Shell (Conditional Suppression: Not needed on transactional pages but kept for system consistency if required) -->
+<footer class="md:hidden fixed bottom-0 left-0 w-full bg-emerald-900/80 backdrop-blur-xl z-50 flex justify-around items-center py-3 px-4 shadow-[0_-4px_24px_rgba(0,0,0,0.1)] border-t-0">
+<a class="flex flex-col items-center gap-1 text-on-primary-container" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="text-[10px] font-bold">Apply</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-emerald-100/50" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="text-[10px]">Colleges</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-emerald-100/50" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px]">Status</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-emerald-100/50" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px]">Profile</span>
+</a>
+</footer>
+</body></html>

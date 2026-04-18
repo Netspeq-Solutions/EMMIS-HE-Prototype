@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Colleges | Sikkim Higher Ed</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"on-error-container": "#93000a", "inverse-on-surface": "#edf2ee", "tertiary-fixed": "#ffdcc2", error: "#ba1a1a", "on-primary-fixed": "#002019", "on-background": "#171d1b", primary: "#006b58", "on-secondary-fixed": "#002019", "surface-container": "#eaefeb", "inverse-primary": "#6cd9bc", "primary-fixed": "#89f6d8", outline: "#6d7a75", background: "#f5fbf7", "tertiary-fixed-dim": "#ffb77b", "error-container": "#ffdad6", "secondary-fixed-dim": "#a6cfc1", "on-secondary-fixed-variant": "#274e43", "surface-container-lowest": "#ffffff", "secondary-container": "#bfe9da", "on-tertiary-fixed": "#2e1500", "on-surface-variant": "#3d4945", "inverse-surface": "#2c322f", "on-tertiary": "#ffffff", secondary: "#3f665a", "on-primary-container": "#005d4c", "secondary-fixed": "#c1ebdd", "surface-bright": "#f5fbf7", "on-secondary": "#ffffff", "on-surface": "#171d1b", "on-primary": "#ffffff", surface: "#f5fbf7", "primary-container": "#6bd9bc", "surface-tint": "#006b58", "surface-container-high": "#e4e9e6", "tertiary-container": "#ffb77a", "on-secondary-container": "#446a5e", "surface-container-highest": "#dee4e0", "surface-dim": "#d6dbd8", "on-error": "#ffffff", "primary-fixed-dim": "#6cd9bc", "on-primary-fixed-variant": "#005141", "surface-variant": "#dee4e0", "outline-variant": "#bcc9c3", "on-tertiary-fixed-variant": "#6b3b06", "on-tertiary-container": "#794612", tertiary: "#87521e", "surface-container-low": "#f0f5f1", saffron: "#E8720C"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, fontFamily: {headline: ["Inter"], body: ["Inter"], label: ["Inter"], display: "Inter"}}}};</script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fb; color: #191c1e; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        .editorial-shadow { box-shadow: 0px 0px 32px 0px rgba(26, 26, 46, 0.04); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #984700; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#1A6B3C] dark:bg-emerald-950 flex justify-between items-center px-8 h-16 shadow-lg border-b-4 border-[#984700]">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold text-white border-b-4 border-[#984700] tracking-tight font-headline" style="">Sikkim Admission Portal</span>
+</div>
+<div class="hidden md:flex items-center gap-8 font-['Inter'] tracking-tight font-semibold">
+<a class="text-white border-b-2 border-white pb-1" href="#" style="">Institutions</a>
+<a class="text-emerald-100 hover:text-white transition-colors" href="#" style="">Scholarships</a>
+<a class="text-emerald-100 hover:text-white transition-colors" href="#" style="">Guidelines</a>
+<a class="text-emerald-100 hover:text-white transition-colors" href="#" style="">Help Desk</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-emerald-800 hover:bg-emerald-900 transition-all text-white px-6 py-2 rounded-lg font-semibold scale-95 active:scale-90 duration-200" style="">
+            Sign In
+        </button>
+</div>
+</nav>
+<main class="mt-16 pb-24">
+<!-- Hero Banner with Search -->
+<section class="h-[220px] bg-gradient-to-br from-primary to-primary-container flex flex-col items-center justify-center relative px-6 overflow-hidden">
+<div class="absolute inset-0 opacity-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDDTGon4ZGOhMpmh9vsZE7AOOd_FCS54v2IHuunKtngx4Ka_86jLjH7FOW-w1yROOJMn1fFgdW6IAByDZkrJ2xzZusTRA77qNWWRAwHwv2QovDrpEhQxiNGjcbtV-FjRJuDPcyB9m0xJRR-jBP5RzPcBCLXCFO0JUMeXGZ48PUzSfBGyY3Qq1L7mTvMMqe2CV-_Rej7JPXbvYQI5a9RynSpWg7RE9BzRNDN0MwU2V8aupIu0ZyO5ecIOj9WYR-sC4SnIWblMns03N1x"); background-size: cover; background-position: center center;'></div>
+<div class="relative z-10 text-center max-w-3xl w-full">
+<h1 class="text-white text-3xl md:text-4xl font-extrabold tracking-tight mb-2" style="">Find Your College. Apply Online.</h1>
+<p class="text-on-primary-container text-sm md:text-base mb-6 font-medium" style="">Explore premier higher education institutions across the Himalayan state.</p>
+<div class="relative w-full max-w-xl mx-auto">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary" style="">search</span>
+<input class="w-full h-12 pl-12 pr-4 rounded-full border-none bg-surface-container-lowest shadow-lg focus:ring-4 focus:ring-secondary/20 transition-all text-on-surface" placeholder="Search by college name, course or city..." type="text"/>
+</div>
+</div>
+</section>
+<!-- Filter Row -->
+<div class="sticky top-16 bg-surface-container-low z-40 px-8 py-4 border-b border-outline-variant/10 shadow-sm">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-center gap-6 overflow-x-auto custom-scrollbar pb-2 md:pb-0">
+<div class="flex items-center gap-2 whitespace-nowrap">
+<span class="text-xs font-bold text-on-tertiary-fixed-variant uppercase tracking-widest" style="">Districts:</span>
+<button class="px-4 py-1.5 rounded-full bg-primary text-white text-sm font-semibold" style="">All</button>
+<button class="px-4 py-1.5 rounded-full bg-white border border-primary text-primary text-sm font-semibold hover:bg-primary-fixed/30 transition-colors" style="">East Sikkim</button>
+<button class="px-4 py-1.5 rounded-full bg-white border border-primary text-primary text-sm font-semibold hover:bg-primary-fixed/30 transition-colors" style="">West Sikkim</button>
+<button class="px-4 py-1.5 rounded-full bg-white border border-primary text-primary text-sm font-semibold hover:bg-primary-fixed/30 transition-colors" style="">North Sikkim</button>
+<button class="px-4 py-1.5 rounded-full bg-white border border-primary text-primary text-sm font-semibold hover:bg-primary-fixed/30 transition-colors" style="">South Sikkim</button>
+</div>
+<div class="w-px h-6 bg-outline-variant/40 hidden md:block"></div>
+<div class="flex items-center gap-2 whitespace-nowrap">
+<span class="text-xs font-bold text-on-tertiary-fixed-variant uppercase tracking-widest" style="">Streams:</span>
+<button class="px-4 py-1.5 rounded-full bg-white border border-primary text-primary text-sm font-semibold hover:bg-primary-fixed/30 transition-colors" style="">Arts &amp; Science</button>
+<button class="px-4 py-1.5 rounded-full bg-white border border-primary text-primary text-sm font-semibold hover:bg-primary-fixed/30 transition-colors" style="">Commerce</button>
+<button class="px-4 py-1.5 rounded-full bg-white border border-primary text-primary text-sm font-semibold hover:bg-primary-fixed/30 transition-colors" style="">Professional</button>
+</div>
+</div>
+</div>
+</div>
+<!-- College Grid -->
+<div class="max-w-7xl mx-auto px-8 py-12">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- College Card 1 (Urgent State) -->
+<div class="group bg-surface-container-lowest rounded-2xl overflow-hidden editorial-shadow flex flex-col relative">
+<!-- Updated Urgent Header -->
+<div class="bg-error text-on-error py-2 px-4 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2" style="">
+<span class="material-symbols-outlined text-[14px]" style="">timer</span>
+                    REGISTRATION OPEN - ENDS SOON!
+                </div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="mb-4">
+<span class="text-[10px] text-secondary font-bold uppercase tracking-widest mb-1 block" style="">Government</span>
+<h3 class="text-xl font-bold text-on-tertiary-fixed leading-tight mb-1" style="">Sikkim Government College</h3>
+<div class="flex items-center gap-1 text-on-tertiary-fixed-variant text-xs" style="">
+<span class="material-symbols-outlined text-sm" style="">location_on</span>
+                            Tadong, Gangtok
+                        </div>
+</div>
+<!-- Status Badges: Now with Opening & Closing Dates -->
+<div class="flex flex-col gap-3 mb-6">
+<div class="flex justify-between items-center bg-primary-fixed/30 p-3 rounded-xl">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-primary-fixed-variant font-medium uppercase tracking-tighter" style="">Opening Date</span>
+<span class="text-sm font-bold text-primary" style="">Oct 01, 2024</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-on-primary-fixed-variant font-medium uppercase tracking-tighter" style="">Closing Date</span>
+<span class="text-sm font-bold text-primary" style="">Oct 15, 2024</span>
+</div>
+</div>
+<div class="p-3 bg-secondary-container/10 rounded-xl border border-secondary-container/20">
+<span class="text-[10px] text-on-secondary-fixed-variant font-bold uppercase block mb-1" style="">Important Notification</span>
+<p class="text-xs text-on-tertiary-fixed-variant leading-snug" style="">Verification of original documents starts from Oct 18.</p>
+</div>
+</div>
+<!-- Actions -->
+<div class="mt-auto space-y-3">
+<button class="w-full bg-primary text-on-primary py-3 rounded-[10px] font-bold text-sm hover:opacity-95 transition-all" style="">Apply Now</button>
+<button class="w-full text-on-tertiary-fixed-variant py-2 text-xs font-semibold flex items-center justify-center gap-1 hover:text-primary transition-colors" style="">
+                            View Course Details
+                            <span class="material-symbols-outlined text-sm" style="">expand_more</span>
+</button>
+<div class="mt-4 pt-4 border-t border-outline-variant/20 space-y-4">
+<h4 class="text-xs font-bold text-on-tertiary-fixed uppercase tracking-wider mb-2" style="">Offered Courses</h4>
+<div class="space-y-3">
+<div class="p-3 bg-surface-container-low rounded-xl">
+<div class="flex justify-between items-start mb-2">
+<div>
+<span class="text-sm font-bold text-on-tertiary-fixed block" style="">Bachelor of Arts (B.A.)</span>
+<span class="text-[10px] text-on-tertiary-fixed-variant" style="">3 Years • ₹4,500/year</span>
+</div>
+<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full" style="">48 seats</span>
+</div>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2 py-0.5 bg-white border border-outline-variant/30 text-[9px] font-medium rounded-md text-on-tertiary-fixed-variant" style="">Political Science</span>
+<span class="px-2 py-0.5 bg-white border border-outline-variant/30 text-[9px] font-medium rounded-md text-on-tertiary-fixed-variant" style="">History</span>
+<span class="px-2 py-0.5 bg-white border border-outline-variant/30 text-[9px] font-medium rounded-md text-on-tertiary-fixed-variant" style="">English</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- College Card 2 -->
+<div class="group bg-surface-container-lowest rounded-2xl overflow-hidden editorial-shadow flex flex-col relative">
+<!-- Status moved to top banner -->
+<div class="bg-primary text-white py-2 px-4 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2" style="">
+<span class="material-symbols-outlined text-[14px]" style="">check_circle</span>
+                    REGISTRATION OPEN
+                </div>
+<div class="aspect-[16/9] w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="architectural shot of a modern college building with himalayan mountains in the background under clear blue sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB62An-EyTiBUhcc9FtgvL2gRpj4YoRNUJ5FM4XAcfM1O0Q72N4Xg1lhOHJiL70Vg7RUQP7A-j0LTyDYZ9aSXo6Vl3t2PiZF0RN9jiSL1Ks0Tmi5l12caq_5yu8w_5f1V5fzDnB_hrG71PD0IxZv3GIwWv6namjxP9XWwIq7mia9XYXHgWQZK4RrvoWtuCI9ECmlNSeoIa-7qGcX0iuNEk1XGMwxepggxF5m_Nm0aiGj3I0lqbqK5xWDN_J3r7LpuWtx7qn3oKcLYXA" style=""/>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="mb-4">
+<span class="text-[10px] text-secondary font-bold uppercase tracking-widest mb-1 block" style="">Government</span>
+<h3 class="text-xl font-bold text-on-tertiary-fixed leading-tight mb-1" style="">Dentam College</h3>
+<div class="flex items-center gap-1 text-on-tertiary-fixed-variant text-xs" style="">
+<span class="material-symbols-outlined text-sm" style="">location_on</span>
+                            Rangpo, East Sikkim
+                        </div>
+</div>
+<div class="flex flex-col gap-3 mb-6">
+<div class="flex justify-between items-center bg-surface-container-low p-3 rounded-xl">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-tertiary-fixed-variant font-medium uppercase tracking-tighter" style="">Opening Date</span>
+<span class="text-sm font-bold text-on-tertiary-fixed" style="">Oct 05, 2024</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-on-tertiary-fixed-variant font-medium uppercase tracking-tighter" style="">Closing Date</span>
+<span class="text-sm font-bold text-on-tertiary-fixed" style="">Nov 05, 2024</span>
+</div>
+</div>
+<div class="p-3 bg-surface-container-low rounded-xl border-none">
+<span class="text-[10px] text-on-tertiary-fixed-variant font-bold uppercase block mb-1" style="">Notification</span>
+<p class="text-xs text-on-tertiary-fixed-variant leading-snug" style="">Scholarship exams for B.Tech are scheduled for next month.</p>
+</div>
+</div>
+<div class="mt-auto space-y-3">
+<button class="w-full bg-primary text-on-primary py-3 rounded-[10px] font-bold text-sm hover:opacity-95 transition-all" style="">Apply Now</button>
+<button class="w-full text-on-tertiary-fixed-variant py-2 text-xs font-semibold flex items-center justify-center gap-1 hover:text-primary transition-colors" style="">
+                            View Course Details
+                            <span class="material-symbols-outlined text-sm" style="">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+<!-- College Card 3 (Urgent State) -->
+<div class="group bg-surface-container-lowest rounded-2xl overflow-hidden editorial-shadow flex flex-col relative">
+<!-- Updated Urgent Header -->
+<div class="bg-error text-on-error py-2 px-4 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2" style="">
+<span class="material-symbols-outlined text-[14px]" style="">timer</span>
+                    REGISTRATION OPEN - ENDS SOON!
+                </div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="mb-4">
+<span class="text-[10px] text-secondary font-bold uppercase tracking-widest mb-1 block" style="">Government</span>
+<h3 class="text-xl font-bold text-on-tertiary-fixed leading-tight mb-1" style="">Sikkim Arts College</h3>
+<div class="flex items-center gap-1 text-on-tertiary-fixed-variant text-xs" style="">
+<span class="material-symbols-outlined text-sm" style="">location_on</span>
+                            Gyalshing, West Sikkim
+                        </div>
+</div>
+<div class="flex flex-col gap-3 mb-6">
+<div class="flex justify-between items-center bg-primary-fixed/30 p-3 rounded-xl">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-primary-fixed-variant font-medium uppercase tracking-tighter" style="">Opening Date</span>
+<span class="text-sm font-bold text-primary" style="">Sep 25, 2024</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-on-primary-fixed-variant font-medium uppercase tracking-tighter" style="">Closing Date</span>
+<span class="text-sm font-bold text-primary" style="">Oct 12, 2024</span>
+</div>
+</div>
+<div class="p-3 bg-secondary-container/10 rounded-xl border border-secondary-container/20">
+<span class="text-[10px] text-on-secondary-fixed-variant font-bold uppercase block mb-1" style="">Important Notification</span>
+<p class="text-xs text-on-tertiary-fixed-variant leading-snug" style="">Limited seats available for Master of Fine Arts program.</p>
+</div>
+</div>
+<div class="mt-auto space-y-3">
+<button class="w-full bg-primary text-on-primary py-3 rounded-[10px] font-bold text-sm hover:opacity-95 transition-all" style="">Apply Now</button>
+<button class="w-full text-on-tertiary-fixed-variant py-2 text-xs font-semibold flex items-center justify-center gap-1 hover:text-primary transition-colors" style="">
+                            View Course Details
+                            <span class="material-symbols-outlined text-sm" style="">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+<!-- College Card 4 -->
+<div class="group bg-surface-container-lowest rounded-2xl overflow-hidden editorial-shadow flex flex-col relative">
+<!-- Status moved to top banner -->
+<div class="bg-primary text-white py-2 px-4 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2" style="">
+<span class="material-symbols-outlined text-[14px]" style="">check_circle</span>
+                    REGISTRATION OPEN
+                </div>
+<div class="aspect-[16/9] w-full bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="high angle view of a lush green university campus nestled between pine trees and rolling green hills" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIcbVe9LJGRGOVanTygT9EPSjq_9C-mSl_XGaH0R_EF_7f4UOzcK4ozeCbx2S_hcjNZBx-Y2tBjBw3b6o15OKKnM9DmSfFSM0_uyE80DHBr2l-DdTEzgVioNA8Docd1VVsjesyARkmZZZc1EpTje1TTWtAltIP3RHlcPhvugwwQGC3eg9Rm5UkL4Vo9UfeqVHVjgpCYc8YXaRgfDbFoYFI-zxTdlXAicUSrksSDGA8REmaGOnOAVyYQkUm9mFj2-_5kUgZdLbNRWMX" style=""/>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="mb-4">
+<span class="text-[10px] text-secondary font-bold uppercase tracking-widest mb-1 block" style="">Government</span>
+<h3 class="text-xl font-bold text-on-tertiary-fixed leading-tight mb-1" style="">Namchi Govt. College</h3>
+<div class="flex items-center gap-1 text-on-tertiary-fixed-variant text-xs" style="">
+<span class="material-symbols-outlined text-sm" style="">location_on</span>
+                            Namchi, South Sikkim
+                        </div>
+</div>
+<div class="flex flex-col gap-3 mb-6">
+<div class="flex justify-between items-center bg-surface-container-low p-3 rounded-xl">
+<div class="flex flex-col">
+<span class="text-[10px] text-on-tertiary-fixed-variant font-medium uppercase tracking-tighter" style="">Opening Date</span>
+<span class="text-sm font-bold text-on-tertiary-fixed" style="">Oct 10, 2024</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="text-[10px] text-on-tertiary-fixed-variant font-medium uppercase tracking-tighter" style="">Closing Date</span>
+<span class="text-sm font-bold text-on-tertiary-fixed" style="">Nov 18, 2024</span>
+</div>
+</div>
+<div class="p-3 bg-surface-container-low rounded-xl border-none">
+<span class="text-[10px] text-on-tertiary-fixed-variant font-bold uppercase block mb-1" style="">Notification</span>
+<p class="text-xs text-on-tertiary-fixed-variant leading-snug" style="">New vocational streams introduced for the 2024 session.</p>
+</div>
+</div>
+<div class="mt-auto space-y-3">
+<button class="w-full bg-primary text-on-primary py-3 rounded-[10px] font-bold text-sm hover:opacity-95 transition-all" style="">Apply Now</button>
+<button class="w-full text-on-tertiary-fixed-variant py-2 text-xs font-semibold flex items-center justify-center gap-1 hover:text-primary transition-colors" style="">
+                            View Course Details
+                            <span class="material-symbols-outlined text-sm" style="">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination/Load More -->
+<div class="mt-20 flex flex-col items-center">
+<button class="px-8 py-4 bg-surface-container-high text-primary font-bold rounded-[10px] hover:bg-primary-fixed/20 transition-colors flex items-center gap-2" style="">
+                Load More Institutions
+                <span class="material-symbols-outlined" style="">expand_more</span>
+</button>
+<p class="mt-6 text-on-tertiary-fixed-variant text-sm font-medium" style="">Showing 4 of 24 Colleges in Sikkim</p>
+</div>
+</div>
+</main>
+<!-- Shared Component: Footer -->
+<footer class="bg-slate-100 py-12 px-8">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="flex flex-col gap-4">
+<span class="text-lg font-bold text-emerald-900" style="">Sikkim Higher Ed</span>
+<p class="text-sm text-slate-500 max-w-sm leading-relaxed" style="">The unified portal for higher education in the state of Sikkim. Empowering students with access and information.</p>
+<div class="flex gap-4 mt-2">
+<a class="text-slate-500 hover:text-primary transition-colors" href="#" style=""><span class="material-symbols-outlined" style="">public</span></a>
+<a class="text-slate-500 hover:text-primary transition-colors" href="#" style=""><span class="material-symbols-outlined" style="">mail</span></a>
+<a class="text-slate-500 hover:text-primary transition-colors" href="#" style=""><span class="material-symbols-outlined" style="">call</span></a>
+</div>
+</div>
+<div class="flex flex-col md:items-end gap-6">
+<div class="flex flex-wrap md:justify-end gap-x-8 gap-y-4">
+<a class="text-sm text-slate-500 hover:text-emerald-600 transition-opacity" href="#" style="">Privacy Policy</a>
+<a class="text-sm text-slate-500 hover:text-emerald-600 transition-opacity" href="#" style="">Contact Us</a>
+<a class="text-sm text-slate-500 hover:text-emerald-600 transition-opacity" href="#" style="">Technical Support</a>
+<a class="text-sm text-slate-500 hover:text-emerald-600 transition-opacity" href="#" style="">Terms of Service</a>
+</div>
+<span class="text-sm text-slate-500" style="">© 2024 Sikkim State Higher Education Council. All Rights Reserved.</span>
+</div>
+</div>
+</footer>
+<!-- Bottom Navigation Bar for Mobile -->
+<div class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-primary/80 backdrop-blur-xl flex items-center justify-around px-4 z-50 text-white rounded-t-2xl">
+<div class="flex flex-col items-center gap-1">
+<span class="material-symbols-outlined text-[20px]" style="">home</span>
+<span class="text-[10px] font-medium" style="">Home</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-on-primary-container">
+<span class="material-symbols-outlined text-[20px]" style='font-variation-settings: "FILL" 1;'>school</span>
+<span class="text-[10px] font-bold" style="">Colleges</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-60">
+<span class="material-symbols-outlined text-[20px]" style="">rewarded_ads</span>
+<span class="text-[10px] font-medium" style="">Scholarships</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-60">
+<span class="material-symbols-outlined text-[20px]" style="">person</span>
+<span class="text-[10px] font-medium" style="">Profile</span>
+</div>
+</div>
+</body></html>
