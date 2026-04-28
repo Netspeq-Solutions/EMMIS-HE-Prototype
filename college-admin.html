@@ -210,6 +210,19 @@
                     <textarea class="form-control" id="cfgNotification" rows="2" placeholder="e.g., Verification of original documents starts from May 12. Bring all originals."></textarea>
                     <div class="form-text">This message will be displayed on the public college listing card. Leave blank to hide the notification block.</div>
                 </div>
+                <!-- Restricted Access -->
+                <div class="col-12">
+                    <div class="p-3 rounded-3" style="background:rgba(186,26,26,0.05);border:1px solid rgba(186,26,26,0.15);">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="cfgRestricted" role="switch">
+                            <label class="form-check-label fw-bold small" for="cfgRestricted">
+                                <span class="material-symbols-outlined align-middle" style="font-size:15px;vertical-align:-2px;">lock</span>
+                                Restricted Access (Invitation / Recommendation Only)
+                            </label>
+                        </div>
+                        <p class="small text-on-surface-variant mb-0" style="padding-left:2.4rem;">When enabled, the college will <strong>not appear</strong> on the public listing. A unique shareable invite link will be generated automatically when you save — share it only with recommended/invited students.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-2 mt-3">

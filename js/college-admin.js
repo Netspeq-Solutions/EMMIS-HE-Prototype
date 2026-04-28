@@ -609,6 +609,7 @@
         $('#cfgRegOpen').val('');
         $('#cfgRegClose').val('');
         $('#cfgNotification').val('');
+        $('#cfgRestricted').prop('checked', false);
         $('#cfgSelectiveBody').html(SELECTIVE_EMPTY_HTML);
     }
 
@@ -620,6 +621,7 @@
         $('#cfgRegOpen').val(schedule.defaultWindow && schedule.defaultWindow.regOpen || '');
         $('#cfgRegClose').val(schedule.defaultWindow && schedule.defaultWindow.regClose || '');
         $('#cfgNotification').val(schedule.notification || '');
+        $('#cfgRestricted').prop('checked', !!schedule.restricted);
 
         var $body = $('#cfgSelectiveBody').empty();
         if ((schedule.selectiveWindows || []).length === 0) {
@@ -647,6 +649,15 @@
             }
         });
         return rows;
+    }
+
+    function generateInviteToken() {
+        var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        var token = '';
+        for (var i = 0; i < 24; i++) {
+            token += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return token;
     }
 
     function renderScheduleCards() {
@@ -690,13 +701,27 @@
                 ? '<p class="small mb-0 mt-1" style="color:var(--clr-primary);"><span class="material-symbols-outlined align-middle" style="font-size:14px;vertical-align:-2px;">campaign</span> ' + $('<span>').text(s.notification).html() + '</p>'
                 : '';
 
+            var inviteBlock = '';
+            if (s.restricted && s.inviteToken) {
+                var inviteUrl = window.location.origin + window.location.pathname.replace(/\/[^/]+$/, '/') + 'index.html?invite=' + s.inviteToken;
+                inviteBlock = '<div class="mt-2 p-2 rounded-3" style="background:rgba(186,26,26,0.05);border:1px solid rgba(186,26,26,0.15);">' +
+                    '<div class="d-flex align-items-center justify-content-between gap-2 mb-1">' +
+                    '<span class="small fw-bold" style="color:var(--clr-error);"><span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">link</span> Shareable Invite Link</span>' +
+                    '<button class="btn btn-sm fw-bold btn-copy-invite d-flex align-items-center gap-1" data-url="' + inviteUrl + '" style="font-size:.7rem;padding:2px 8px;background:rgba(186,26,26,0.1);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);">' +
+                    '<span class="material-symbols-outlined" style="font-size:13px;">content_copy</span>Copy</button>' +
+                    '</div>' +
+                    '<div class="small text-truncate" style="color:var(--clr-on-surface-variant);font-family:monospace;font-size:.7rem;" title="' + inviteUrl + '">' + inviteUrl + '</div>' +
+                    '</div>';
+            }
+
             $wrap.append(
                 '<div class="col-md-6"><div class="card p-3 rounded-3 h-100">' +
                 '<div class="d-flex justify-content-between align-items-start mb-2">' +
                 '<div><h6 class="fw-bold mb-1">Session ' + s.session + '</h6>' +
+                (s.restricted ? '<span class="badge rounded-pill me-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.7rem;"><span class="material-symbols-outlined" style="font-size:11px;vertical-align:-1px;">lock</span> Restricted – Invite Only</span>' : '') +
                 '<p class="small text-on-surface-variant mb-0">Default Application: ' + ((s.defaultWindow && s.defaultWindow.appOpen) || '—') + ' to ' + ((s.defaultWindow && s.defaultWindow.appClose) || '—') + '</p>' +
                 '<p class="small text-on-surface-variant mb-0">Default Registration: ' + ((s.defaultWindow && s.defaultWindow.regOpen) || '—') + ' to ' + ((s.defaultWindow && s.defaultWindow.regClose) || '—') + '</p>' +
-                notifLine + '</div>' +
+                notifLine + inviteBlock + '</div>' +
                 '<span class="badge rounded-pill" style="' + statusColor + '">' + (s.status || 'draft').toUpperCase() + '</span>' +
                 '</div>' +
                 '<div class="small fw-semibold mb-2">Selective Windows: ' + selectiveCount + '</div>' +
@@ -1613,6 +1638,7 @@
                 collegeId: COLLEGE_INFO.id,
                 status: 'active',
                 notification: ($('#cfgNotification').val() || '').trim(),
+                restricted: $('#cfgRestricted').is(':checked'),
                 defaultWindow: {
                     appOpen: $('#cfgAppOpen').val() || '',
                     appClose: $('#cfgAppClose').val() || '',
@@ -1624,6 +1650,13 @@
             };
 
             var schedKey = COLLEGE_INFO.id + '_' + session;
+            // Preserve existing inviteToken if already generated
+            var existing = ADMISSION_SCHEDULES[schedKey];
+            if (cfg.restricted) {
+                cfg.inviteToken = (existing && existing.inviteToken) || generateInviteToken();
+            } else {
+                cfg.inviteToken = '';
+            }
             ADMISSION_SCHEDULES[schedKey] = cfg;
             saveAdmissionSchedules();
             renderScheduleCards();
@@ -1649,6 +1682,18 @@
             saveAdmissionSchedules();
             renderScheduleCards();
             showToast('Session schedule deleted', 'warning');
+        });
+
+        // Copy invite link
+        $(document).on('click', '.btn-copy-invite', function () {
+            var url = $(this).data('url');
+            var $btn = $(this);
+            navigator.clipboard.writeText(url).then(function () {
+                $btn.html('<span class="material-symbols-outlined" style="font-size:13px;">check</span>Copied!');
+                setTimeout(function () {
+                    $btn.html('<span class="material-symbols-outlined" style="font-size:13px;">content_copy</span>Copy');
+                }, 2000);
+            });
         });
 
         // Booth tabs
