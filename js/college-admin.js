@@ -9,11 +9,29 @@
     // 1. MOCK DATA
     // ============================================================
 
+    // All colleges — mirrors app.js COLLEGES (lightweight: only fields needed by admin)
+    var ALL_COLLEGES = [
+        { id: 1,  name: "Sikkim Government College",         code: "SGC-TAD",  location: "Tadong, Gangtok",          district: "Gangtok",  type: "Government" },
+        { id: 2,  name: "Dentam College",                    code: "DEN-COL",  location: "Rangpo, East Sikkim",       district: "Pakyong",  type: "Government" },
+        { id: 3,  name: "Sikkim Arts College",               code: "SAC-GYL",  location: "Gyalshing, West Sikkim",   district: "Gyalshing",type: "Government" },
+        { id: 4,  name: "Namchi Govt. College",              code: "NGC-NAM",  location: "Namchi, South Sikkim",      district: "Namchi",   type: "Government" },
+        { id: 5,  name: "Mangan College",                    code: "MAN-COL",  location: "Mangan, North Sikkim",      district: "Mangan",   type: "Government" },
+        { id: 6,  name: "Soreng College",                    code: "SOR-COL",  location: "Soreng, West Sikkim",       district: "Soreng",   type: "Government" },
+        { id: 7,  name: "Nar Bahadur Bhandari Degree College",code: "NBB-COL", location: "Tadong, Gangtok",           district: "Gangtok",  type: "Government" },
+        { id: 8,  name: "Rhenock College",                   code: "RHE-COL",  location: "Rhenock, East Sikkim",      district: "Pakyong",  type: "Government" },
+        { id: 9,  name: "Government College Burtuk",         code: "SGC-BTK",  location: "Burtuk, Gangtok",           district: "Gangtok",  type: "Government" },
+        { id: 10, name: "West Point College",                code: "WPC-GYL",  location: "Gyalshing, West Sikkim",   district: "Gyalshing",type: "Private"    },
+        { id: 11, name: "Lingtam College",                   code: "LIN-COL",  location: "Lingtam, East Sikkim",      district: "Pakyong",  type: "Government" },
+        { id: 12, name: "South Sikkim Govt. College",        code: "SSG-COL",  location: "Ravangla, South Sikkim",   district: "Namchi",   type: "Government" }
+    ];
+
+    // COLLEGE_INFO is populated dynamically from sessionStorage / college picker
     var COLLEGE_INFO = {
-        name: "Sikkim Government College, Burtuk",
-        code: "SGC-BTK",
-        session: "2024-25",
-        district: "Gangtok"
+        id: null,
+        name: "",
+        code: "",
+        session: "2026-27",
+        district: ""
     };
 
     var COURSES = [
@@ -236,7 +254,7 @@
     // Pre-built merit lists (entries-based: each entry has appNo, program, course)
     var MERIT_LISTS = [
         {
-            id: "ML-001", name: "Merit List 1", date: "2024-10-20",
+            id: "ML-001", name: "Merit List 1", date: "2024-10-20", session: "2024-25", program: "",
             entries: [
                 { appNo: "SK-2024-1003", program: "B.Com (Hons)", course: "Accounting & Finance" },
                 { appNo: "SK-2024-1001", program: "B.Com (Hons)", course: "Accounting & Finance" },
@@ -250,7 +268,7 @@
             ]
         },
         {
-            id: "ML-002", name: "Merit List 2", date: "2024-11-05",
+            id: "ML-002", name: "Merit List 2", date: "2024-11-05", session: "2024-25", program: "",
             entries: [
                 { appNo: "SK-2024-1002", program: "B.Com (Hons)", course: "Business Management" },
                 { appNo: "SK-2024-1018", program: "B.Com (Hons)", course: "General" },
@@ -266,6 +284,9 @@
 
     // Registration data (keyed by appNo)
     var REGISTRATIONS = {};
+    // Session-wise admission schedule configurations
+    var ADMISSION_SCHEDULES = {};
+    var editingScheduleSession = null;
 
     // ============================================================
     // 2. HELPERS
@@ -312,6 +333,11 @@
                 // Validate new format (entries-based); discard old format (students/statuses)
                 if (parsed.length > 0 && parsed[0].entries) {
                     MERIT_LISTS = parsed;
+                    // Backward compat: ensure session and program fields exist
+                    $.each(MERIT_LISTS, function(_, ml) {
+                        if (!ml.session) ml.session = '2024-25';
+                        if (ml.program === undefined) ml.program = '';
+                    });
                 } else {
                     localStorage.removeItem('emmis_ca_meritlists');
                 }
@@ -319,6 +345,20 @@
         }
     }
     function saveMeritLists() { localStorage.setItem('emmis_ca_meritlists', JSON.stringify(MERIT_LISTS)); }
+
+    function loadAdmissionSchedules() {
+        var d = localStorage.getItem('emmis_ca_admission_schedules');
+        if (d) {
+            try {
+                ADMISSION_SCHEDULES = JSON.parse(d) || {};
+            } catch(e) {
+                ADMISSION_SCHEDULES = {};
+            }
+        }
+    }
+    function saveAdmissionSchedules() {
+        localStorage.setItem('emmis_ca_admission_schedules', JSON.stringify(ADMISSION_SCHEDULES));
+    }
 
     /** Determine the current registration stage for a student */
     function getRegStage(appNo) {
@@ -348,8 +388,10 @@
 
         // Trigger section-specific init
         if (sectionId === 'section-ca-dashboard') renderDashboard();
+        if (sectionId === 'section-ca-admission-schedule') renderAdmissionScheduleSection();
         if (sectionId === 'section-ca-merit-manage') renderMeritListDashboard();
         if (sectionId === 'section-ca-register-search') renderRegisteredList();
+        if (sectionId === 'section-ca-all-applications') renderAllApplications();
     }
 
     // ============================================================
@@ -442,7 +484,209 @@
     }
 
     // ============================================================
-    // 5. REGISTERED STUDENTS LIST
+    // 5. ADMISSION SCHEDULE CONFIGURATION
+    // ============================================================
+
+    function courseToProgramLabel(courseName) {
+        if (!courseName) return '';
+        if (courseName.indexOf('B.Com') === 0) return 'B.Com';
+        if (courseName.indexOf('B.A.') === 0 || courseName.indexOf('B.A ') === 0) return 'B.A';
+        if (courseName.indexOf('B.Sc.') === 0 || courseName.indexOf('B.Sc ') === 0) return 'B.Sc';
+        return 'Other';
+    }
+
+    function getProgramCatalog() {
+        var map = {};
+        $.each(COURSES, function(_, c) {
+            var p = courseToProgramLabel(c.name);
+            if (!map[p]) map[p] = [];
+            map[p].push({ id: c.id, name: c.name });
+        });
+        return map;
+    }
+
+    function getSelectiveRowHtml(row) {
+        row = row || {};
+        var catalog = getProgramCatalog();
+        var selectedProgram = row.program || '';
+        // Support legacy courseId (string) and new courseIds (array)
+        var selectedCourseIds = row.courseIds || (row.courseId ? [row.courseId] : []);
+        var applyToAll = !!row.applyToAll;
+
+        var programOptions = '<option value="">All Programs</option>';
+        $.each(Object.keys(catalog), function(_, p) {
+            programOptions += '<option value="' + p + '"' + (p === selectedProgram ? ' selected' : '') + '>' + p + '</option>';
+        });
+
+        var courseOptions = '';
+        var courseHint = '<div class="text-on-surface-variant mt-1" style="font-size:.72rem;">Select a program first to pick courses</div>';
+        if (selectedProgram && catalog[selectedProgram]) {
+            courseHint = '';
+            $.each(catalog[selectedProgram], function(_, c) {
+                var isSel = selectedCourseIds.indexOf(c.id) >= 0 ? ' selected' : '';
+                courseOptions += '<option value="' + c.id + '"' + isSel + '>' + c.name + '</option>';
+            });
+        }
+
+        var idx = $('#cfgSelectiveBody .selective-window-card').length + 1;
+        var disabledAttr   = applyToAll ? ' disabled' : '';
+        var wrapStyle      = applyToAll ? ' style="opacity:.45;pointer-events:none;"' : '';
+        var courseDisabled = (applyToAll || !courseOptions) ? ' disabled' : '';
+        var checkId        = 'applyAll_' + idx + '_' + Date.now();
+
+        return '<div class="selective-window-card card rounded-3 border mb-3" data-idx="' + idx + '">' +
+            '<div class="card-header d-flex justify-content-between align-items-center py-2 px-3" style="background:var(--clr-surface-low);">' +
+                '<span class="fw-bold small d-flex align-items-center gap-2">' +
+                    '<span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-secondary);">tune</span>' +
+                    'Override Window #' + idx +
+                '</span>' +
+                '<div class="d-flex align-items-center gap-3">' +
+                    '<div class="form-check form-switch mb-0 d-flex align-items-center gap-2">' +
+                        '<input class="form-check-input selective-apply-all" type="checkbox" role="switch" id="' + checkId + '"' + (applyToAll ? ' checked' : '') + ' style="cursor:pointer;">' +
+                        '<label class="form-check-label small fw-semibold mb-0" for="' + checkId + '" style="cursor:pointer;white-space:nowrap;">All Programs &amp; Courses</label>' +
+                    '</div>' +
+                    '<button class="btn btn-link p-0 text-danger btn-remove-selective-row" title="Remove"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>' +
+                '</div>' +
+            '</div>' +
+            '<div class="card-body p-3">' +
+                '<div class="selective-scope-wrap row g-2"' + wrapStyle + '>' +
+                    '<div class="col-12 col-md-5">' +
+                        '<label class="form-label fw-semibold small mb-1">Program <span class="fw-normal text-on-surface-variant">(blank = all)</span></label>' +
+                        '<select class="form-select form-select-sm selective-program"' + disabledAttr + '>' + programOptions + '</select>' +
+                    '</div>' +
+                    '<div class="col-12 col-md-7">' +
+                        '<label class="form-label fw-semibold small mb-1">Courses <span class="fw-normal text-on-surface-variant">(multi-select; none = all)</span></label>' +
+                        '<select class="form-select selective-course" multiple size="3"' + courseDisabled + '>' + courseOptions + '</select>' +
+                        courseHint +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+    }
+
+    var SELECTIVE_EMPTY_HTML =
+        '<div class="selective-empty-state text-center py-4 rounded-3" style="color:var(--clr-on-tertiary-fixed-var);border:1.5px dashed var(--clr-outline-variant);">' +
+        '<span class="material-symbols-outlined d-block mb-1" style="font-size:32px;opacity:.4;">tune</span>' +
+        '<span class="small fw-medium">No override windows configured. Click <strong>Add Window</strong> to define program-specific dates.</span>' +
+        '</div>';
+
+    function resetScheduleForm() {
+        editingScheduleSession = null;
+        $('#cfgSession').prop('readonly', false).val(COLLEGE_INFO.session || '');
+        $('#cfgAppOpen').val('');
+        $('#cfgAppClose').val('');
+        $('#cfgRegOpen').val('');
+        $('#cfgRegClose').val('');
+        $('#cfgNotification').val('');
+        $('#cfgSelectiveBody').html(SELECTIVE_EMPTY_HTML);
+    }
+
+    function populateScheduleForm(schedule) {
+        editingScheduleSession = schedule.session;
+        $('#cfgSession').val(schedule.session).prop('readonly', true);
+        $('#cfgAppOpen').val(schedule.defaultWindow && schedule.defaultWindow.appOpen || '');
+        $('#cfgAppClose').val(schedule.defaultWindow && schedule.defaultWindow.appClose || '');
+        $('#cfgRegOpen').val(schedule.defaultWindow && schedule.defaultWindow.regOpen || '');
+        $('#cfgRegClose').val(schedule.defaultWindow && schedule.defaultWindow.regClose || '');
+        $('#cfgNotification').val(schedule.notification || '');
+
+        var $body = $('#cfgSelectiveBody').empty();
+        if ((schedule.selectiveWindows || []).length === 0) {
+            $body.html(SELECTIVE_EMPTY_HTML);
+        } else {
+            $.each(schedule.selectiveWindows, function(_, w) {
+                $body.append(getSelectiveRowHtml(w));
+            });
+        }
+    }
+
+    function readSelectiveRows() {
+        var rows = [];
+        $('#cfgSelectiveBody .selective-window-card').each(function() {
+            var $card = $(this);
+            var applyToAll = $card.find('.selective-apply-all').is(':checked');
+            var program    = applyToAll ? '' : ($card.find('.selective-program').val() || '');
+            var courseIds  = applyToAll ? [] : ($card.find('.selective-course').val() || []);
+            if (applyToAll || program || courseIds.length) {
+                rows.push({
+                    applyToAll: applyToAll,
+                    program:    program,
+                    courseIds:  courseIds
+                });
+            }
+        });
+        return rows;
+    }
+
+    function renderScheduleCards() {
+        var $wrap = $('#scheduleCards').empty();
+        // Only show schedules belonging to the currently selected college
+        var keys = $.grep(Object.keys(ADMISSION_SCHEDULES).sort().reverse(), function(k) {
+            var s = ADMISSION_SCHEDULES[k];
+            return s && s.collegeId === COLLEGE_INFO.id;
+        });
+        if (keys.length === 0) {
+            $wrap.html('<div class="col-12"><div class="text-center py-4 text-on-surface-variant">No session schedules configured yet.</div></div>');
+            return;
+        }
+
+        $.each(keys, function(_, schedKey) {
+            var s = ADMISSION_SCHEDULES[schedKey];
+            var statusColor = s.status === 'active' ? 'var(--clr-primary-container);color:var(--clr-on-primary-container);' :
+                (s.status === 'closed' ? 'rgba(186,26,26,0.1);color:var(--clr-error);' : 'var(--clr-tertiary-container);color:var(--clr-on-tertiary-container);');
+            var selectiveCount = (s.selectiveWindows || []).length;
+            var selectiveHtml = '';
+
+            $.each((s.selectiveWindows || []).slice(0, 4), function(__, w) {
+                var programLabel, courseLabel;
+                if (w.applyToAll) {
+                    programLabel = 'All Programs';
+                    courseLabel  = 'All Courses';
+                } else {
+                    programLabel = w.program || 'All Programs';
+                    var ids = w.courseIds || (w.courseId ? [w.courseId] : []);
+                    courseLabel = ids.length
+                        ? $.map(ids, function(cid) { return getCourseName(cid) || cid; }).join(', ')
+                        : 'All Courses';
+                }
+                selectiveHtml += '<li class="small mb-1"><strong>' + programLabel + '</strong> / ' + courseLabel + '</li>';
+            });
+            if (selectiveCount > 4) {
+                selectiveHtml += '<li class="small text-on-surface-variant">+' + (selectiveCount - 4) + ' more window(s)</li>';
+            }
+
+            var notifLine = s.notification
+                ? '<p class="small mb-0 mt-1" style="color:var(--clr-primary);"><span class="material-symbols-outlined align-middle" style="font-size:14px;vertical-align:-2px;">campaign</span> ' + $('<span>').text(s.notification).html() + '</p>'
+                : '';
+
+            $wrap.append(
+                '<div class="col-md-6"><div class="card p-3 rounded-3 h-100">' +
+                '<div class="d-flex justify-content-between align-items-start mb-2">' +
+                '<div><h6 class="fw-bold mb-1">Session ' + s.session + '</h6>' +
+                '<p class="small text-on-surface-variant mb-0">Default Application: ' + ((s.defaultWindow && s.defaultWindow.appOpen) || '—') + ' to ' + ((s.defaultWindow && s.defaultWindow.appClose) || '—') + '</p>' +
+                '<p class="small text-on-surface-variant mb-0">Default Registration: ' + ((s.defaultWindow && s.defaultWindow.regOpen) || '—') + ' to ' + ((s.defaultWindow && s.defaultWindow.regClose) || '—') + '</p>' +
+                notifLine + '</div>' +
+                '<span class="badge rounded-pill" style="' + statusColor + '">' + (s.status || 'draft').toUpperCase() + '</span>' +
+                '</div>' +
+                '<div class="small fw-semibold mb-2">Selective Windows: ' + selectiveCount + '</div>' +
+                '<ul class="ps-3 mb-3">' + (selectiveHtml || '<li class="small text-on-surface-variant">No selective windows configured</li>') + '</ul>' +
+                '<div class="d-flex gap-2 justify-content-end">' +
+                '<button class="btn btn-sm btn-outline-primary fw-bold btn-edit-schedule" data-key="' + schedKey + '">Edit</button>' +
+                '<button class="btn btn-sm btn-outline-danger fw-bold btn-delete-schedule" data-key="' + schedKey + '">Delete</button>' +
+                '</div></div></div>'
+            );
+        });
+    }
+
+    function renderAdmissionScheduleSection() {
+        if (!editingScheduleSession) {
+            resetScheduleForm();
+        }
+        renderScheduleCards();
+    }
+
+    // ============================================================
+    // 6. REGISTERED STUDENTS LIST
     // ============================================================
 
     function renderRegisteredList() {
@@ -458,7 +702,9 @@
                 '<td class="fw-semibold">' + s.name + '</td>' +
                 '<td>' + getCourseName(s.course) + '</td>' +
                 '<td class="cell-number">' + (reg.rollNo || '—') + '</td>' +
-                '<td><span class="status-pill" style="background:' + stage.bg + ';color:' + stage.color + ';">' + stage.label + '</span></td>' +
+                '<td><span class="status-pill" style="background:' + stage.bg + ';color:' + stage.color + ';">' + stage.label + '</span>' +
+                (reg.marksUpdated ? ' <span class="badge rounded-pill ms-1" style="background:var(--clr-tertiary-container);color:var(--clr-on-tertiary-container);font-size:.65rem;">✎ Marks</span>' : '') +
+                '</td>' +
                 '<td><button class="btn btn-sm btn-outline-primary fw-bold open-reg-btn" data-app="' + appNo + '">' + (stage.stage === 'complete' ? 'View' : 'Continue') + '</button></td></tr>'
             );
         });
@@ -472,7 +718,7 @@
     }
 
     // ============================================================
-    // 6. AUTOCOMPLETE SEARCH (Shared across all search inputs)
+    // 7. AUTOCOMPLETE SEARCH (Shared across all search inputs)
     // ============================================================
 
     function initRegistrationSearch() {
@@ -529,7 +775,7 @@
     }
 
     // ============================================================
-    // 7. STUDENT REGISTRATION — FORM (3 Booths)
+    // 8. STUDENT REGISTRATION — FORM (3 Booths)
     // ============================================================
 
     var currentRegApp = null;
@@ -596,17 +842,36 @@
         $('#roAddress').text(student.permanentAddress || '—');
         $('#roState').text(student.state || 'Sikkim');
 
-        // Academic History (Step 3)
+        // Academic History (Step 3) — use admin-updated marks if available
+        var subjects = (reg.marksUpdated && reg.updatedMarks && reg.updatedMarks.length)
+            ? reg.updatedMarks : (student.subjects || []);
         var $subBody = $('#roSubjectsBody').empty();
+        var $editBody = $('#editMarksBody').empty();
         var totalMarksObt = 0, totalMarksFull = 0;
-        $.each(student.subjects || [], function(_, sub) {
+        $.each(subjects, function(i, sub) {
             var passClass = sub.marks >= 33 ? 'background:rgba(107,217,188,0.2);color:var(--clr-on-primary-container);' : 'background:rgba(186,26,26,0.1);color:var(--clr-error);';
             $subBody.append('<tr><td>' + sub.name + '</td><td class="text-center">' + sub.marks + '</td><td class="text-center">' + sub.total + '</td><td class="text-end"><span class="badge rounded-pill px-2 py-1" style="' + passClass + '">' + (sub.marks >= 33 ? 'Pass' : 'Fail') + '</span></td></tr>');
+            $editBody.append(
+                '<tr>' +
+                '<td class="py-1">' + sub.name + '</td>' +
+                '<td class="py-1 text-center"><input type="number" class="form-control form-control-sm text-center edit-sub-marks" data-idx="' + i + '" data-name="' + sub.name + '" data-total="' + sub.total + '" value="' + sub.marks + '" min="0" max="' + sub.total + '" style="width:80px;margin:auto;"></td>' +
+                '<td class="py-1 text-center text-on-surface-variant">' + sub.total + '</td>' +
+                '</tr>'
+            );
             totalMarksObt += sub.marks;
             totalMarksFull += sub.total;
         });
         var aggPct = totalMarksFull > 0 ? ((totalMarksObt / totalMarksFull) * 100).toFixed(1) : '0.0';
         $('#roAggregate').text(aggPct + '% (' + totalMarksObt + '/' + totalMarksFull + ')');
+        if (reg.marksUpdated) {
+            var updAt = reg.marksUpdatedAt ? new Date(reg.marksUpdatedAt).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : '';
+            $('#marksUpdatedBadge').css({'background':'rgba(186,26,26,0.08)','border-left':'4px solid var(--clr-error)'}).show().find('.upd-date').text(updAt ? ' (' + updAt + ')' : '');
+            $('#btnEditMarksWrap').hide();
+        } else {
+            $('#marksUpdatedBadge').hide();
+            $('#btnEditMarksWrap').show();
+        }
+        $('#editMarksPanel').hide();
 
         // Course Preferences (Step 4)
         $('#roCourseApplied').text(getCourseName(student.course));
@@ -637,6 +902,18 @@
         $('#docPhoto').prop('checked', !!docs.photo);
         $('#docTC').prop('checked', !!docs.tc);
         updateDocPendingAlert();
+
+        // Remarks / notes for each step
+        $('#regRemarksVerification').val(reg.remarksVerification || '');
+        // Reset saved indicator unless remarks were previously saved
+        if (reg.remarksVerificationSavedAt) {
+            var savedStr = new Date(reg.remarksVerificationSavedAt).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+            $('#remarksVerificationSavedAt').show().find('.rmk-time').text('at ' + savedStr);
+        } else {
+            $('#remarksVerificationSavedAt').hide();
+        }
+        $('#regRemarksSeat').val(reg.remarksSeat || '');
+        $('#regRemarksFee').val(reg.remarksFee || '');
 
         // Seat allocation tab
         var $courseSelect = $('#regAllocCourse').empty();
@@ -715,12 +992,36 @@
         });
     }
 
+    function updateBoothButtons(reg) {
+        // Seat Allocation: requires reg.verified
+        var seatOk = !!reg.verified;
+        $('#btnSaveSeat').prop('disabled', !seatOk);
+        if (seatOk) {
+            $('#seatLockNotice').hide();
+            $('#btnSaveSeat').removeClass('btn-secondary').addClass('btn-primary').css('opacity', '');
+        } else {
+            $('#seatLockNotice').show();
+            $('#btnSaveSeat').removeClass('btn-primary').addClass('btn-secondary').css('opacity', '0.65');
+        }
+        // Fee Collection: requires reg.seatAllocated
+        var feeOk = !!reg.seatAllocated;
+        $('#btnSaveFee').prop('disabled', !feeOk);
+        if (feeOk) {
+            $('#feeLockNotice').hide();
+            $('#btnSaveFee').removeClass('btn-secondary').addClass('btn-primary').css('opacity', '');
+        } else {
+            $('#feeLockNotice').show();
+            $('#btnSaveFee').removeClass('btn-primary').addClass('btn-secondary').css('opacity', '0.65');
+        }
+    }
+
     function updateBoothStepper(reg) {
         $('.booth-step').removeClass('active completed');
         $('.booth-connector').removeClass('completed');
         if (reg.verified) { $('[data-booth="1"]').addClass('completed'); $('[data-after-booth="1"]').addClass('completed'); }
         if (reg.seatAllocated) { $('[data-booth="2"]').addClass('completed'); $('[data-after-booth="2"]').addClass('completed'); }
         if (reg.feeCollected) { $('[data-booth="3"]').addClass('completed'); }
+        updateBoothButtons(reg);
     }
 
     function switchBooth(boothNum) {
@@ -731,16 +1032,37 @@
     }
 
     // ============================================================
-    // 8. MERIT LIST MANAGEMENT
+    // 9. MERIT LIST MANAGEMENT
     // ============================================================
 
     function renderMeritListDashboard() {
+        var filterSession = $('#mlFilterSession').val() || 'all';
+        var filterProgram = $('#mlFilterProgram').val() || 'all';
+
+        var visible = $.grep(MERIT_LISTS, function(ml) {
+            if (filterSession !== 'all' && ml.session !== filterSession) return false;
+            if (filterProgram !== 'all') {
+                // Program filter: match if the list's assigned program matches,
+                // OR (for combined lists) if any entry's program matches
+                var mlProg = ml.program || '';
+                if (mlProg && mlProg !== filterProgram) return false;
+                if (!mlProg) {
+                    var hasMatch = false;
+                    $.each(ml.entries, function(_, e) { if (e.program === filterProgram) { hasMatch = true; return false; } });
+                    if (!hasMatch) return false;
+                }
+            }
+            return true;
+        });
+
         var $container = $('#meritListCards').empty();
-        if (MERIT_LISTS.length === 0) {
-            $container.html('<div class="text-center py-5 text-on-surface-variant"><p class="fs-5 fw-semibold mb-2">No Merit Lists Yet</p><p>Upload your first merit list to get started.</p></div>');
+        $('#mlManageCount').text(visible.length + ' list' + (visible.length !== 1 ? 's' : ''));
+
+        if (visible.length === 0) {
+            $container.html('<div class="col-12 text-center py-5 text-on-surface-variant"><p class="fs-5 fw-semibold mb-2">No Merit Lists Found</p><p>' + (MERIT_LISTS.length === 0 ? 'Upload your first merit list to get started.' : 'No lists match the selected filters.') + '</p></div>');
             return;
         }
-        $.each(MERIT_LISTS, function(_, ml) {
+        $.each(visible, function(_, ml) {
             var total = ml.entries.length;
             var matched = 0, regCount = 0;
             $.each(ml.entries, function(__, entry) {
@@ -748,16 +1070,24 @@
                 if (REGISTRATIONS[entry.appNo] && REGISTRATIONS[entry.appNo].feeCollected) regCount++;
             });
             var unmatched = total - matched;
-            // Collect unique programs
+            // Collect unique programs in the list
             var programs = {};
             $.each(ml.entries, function(__, e) { programs[e.program] = true; });
-            var progList = Object.keys(programs).join(', ');
+            var progLabel = ml.program || Object.keys(programs).join(', ');
 
             $container.append(
                 '<div class="col-md-6"><div class="merit-card" data-ml-id="' + ml.id + '">' +
-                '<div class="d-flex justify-content-between align-items-start mb-3">' +
-                '<div><h5 class="fw-bold mb-1">' + ml.name + '</h5><p class="small text-on-surface-variant mb-0">' + progList + ' · ' + ml.date + '</p></div>' +
-                '<span class="merit-badge" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">' + total + ' Entries</span></div>' +
+                '<div class="d-flex justify-content-between align-items-start mb-2">' +
+                '<div>' +
+                '<h5 class="fw-bold mb-1">' + ml.name + '</h5>' +
+                '<p class="small text-on-surface-variant mb-1">' + progLabel + '</p>' +
+                '<p class="small text-on-surface-variant mb-0">' + ml.date + '</p>' +
+                '</div>' +
+                '<div class="d-flex flex-column align-items-end gap-1">' +
+                '<span class="merit-badge" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">' + total + ' Entries</span>' +
+                '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);font-size:.7rem;">' + ml.session + '</span>' +
+                '</div>' +
+                '</div>' +
                 '<div class="d-flex gap-3 flex-wrap">' +
                 '<span class="status-pill admitted">✓ Matched: ' + matched + '</span>' +
                 (unmatched > 0 ? '<span class="status-pill not-appeared">✗ Not Found: ' + unmatched + '</span>' : '') +
@@ -767,25 +1097,32 @@
         });
     }
 
-    function openMeritListDetail(mlId) {
-        var ml = null;
-        $.each(MERIT_LISTS, function(_, m) { if (m.id === mlId) ml = m; });
-        if (!ml) return;
+    var currentMlEntries = [];
 
-        $('#mlDetailName').text(ml.name);
-        $('#mlDetailDate').text(ml.date);
-        $('#mlDetailTotal').text(ml.entries.length);
-        $('#btnDeleteMeritList').data('ml-id', mlId);
+    function renderMlDetailTable() {
+        var q       = ($('#mlDetailSearch').val() || '').toLowerCase().trim();
+        var prog    = $('#mlDetailFilterProgram').val() || 'all';
+        var linked  = $('#mlDetailFilterLinked').val()  || 'all';
 
         var $tbody = $('#mlDetailBody').empty();
-        var matched = 0, unmatched = 0, regCount = 0;
-        $.each(ml.entries, function(rank, entry) {
+        var shown = 0;
+
+        $.each(currentMlEntries, function(rank, entry) {
             var s = getStudentByApp(entry.appNo);
             var isMatched = !!s;
-            if (isMatched) matched++; else unmatched++;
-            var isReg = REGISTRATIONS[entry.appNo] && REGISTRATIONS[entry.appNo].feeCollected;
-            if (isReg) regCount++;
+            var isReg = !!(REGISTRATIONS[entry.appNo] && REGISTRATIONS[entry.appNo].feeCollected);
 
+            // Filters
+            if (prog !== 'all' && entry.program !== prog) return;
+            if (linked === 'linked'     && !isMatched)  return;
+            if (linked === 'notfound'   && isMatched)   return;
+            if (linked === 'registered' && !isReg)      return;
+            if (q) {
+                var name = s ? s.name.toLowerCase() : '';
+                if (entry.appNo.toLowerCase().indexOf(q) < 0 && name.indexOf(q) < 0) return;
+            }
+
+            shown++;
             var linkedBadge = isMatched
                 ? '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">Linked</span>'
                 : '<span class="badge rounded-pill px-2 py-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);">Not Found</span>';
@@ -795,7 +1132,7 @@
 
             $tbody.append(
                 '<tr' + (!isMatched ? ' style="opacity:0.6;"' : '') + '>' +
-                '<td class="cell-number">' + (rank + 1) + '</td>' +
+                '<td class="cell-number">' + shown + '</td>' +
                 '<td class="fw-semibold" style="font-family:monospace;color:var(--clr-primary);">' + entry.appNo + '</td>' +
                 '<td class="fw-semibold">' + (s ? s.name : '—') + '</td>' +
                 '<td class="cell-number">' + (s ? s.marks + '%' : '—') + '</td>' +
@@ -806,17 +1143,327 @@
             );
         });
 
-        // Summary
+        $('#mlDetailCount').text(shown + ' of ' + currentMlEntries.length + ' entr' + (currentMlEntries.length !== 1 ? 'ies' : 'y'));
+        if (shown === 0) {
+            $('#mlDetailEmpty').show();
+            $tbody.closest('.table-responsive').hide();
+        } else {
+            $('#mlDetailEmpty').hide();
+            $tbody.closest('.table-responsive').show();
+        }
+    }
+
+    function openMeritListDetail(mlId) {
+        var ml = null;
+        $.each(MERIT_LISTS, function(_, m) { if (m.id === mlId) ml = m; });
+        if (!ml) return;
+
+        currentMlEntries = ml.entries;
+
+        $('#mlDetailName').text(ml.name);
+        $('#mlDetailDate').text(ml.date);
+        $('#mlDetailTotal').text(ml.entries.length);
+        $('#mlDetailSession').text(ml.session || '—');
+        $('#mlDetailProgram').text(ml.program || 'All Programs');
+        $('#btnDeleteMeritList').data('ml-id', mlId);
+
+        // Reset filters
+        $('#mlDetailSearch').val('');
+        $('#mlDetailFilterProgram').val('all');
+        $('#mlDetailFilterLinked').val('all');
+
+        // Compute summary stats from full entry list
+        var matched = 0, unmatched = 0, regCount = 0;
+        $.each(ml.entries, function(_, entry) {
+            var s = getStudentByApp(entry.appNo);
+            if (s) matched++; else unmatched++;
+            if (REGISTRATIONS[entry.appNo] && REGISTRATIONS[entry.appNo].feeCollected) regCount++;
+        });
         $('#mlSummaryTotal').text(ml.entries.length);
         $('#mlSummaryMatched').text(matched);
         $('#mlSummaryUnmatched').text(unmatched);
         $('#mlSummaryRegistered').text(regCount);
 
+        renderMlDetailTable();
         showSection('section-ca-merit-detail');
     }
 
     // ============================================================
-    // 9. TOAST
+    // 10. ALL APPLICATIONS
+    // ============================================================
+
+    var allAppsActiveView = 'all';
+    var allAppsLastFiltered = [];
+
+    function getStudentSession(s) {
+        var m = s.appNo.match(/SK-(\d{4})-/);
+        if (m) {
+            var yr = parseInt(m[1], 10);
+            return yr + '-' + String(yr + 1).slice(-2);
+        }
+        return 'Unknown';
+    }
+
+    function isStudentMeritListed(appNo) {
+        for (var i = 0; i < MERIT_LISTS.length; i++) {
+            for (var j = 0; j < MERIT_LISTS[i].entries.length; j++) {
+                if (MERIT_LISTS[i].entries[j].appNo === appNo) return true;
+            }
+        }
+        return false;
+    }
+
+    function getStudentAppStatus(appNo) {
+        var reg = REGISTRATIONS[appNo];
+        if (reg && reg.feeCollected)  return 'completed';
+        if (reg && reg.seatAllocated) return 'registered';
+        if (reg && reg.verified)      return 'verified';
+        if (isStudentMeritListed(appNo)) return 'merit-listed';
+        return 'applied';
+    }
+
+    function renderAllApplications() {
+        var session     = $('#filterSession').val()      || 'all';
+        var course      = $('#filterCourse').val()       || 'all';
+        var status      = $('#filterStatus').val()       || 'all';
+        var gender      = $('#filterGender').val()       || 'all';
+        var community   = $('#filterCommunity').val()    || 'all';
+        var board       = $('#filterBoard').val()        || 'all';
+        var district    = $('#filterDistrict').val()     || 'all';
+        var marksUpd    = $('#filterMarksUpdated').val() || 'all';
+        var q           = ($('#filterSearch').val()      || '').toLowerCase().trim();
+        var view        = allAppsActiveView;
+
+        // Base filter (session, course, gender, community, board, district, marksUpdated, search)
+        function baseFilter(s) {
+            if (session   !== 'all' && getStudentSession(s) !== session)         return false;
+            if (course    !== 'all' && s.course !== course)                       return false;
+            if (gender    !== 'all' && s.gender.toLowerCase() !== gender)         return false;
+            if (community !== 'all' && s.community !== community)                 return false;
+            if (board     !== 'all' && s.board !== board)                         return false;
+            if (district  !== 'all' && s.district !== district)                   return false;
+            var hasMarksUpd = !!(REGISTRATIONS[s.appNo] && REGISTRATIONS[s.appNo].marksUpdated);
+            if (marksUpd === 'updated'  && !hasMarksUpd) return false;
+            if (marksUpd === 'original' && hasMarksUpd)  return false;
+            if (q && s.name.toLowerCase().indexOf(q) < 0 &&
+                     s.appNo.toLowerCase().indexOf(q) < 0 &&
+                     s.rollNo.toLowerCase().indexOf(q) < 0) return false;
+            return true;
+        }
+
+        // Tab counts (base filter only, ignoring status + view tab)
+        var basePassed = $.grep(STUDENTS, baseFilter);
+        var cntAll    = basePassed.length;
+        var cntMerit  = $.grep(basePassed, function(s) { return isStudentMeritListed(s.appNo); }).length;
+        var cntReg    = $.grep(basePassed, function(s) {
+            return REGISTRATIONS[s.appNo] && REGISTRATIONS[s.appNo].verified;
+        }).length;
+        $('#tabCountAll').text(cntAll);
+        $('#tabCountMerit').text(cntMerit);
+        $('#tabCountReg').text(cntReg);
+
+        // Full filter (adds status + view tab)
+        var filtered = $.grep(basePassed, function(s) {
+            var appStatus = getStudentAppStatus(s.appNo);
+            if (status !== 'all' && appStatus !== status) return false;
+            if (view === 'merit'      && !isStudentMeritListed(s.appNo))               return false;
+            if (view === 'registered' && !(REGISTRATIONS[s.appNo] && REGISTRATIONS[s.appNo].verified)) return false;
+            return true;
+        });
+
+        allAppsLastFiltered = filtered;
+
+        var n = filtered.length;
+        $('#appsResultCount').text(n + ' result' + (n !== 1 ? 's' : ''));
+
+        var $tbody = $('#allAppsBody').empty();
+        if (n === 0) {
+            $('#allAppsEmpty').show();
+            $('#allAppsTableWrap').hide();
+            return;
+        }
+        $('#allAppsEmpty').hide();
+        $('#allAppsTableWrap').show();
+
+        var statusMap = {
+            'applied':      { label: 'Applied',       bg: 'var(--clr-surface-variant)',          color: 'var(--clr-on-surface-variant)' },
+            'merit-listed': { label: 'Merit Listed',  bg: 'var(--clr-primary-container)',        color: 'var(--clr-on-primary-container)' },
+            'verified':     { label: 'Verified',      bg: 'var(--clr-tertiary-container)',       color: 'var(--clr-on-tertiary-container)' },
+            'registered':   { label: 'Seat Allotted', bg: 'rgba(63,102,90,0.15)',               color: 'var(--clr-secondary)' },
+            'completed':    { label: 'Fee Collected', bg: 'var(--clr-primary)',                  color: '#fff' }
+        };
+
+        $.each(filtered, function(i, s) {
+            var appStatus = getStudentAppStatus(s.appNo);
+            var st = statusMap[appStatus] || statusMap['applied'];
+            var mls = getMeritListsForApp(s.appNo);
+            var mlHtml = mls.length
+                ? $.map(mls, function(m) {
+                    return '<span class="badge rounded-pill me-1" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);font-size:10px;">' + m.name + '</span>';
+                }).join('')
+                : '<span class="text-on-surface-variant" style="font-size:.75rem;">—</span>';
+
+            $tbody.append(
+                '<tr>' +
+                '<td class="text-on-surface-variant small">' + (i + 1) + '</td>' +
+                '<td style="font-family:monospace;color:var(--clr-primary);font-size:.8rem;white-space:nowrap;">' + s.appNo + '</td>' +
+                '<td>' +
+                    '<span class="fw-semibold d-block">' + s.name + '</span>' +
+                    '<span class="text-on-surface-variant" style="font-size:.72rem;">' + s.board + ' · ' + s.district + '</span>' +
+                '</td>' +
+                '<td class="small">' + getCourseName(s.course) + '</td>' +
+                '<td class="cell-number fw-bold" style="color:var(--clr-primary);">' + s.marks + '%' +
+                (REGISTRATIONS[s.appNo] && REGISTRATIONS[s.appNo].marksUpdated ? ' <span title="Marks updated by admin" style="color:var(--clr-tertiary);font-size:.7rem;cursor:help;">✎</span>' : '') +
+                '</td>' +
+                '<td class="small">' + s.gender + '</td>' +
+                '<td class="small">' + s.community + '</td>' +
+                '<td>' + mlHtml + '</td>' +
+                '<td><span class="status-pill" style="background:' + st.bg + ';color:' + st.color + ';white-space:nowrap;">' + st.label + '</span></td>' +
+                '<td><button class="btn btn-sm btn-outline-primary fw-bold open-reg-btn py-1 px-2" data-app="' + s.appNo + '" style="font-size:.75rem;">View &rarr;</button></td>' +
+                '</tr>'
+            );
+        });
+    }
+
+    function exportAppsCSV() {
+        var data = allAppsLastFiltered;
+        if (!data.length) { showToast('No records to export.', 'warn'); return; }
+
+        // Collect all unique subject names across filtered students (preserving first-seen order)
+        var subjectNames = [];
+        var subjectIndex = {};
+        $.each(data, function(i, s) {
+            $.each(s.subjects || [], function(j, sub) {
+                if (!subjectIndex.hasOwnProperty(sub.name)) {
+                    subjectIndex[sub.name] = subjectNames.length;
+                    subjectNames.push(sub.name);
+                }
+            });
+        });
+
+        // Build header row
+        var header = [
+            '#', 'Session', 'App No', 'Roll No', 'Name', 'Date of Birth', 'Gender',
+            'Community', 'COI No.', 'PWD',
+            'Mobile', 'Email',
+            'Father Name', 'Father Contact', 'Mother Name',
+            'District', 'State', 'Pincode', 'Permanent Address',
+            'Board', 'Stream', 'Aggregate %'
+        ];
+        // Subject columns (marks only — total is always 100)
+        $.each(subjectNames, function(i, name) {
+            header.push(name + ' (Marks)');
+            header.push(name + ' (Max)');
+        });
+        header = header.concat([
+            'Program Applied', 'Preference 1', 'Preference 2', 'Preference 3',
+            'App Fee Txn', 'App Fee Amount (₹)', 'App Fee Status', 'App Fee Method',
+            'Merit Lists', 'Admission Status'
+        ]);
+
+        // Build data rows
+        var rows = [header];
+        $.each(data, function(idx, s) {
+            // Build subject marks lookup
+            var subMarks = {};
+            var subTotal = {};
+            $.each(s.subjects || [], function(j, sub) {
+                subMarks[sub.name] = sub.marks;
+                subTotal[sub.name] = sub.total;
+            });
+
+            // Merit lists
+            var mls = getMeritListsForApp(s.appNo);
+            var mlText = mls.length ? $.map(mls, function(m) { return m.name; }).join(' | ') : '';
+
+            // Status label
+            var statusLabelMap = {
+                'applied': 'Applied', 'merit-listed': 'Merit Listed',
+                'verified': 'Verified', 'registered': 'Seat Allotted', 'completed': 'Fee Collected'
+            };
+            var appStatus = getStudentAppStatus(s.appNo);
+            var statusLabel = statusLabelMap[appStatus] || 'Applied';
+
+            var fee = s.appFee || {};
+            var row = [
+                idx + 1,
+                getStudentSession(s),
+                s.appNo,
+                s.rollNo || '',
+                s.name,
+                s.dob || '',
+                s.gender,
+                s.community,
+                s.coiNumber || '',
+                s.pwd || '',
+                s.mobile || '',
+                s.email || '',
+                s.fatherName || '',
+                s.fatherContact || '',
+                s.motherName || '',
+                s.district || '',
+                s.state || '',
+                s.pincode || '',
+                s.permanentAddress || '',
+                s.board,
+                s.stream || '',
+                s.marks
+            ];
+            // Subject columns
+            $.each(subjectNames, function(i, name) {
+                row.push(subMarks.hasOwnProperty(name) ? subMarks[name] : '');
+                row.push(subTotal.hasOwnProperty(name) ? subTotal[name] : '');
+            });
+            row = row.concat([
+                getCourseName(s.course),
+                s.pref1 || '',
+                s.pref2 || '',
+                s.pref3 || '',
+                fee.txn || '',
+                fee.amount || '',
+                fee.status || '',
+                fee.method || '',
+                mlText,
+                statusLabel
+            ]);
+            rows.push(row);
+        });
+
+        var csv = rows.map(function(r) {
+            return r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
+        }).join('\r\n');
+
+        var a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = 'applications_' + (new Date().toISOString().slice(0, 10)) + '.csv';
+        a.click();
+    }
+
+    function initAllApplications() {
+        $(document).on('change', '#filterSession, #filterCourse, #filterStatus, #filterGender, #filterCommunity, #filterBoard, #filterDistrict, #filterMarksUpdated', function() {
+            renderAllApplications();
+        });
+        $(document).on('input', '#filterSearch', function() {
+            renderAllApplications();
+        });
+        $(document).on('click', '#btnClearFilters', function() {
+            $('#filterSession, #filterCourse, #filterStatus, #filterGender, #filterCommunity, #filterBoard, #filterDistrict, #filterMarksUpdated').val('all');
+            $('#filterSearch').val('');
+            renderAllApplications();
+        });
+        $(document).on('click', '.app-view-tab', function() {
+            allAppsActiveView = $(this).data('view');
+            $('.app-view-tab').removeClass('active btn-primary').addClass('btn-outline-primary');
+            $(this).removeClass('btn-outline-primary').addClass('active btn-primary');
+            renderAllApplications();
+        });
+        $(document).on('click', '#btnExportApps', function() {
+            exportAppsCSV();
+        });
+    }
+
+    // ============================================================
+    // 11. TOAST
     // ============================================================
 
     function showToast(msg, type) {
@@ -829,7 +1476,7 @@
     }
 
     // ============================================================
-    // 10. EVENT BINDINGS
+    // 11. EVENT BINDINGS
     // ============================================================
 
     function initEvents() {
@@ -847,9 +1494,175 @@
             showSection('section-ca-merit-upload');
         });
 
+        // Admission schedule: add selective row
+        $(document).on('click', '#btnAddSelectiveWindow', function () {
+            $('#cfgSelectiveBody .selective-empty-state').remove();
+            $('#cfgSelectiveBody').append(getSelectiveRowHtml());
+        });
+
+        // Admission schedule: remove selective row
+        $(document).on('click', '.btn-remove-selective-row', function () {
+            $(this).closest('.selective-window-card').remove();
+            if ($('#cfgSelectiveBody .selective-window-card').length === 0) {
+                $('#cfgSelectiveBody').html(SELECTIVE_EMPTY_HTML);
+            }
+        });
+
+        // Admission schedule: when program changes, refresh multi-select course options
+        $(document).on('change', '.selective-program', function () {
+            var catalog = getProgramCatalog();
+            var program = $(this).val();
+            var $card = $(this).closest('.selective-window-card');
+            var $course = $card.find('.selective-course');
+            $course.empty();
+            if (program && catalog[program]) {
+                $.each(catalog[program], function(_, c) {
+                    $course.append('<option value="' + c.id + '">' + c.name + '</option>');
+                });
+                $course.prop('disabled', false);
+                $card.find('.selective-scope-wrap .text-on-surface-variant').remove();
+            } else {
+                $course.prop('disabled', true);
+            }
+        });
+
+        // Admission schedule: toggle All Programs & Courses switch
+        $(document).on('change', '.selective-apply-all', function () {
+            var $card   = $(this).closest('.selective-window-card');
+            var checked = $(this).is(':checked');
+            var $wrap   = $card.find('.selective-scope-wrap');
+            if (checked) {
+                $wrap.css({ opacity: '0.45', 'pointer-events': 'none' });
+                $card.find('.selective-program, .selective-course').prop('disabled', true);
+            } else {
+                $wrap.css({ opacity: '', 'pointer-events': '' });
+                $card.find('.selective-program').prop('disabled', false);
+                // Only re-enable course select if a program is already chosen
+                if ($card.find('.selective-program').val()) {
+                    $card.find('.selective-course').prop('disabled', false);
+                }
+            }
+        });
+
+        // Admission schedule: reset form
+        $(document).on('click', '#btnResetScheduleConfig', function () {
+            resetScheduleForm();
+        });
+
+        // Admission schedule: save config
+        $(document).on('click', '#btnSaveScheduleConfig', function () {
+            var session = ($('#cfgSession').val() || '').trim();
+            if (!session) {
+                showToast('Session is required', 'warning');
+                return;
+            }
+
+            var cfg = {
+                session: session,
+                collegeId: COLLEGE_INFO.id,
+                status: 'active',
+                notification: ($('#cfgNotification').val() || '').trim(),
+                defaultWindow: {
+                    appOpen: $('#cfgAppOpen').val() || '',
+                    appClose: $('#cfgAppClose').val() || '',
+                    regOpen: $('#cfgRegOpen').val() || '',
+                    regClose: $('#cfgRegClose').val() || ''
+                },
+                selectiveWindows: readSelectiveRows(),
+                updatedAt: new Date().toISOString()
+            };
+
+            var schedKey = COLLEGE_INFO.id + '_' + session;
+            ADMISSION_SCHEDULES[schedKey] = cfg;
+            saveAdmissionSchedules();
+            renderScheduleCards();
+            showToast('Session schedule saved successfully');
+        });
+
+        // Admission schedule: edit
+        $(document).on('click', '.btn-edit-schedule', function () {
+            var key = $(this).data('key');
+            if (!ADMISSION_SCHEDULES[key]) return;
+            populateScheduleForm(ADMISSION_SCHEDULES[key]);
+            $('html, body').scrollTop(0);
+        });
+
+        // Admission schedule: delete
+        $(document).on('click', '.btn-delete-schedule', function () {
+            var key = $(this).data('key');
+            if (!ADMISSION_SCHEDULES[key]) return;
+            var session = ADMISSION_SCHEDULES[key].session;
+            if (!confirm('Delete schedule for session ' + session + '?')) return;
+            delete ADMISSION_SCHEDULES[key];
+            if (editingScheduleSession === session) resetScheduleForm();
+            saveAdmissionSchedules();
+            renderScheduleCards();
+            showToast('Session schedule deleted', 'warning');
+        });
+
         // Booth tabs
         $(document).on('click', '.booth-step', function () {
             switchBooth(parseInt($(this).data('booth')));
+        });
+
+        // Save Verification Remarks independently (without registering)
+        $(document).on('click', '#btnSaveRemarksVerification', function() {
+            if (!currentRegApp) return;
+            var reg = REGISTRATIONS[currentRegApp];
+            reg.remarksVerification = $('#regRemarksVerification').val().trim();
+            reg.remarksVerificationSavedAt = new Date().toISOString();
+            saveRegistrations();
+            var savedStr = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+            $('#remarksVerificationSavedAt').show().find('.rmk-time').text('at ' + savedStr);
+            showToast('Remarks saved.');
+        });
+
+        // Edit Marks toggle
+        $(document).on('click', '.btn-edit-marks', function() {
+            $('#editMarksPanel').slideToggle(200);
+        });
+        $(document).on('click', '#btnCancelEditMarks', function() {
+            $('#editMarksPanel').slideUp(200);
+        });
+        $(document).on('click', '#btnSaveMarks', function() {
+            if (!currentRegApp) return;
+            var reg = REGISTRATIONS[currentRegApp];
+            var updatedMarks = [];
+            var valid = true;
+            $('.edit-sub-marks').each(function() {
+                var name  = String($(this).data('name'));
+                var total = parseInt($(this).data('total'));
+                var marks = parseInt($(this).val());
+                if (isNaN(marks) || marks < 0 || marks > total) {
+                    valid = false;
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                    updatedMarks.push({ name: name, marks: marks, total: total });
+                }
+            });
+            if (!valid) { showToast('Please enter valid marks (0 – max) for all subjects.', 'warning'); return; }
+            reg.updatedMarks  = updatedMarks;
+            reg.marksUpdated  = true;
+            reg.marksUpdatedAt = new Date().toISOString();
+            saveRegistrations();
+            // Re-render read-only subjects table
+            var $subBody2 = $('#roSubjectsBody').empty();
+            var totalObt = 0, totalFull = 0;
+            $.each(updatedMarks, function(_, sub) {
+                var passClass = sub.marks >= 33 ? 'background:rgba(107,217,188,0.2);color:var(--clr-on-primary-container);' : 'background:rgba(186,26,26,0.1);color:var(--clr-error);';
+                $subBody2.append('<tr><td>' + sub.name + '</td><td class="text-center">' + sub.marks + '</td><td class="text-center">' + sub.total + '</td><td class="text-end"><span class="badge rounded-pill px-2 py-1" style="' + passClass + '">' + (sub.marks >= 33 ? 'Pass' : 'Fail') + '</span></td></tr>');
+                totalObt  += sub.marks;
+                totalFull += sub.total;
+            });
+            var newAgg = totalFull > 0 ? ((totalObt / totalFull) * 100).toFixed(1) : '0.0';
+            $('#roAggregate').text(newAgg + '% (' + totalObt + '/' + totalFull + ')');
+            $('#regMarks').text(newAgg + '%');
+            var updAtStr = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+            $('#marksUpdatedBadge').css({'background':'rgba(186,26,26,0.08)','border-left':'4px solid var(--clr-error)'}).show().find('.upd-date').text(' (' + updAtStr + ')');
+            $('#btnEditMarksWrap').hide();
+            $('#editMarksPanel').slideUp(200);
+            showToast('Class XII marks updated successfully.');
         });
 
         // Document checkbox change → update alert
@@ -874,6 +1687,7 @@
             if (editAddress) corrections.address = editAddress;
             if (editMobile) corrections.mobile = editMobile;
             reg.corrections = corrections;
+            reg.remarksVerification = $('#regRemarksVerification').val().trim();
 
             // Save document status
             reg.documents = {
@@ -902,6 +1716,7 @@
             reg.section = $('#regSection').val();
             reg.electives = [];
             $('.elective-check:checked').each(function () { reg.electives.push($(this).val()); });
+            reg.remarksSeat = $('#regRemarksSeat').val().trim();
             reg.seatAllocated = true;
             saveRegistrations();
             updateBoothStepper(reg);
@@ -930,6 +1745,7 @@
             reg.paymentMode = $('#regPayMode').val();
             reg.receiptNo = $('#regReceiptNo').val() || generateReceiptNo();
             reg.amountPaid = course ? course.fee : 0;
+            reg.remarksFee = $('#regRemarksFee').val().trim();
             reg.feeCollected = true;
             saveRegistrations();
             updateBoothStepper(reg);
@@ -945,6 +1761,15 @@
         // Back to search
         $(document).on('click', '#btnBackToSearch', function () {
             showSection('section-ca-register-search');
+        });
+
+        // Merit list detail search & filters
+        $(document).on('input', '#mlDetailSearch', function () { renderMlDetailTable(); });
+        $(document).on('change', '#mlDetailFilterProgram, #mlDetailFilterLinked', function () { renderMlDetailTable(); });
+
+        // Merit list manage filters
+        $(document).on('change', '#mlFilterSession, #mlFilterProgram', function () {
+            renderMeritListDashboard();
         });
 
         // Merit list card click
@@ -1074,18 +1899,22 @@
         // Create merit list (after validation)
         $(document).on('click', '#btnUploadMerit', function () {
             var name = $('#mlUploadName').val().trim();
+            var session = $('#mlUploadSession').val() || '2026-27';
             var date = $('#mlUploadDate').val();
+            var program = $('#mlUploadProgram').val() || '';
             if (!name) { showToast('Please enter a merit list name', 'warning'); return; }
             if (!date) { showToast('Please select a date', 'warning'); return; }
             if (pendingEntries.length === 0) { showToast('No entries to upload', 'warning'); return; }
 
             var newId = 'ML-' + (MERIT_LISTS.length + 1).toString().padStart(3, '0');
-            MERIT_LISTS.push({ id: newId, name: name, date: date, entries: pendingEntries });
+            MERIT_LISTS.push({ id: newId, name: name, date: date, session: session, program: program, entries: pendingEntries });
             saveMeritLists();
 
             // Reset form
             $('#mlUploadName').val('');
+            $('#mlUploadSession').val('2026-27');
             $('#mlUploadDate').val('');
+            $('#mlUploadProgram').val('');
             $('#mlFileInput').val('');
             $('#mlDropIcon').text('cloud_upload');
             $('#mlDropLabel').text('Click to upload or drag & drop');
@@ -1106,15 +1935,114 @@
     }
 
     // ============================================================
-    // 11. INIT
+    // 12. COLLEGE PICKER
+    // ============================================================
+
+    function findCollegeById(id) {
+        var match = null;
+        $.each(ALL_COLLEGES, function (_, c) { if (c.id === id) { match = c; return false; } });
+        return match;
+    }
+
+    function applyCollegeInfo(college) {
+        COLLEGE_INFO.id       = college.id;
+        COLLEGE_INFO.name     = college.name;
+        COLLEGE_INFO.code     = college.code;
+        COLLEGE_INFO.district = college.district;
+        COLLEGE_INFO.session  = '2026-27';
+
+        // Update UI text across the portal
+        $('#adminCollegeName').text(college.name + ' — ' + college.code);
+        $('#dashboardCollegeName').text(college.name);
+        $('#dashboardSession').text(COLLEGE_INFO.session);
+        // Show / hide switcher button
+        $('#btnSwitchCollege').show();
+    }
+
+    function showCollegePicker() {
+        // Hide sidebar + main content sections, show picker full-width
+        $('.sidebar-admin').hide();
+        $('.admin-main').css('margin-left', '0');
+        $('#adminCollegeName').text('');
+        $('#btnSwitchCollege').hide();
+
+        // Build picker cards
+        var $grid = $('#collegePickerGrid').empty();
+        $.each(ALL_COLLEGES, function (_, c) {
+            var typeColor = c.type === 'Private' ? 'var(--clr-tertiary)' : 'var(--clr-primary)';
+            var card = [
+                '<div class="col-sm-6 col-md-4">',
+                '  <div class="card h-100 rounded-3 p-4 college-picker-card" style="cursor:pointer;border:2px solid transparent;transition:border-color .2s,box-shadow .2s;" data-college-id="' + c.id + '">',
+                '    <div class="d-flex align-items-start justify-content-between mb-2">',
+                '      <span class="material-symbols-outlined" style="font-size:32px;color:' + typeColor + ';">account_balance</span>',
+                '      <span class="badge rounded-pill" style="background:rgba(0,107,88,0.08);color:' + typeColor + ';font-size:.7rem;">' + c.type + '</span>',
+                '    </div>',
+                '    <h6 class="fw-bold mb-1" style="color:var(--clr-on-surface);">' + c.name + '</h6>',
+                '    <p class="small text-on-surface-variant mb-0"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">location_on</span> ' + c.location + '</p>',
+                '    <p class="small text-on-surface-variant mb-3"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">tag</span> ' + c.code + '</p>',
+                '    <button class="btn btn-primary btn-sm w-100 mt-auto">Select College</button>',
+                '  </div>',
+                '</div>'
+            ].join('');
+            $grid.append(card);
+        });
+
+        // Show picker section (it lives inside .admin-main, already full-width now)
+        $('.ca-section').hide();
+        $('#section-ca-college-select').show();
+    }
+
+    function selectCollegeAndEnter(college) {
+        sessionStorage.setItem('emmis_ca_college_id', String(college.id));
+        applyCollegeInfo(college);
+
+        // Restore sidebar layout
+        $('.sidebar-admin').show();
+        $('.admin-main').css('margin-left', '16rem');
+
+        // Navigate to dashboard
+        $('#section-ca-college-select').hide();
+        showSection('section-ca-dashboard');
+    }
+
+    // ============================================================
+    // 13. INIT
     // ============================================================
 
     $(function () {
         loadRegistrations();
         loadMeritLists();
+        loadAdmissionSchedules();
         initRegistrationSearch();
+        initAllApplications();
         initEvents();
-        showSection('section-ca-dashboard');
+
+        // College picker event — delegated (cards rendered dynamically)
+        $(document).on('click', '.college-picker-card', function () {
+            var id = parseInt($(this).data('college-id'), 10);
+            var college = findCollegeById(id);
+            if (college) selectCollegeAndEnter(college);
+        });
+
+        // Switch College button
+        $(document).on('click', '#btnSwitchCollege', function () {
+            sessionStorage.removeItem('emmis_ca_college_id');
+            showCollegePicker();
+        });
+
+        // Check if a college was previously selected this session
+        var storedId = parseInt(sessionStorage.getItem('emmis_ca_college_id') || '0', 10);
+        if (storedId) {
+            var saved = findCollegeById(storedId);
+            if (saved) {
+                applyCollegeInfo(saved);
+                showSection('section-ca-dashboard');
+                return;
+            }
+        }
+
+        // No college selected — show picker
+        showCollegePicker();
     });
 
 })(jQuery);

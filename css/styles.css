@@ -487,6 +487,10 @@ a:hover {
     background-color: var(--clr-outline);
     color: #fff;
 }
+.college-card .college-card-banner.closed {
+    background-color: var(--clr-on-surface-variant);
+    color: #fff;
+}
 
 /* -- OTP Input -- */
 .otp-input {
@@ -636,41 +640,32 @@ a:hover {
     padding: 1.5rem;
 }
 
-/* -- Mobile Bottom Nav -- */
-.mobile-bottom-nav {
+/* -- Mobile Sidebar Toggle -- */
+.sidebar-backdrop {
+    display: none;
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 4rem;
-    background-color: rgba(0, 107, 88, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    padding: 0 1rem;
-    z-index: 1050;
-    border-radius: 1rem 1rem 0 0;
-    color: #fff;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1055;
 }
-.mobile-bottom-nav .nav-tab {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    color: rgba(255, 255, 255, 0.6);
-    text-decoration: none;
-    font-size: 0.625rem;
-    font-weight: 500;
-    transition: var(--transition-fast);
+.sidebar-backdrop.backdrop-visible {
+    display: block;
 }
-.mobile-bottom-nav .nav-tab.active {
-    color: #fff;
-    font-weight: 700;
+@media (max-width: 767.98px) {
+    .sidebar-portal.sidebar-open {
+        display: flex !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        z-index: 1060;
+        animation: slideInLeft 0.25s ease-out;
+    }
 }
-.mobile-bottom-nav .nav-tab .material-symbols-outlined {
-    font-size: 1.25rem;
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(0); }
 }
 
 /* -- Declaration Box -- */
@@ -727,20 +722,6 @@ a:hover {
     }
 }
 
-/* Mobile bottom nav visible only on mobile */
-@media (min-width: 768px) {
-    .mobile-bottom-nav {
-        display: none !important;
-    }
-}
-
-/* Extra padding at bottom on mobile for bottom nav */
-@media (max-width: 767.98px) {
-    .page-content-padded {
-        padding-bottom: 5rem;
-    }
-}
-
 /* ---- 6. ANIMATIONS ---- */
 @keyframes fadeInUp {
     from {
@@ -774,7 +755,6 @@ a:hover {
 @media print {
     .navbar-portal,
     .sidebar-portal,
-    .mobile-bottom-nav,
     .btn,
     .stepper,
     .no-print {
@@ -870,6 +850,12 @@ a:hover {
 .admin-kpi .kpi-delta { font-size: .75rem; font-weight: 700; }
 .admin-kpi .kpi-delta.up { color: var(--clr-primary); }
 .admin-kpi .kpi-delta.down { color: var(--clr-error); }
+
+/* -- College Picker -- */
+.college-picker-card:hover {
+    border-color: var(--clr-primary) !important;
+    box-shadow: 0 4px 16px rgba(0,107,88,.14);
+}
 
 /* -- Data Table -- */
 .data-table { width: 100%; border-collapse: separate; border-spacing: 0; }

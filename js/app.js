@@ -161,6 +161,14 @@
         { id: "2026003441", collegeName: "Sikkim Manipal University", course: "B.Tech Computer Science", status: "incomplete", dateLabel: "Missing Documents", image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCKN_fBXjwQuTYRE1Mvid00faZJeYHU8JvuWzOq070uNTqYe_yUTPouTeSSNLqoLvhP7Wjg5QO3p1AZOloQwkP2uqZc4QV3A_5MiW3QWYKZkAS6uvxcqBPcJhNIqQ1VM4YdDY0im96RqtPAslLSBpoilNzWTIRlwkbunWIZnAZcasP1upxG-ecfNvrpFrc-PddAbAMpwKE8JqBQlOMROoN1r9h9xW5kLpAwWzuX_GW8Mqmmr0CKG3Evu3NDltcD5KGhx5d5NtVFcG48" }
     ];
 
+    // Course catalog — mirrors COURSES in college-admin.js (id → display info)
+    var COURSE_CATALOG = {
+        'bcom':      { name: 'B.Com (Hons)',          duration: '3 Years', fee: '₹5,000/year', subjects: ['Financial Accounting', 'Cost Accounting', 'Taxation', 'Marketing', 'Business Law'] },
+        'ba-polsci': { name: 'B.A. Political Science', duration: '3 Years', fee: '₹4,500/year', subjects: ['Indian Govt & Politics', 'International Relations', 'Political Theory', 'Public Admin'] },
+        'bsc-phy':   { name: 'B.Sc. Physics',          duration: '3 Years', fee: '₹6,000/year', subjects: ['Quantum Mechanics', 'Optics', 'Thermodynamics', 'Electronics'] },
+        'ba-eng':    { name: 'B.A. English (Hons)',    duration: '3 Years', fee: '₹4,500/year', subjects: ['British Literature', 'Indian Writing', 'Linguistics', 'Postcolonial Studies'] }
+    };
+
     // ============================================================
     // 2. LOCAL STORAGE HELPERS
     // ============================================================
@@ -283,18 +291,229 @@
     }
 
     // ============================================================
-    // 4. COLLEGE LISTING (index.html)
+    // 4. SCHEDULE HELPER (shared — used by listing & application pages)
+    // ============================================================
+
+    function getScheduleForCollege(collegeId) {
+        var raw = localStorage.getItem('emmis_ca_admission_schedules');
+        if (!raw) return null;
+        var schedules;
+        try { schedules = JSON.parse(raw) || {}; } catch (e) { return null; }
+        var list = [];
+        // New compound-key format: collegeId_session
+        $.each(schedules, function (_, s) {
+            if (s && s.collegeId === collegeId) list.push(s);
+        });
+        // Backward compat: session-only keys for college id 1 (original single-college format)
+        if (!list.length && collegeId === 1) {
+            $.each(schedules, function (_, s) {
+                if (s && !s.collegeId && s.session) list.push(s);
+            });
+        }
+        if (!list.length) return null;
+        var active = $.grep(list, function (s) { return (s.status || '').toLowerCase() === 'active'; });
+        var pool = active.length ? active : list;
+        pool.sort(function (a, b) {
+            return (b.updatedAt || b.session || '').localeCompare(a.updatedAt || a.session || '');
+        });
+        return pool[0] || null;
+    }
+
+    // Returns an array of course IDs offered by the college for the given schedule,
+    // derived from its selective windows. Returns null when no selective windows exist
+    // (meaning the defaultWindow covers all — caller should fall back to COLLEGES data).
+    function getOfferedCoursesFromSchedule(schedule) {
+        if (!schedule) return null;
+        var windows = schedule.selectiveWindows || [];
+        if (!windows.length) return null;
+        var offeredIds = [];
+        var applyToAllFound = false;
+        $.each(windows, function (_, w) {
+            if (w.applyToAll) { applyToAllFound = true; return false; }
+            var ids = w.courseIds || (w.courseId ? [w.courseId] : []);
+            $.each(ids, function (_, cid) {
+                if (offeredIds.indexOf(cid) < 0) offeredIds.push(cid);
+            });
+        });
+        if (applyToAllFound) return Object.keys(COURSE_CATALOG);
+        return offeredIds.length ? offeredIds : Object.keys(COURSE_CATALOG);
+    }
+
+    // ============================================================
+    // 5. COLLEGE LISTING (index.html)
     // ============================================================
 
     function initCollegeListing() {
-        // Track how many are currently visible (first 4 are hardcoded in HTML)
-        var visibleCount = 4;
+        // Track how many are currently visible (all rendered dynamically from COLLEGES array)
+        var visibleCount = 0;
         var pageSize = 4;
+
+        function formatYmdToDisplay(ymd) {
+            if (!ymd) return '';
+            var parts = ymd.split('-');
+            if (parts.length !== 3) return ymd;
+            var dt = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            if (isNaN(dt.getTime())) return ymd;
+            return dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+        }
+
+        function parseYmd(ymd) {
+            if (!ymd) return null;
+            var p = ymd.split('-');
+            if (p.length !== 3) return null;
+            var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        function normalizeProgram(stream) {
+            stream = (stream || '').toUpperCase();
+            if (stream.indexOf('B.COM') >= 0) return 'B.Com';
+            if (stream.indexOf('B.SC') >= 0) return 'B.Sc';
+            if (stream.indexOf('B.A') >= 0 || stream.indexOf('LAW') >= 0) return 'B.A';
+            return 'Other';
+        }
+
+        function getCourseHintsById(courseId) {
+            var map = {
+                'bcom': ['B.Com', 'Commerce', 'Accounting'],
+                'ba-polsci': ['Political Science', 'B.A'],
+                'bsc-phy': ['Physics', 'B.Sc'],
+                'ba-eng': ['English', 'B.A']
+            };
+            return map[courseId] || [];
+        }
+
+        function cardSupportsCourseId(college, courseId) {
+            if (!courseId) return true;
+            var hints = getCourseHintsById(courseId);
+            if (hints.length === 0) return true;
+            var names = $.map(college.courses || [], function (cr) { return (cr.name || '').toLowerCase(); }).join(' | ');
+            var hasHint = false;
+            $.each(hints, function (_, h) {
+                if (names.indexOf(h.toLowerCase()) >= 0) hasHint = true;
+            });
+            return hasHint;
+        }
+
+        function getScheduleViewForCollege(college, schedule) {
+            var out = {
+                openDate: college.openDate,
+                closeDate: college.closeDate,
+                meritListDate: college.meritListDate,
+                admissionReg: college.admissionReg,
+                status: college.status,
+                notification: ''
+            };
+            if (!schedule) return out;
+
+            out.notification = schedule.notification || '';
+
+            var def = schedule.defaultWindow || {};
+            if (def.appOpen) out.openDate = formatYmdToDisplay(def.appOpen);
+            if (def.appClose) out.closeDate = formatYmdToDisplay(def.appClose);
+            if (def.meritDate) out.meritListDate = formatYmdToDisplay(def.meritDate);
+            if (def.regOpen || def.regClose) {
+                out.admissionReg = (formatYmdToDisplay(def.regOpen || '') || 'TBA') + ' – ' + (formatYmdToDisplay(def.regClose || '') || 'TBA');
+            }
+
+            var program = normalizeProgram(college.stream);
+            $.each(schedule.selectiveWindows || [], function (_, w) {
+                if (!w.applyToAll) {
+                    if ((w.program || '') !== '' && (w.program || '') !== program) return;
+                    var wCourseIds = w.courseIds || (w.courseId ? [w.courseId] : []);
+                    if (wCourseIds.length > 0) {
+                        var hasMatch = false;
+                        $.each(wCourseIds, function (_, cid) { if (cardSupportsCourseId(college, cid)) hasMatch = true; });
+                        if (!hasMatch) return;
+                    }
+                }
+                if (w.appOpen) out.openDate = formatYmdToDisplay(w.appOpen);
+                if (w.appClose) out.closeDate = formatYmdToDisplay(w.appClose);
+                if (w.meritDate) out.meritListDate = formatYmdToDisplay(w.meritDate);
+                if (w.regOpen || w.regClose) {
+                    out.admissionReg = (formatYmdToDisplay(w.regOpen || '') || 'TBA') + ' – ' + (formatYmdToDisplay(w.regClose || '') || 'TBA');
+                }
+            });
+
+            var now = new Date();
+            var closeDate = parseYmd((schedule.defaultWindow && schedule.defaultWindow.appClose) || '');
+            var openDate = parseYmd((schedule.defaultWindow && schedule.defaultWindow.appOpen) || '');
+            $.each(schedule.selectiveWindows || [], function (_, w2) {
+                if (!w2.applyToAll) {
+                    if ((w2.program || '') !== '' && (w2.program || '') !== program) return;
+                    var w2CourseIds = w2.courseIds || (w2.courseId ? [w2.courseId] : []);
+                    if (w2CourseIds.length > 0) {
+                        var hasMatch2 = false;
+                        $.each(w2CourseIds, function (_, cid) { if (cardSupportsCourseId(college, cid)) hasMatch2 = true; });
+                        if (!hasMatch2) return;
+                    }
+                }
+                if (w2.appOpen) openDate = parseYmd(w2.appOpen);
+                if (w2.appClose) closeDate = parseYmd(w2.appClose);
+            });
+            if (openDate && now < openDate) {
+                out.status = 'upcoming';
+            } else if (closeDate) {
+                if (now > closeDate) {
+                    out.status = 'closed';
+                } else {
+                    var msLeft = closeDate.getTime() - now.getTime();
+                    var daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+                    out.status = daysLeft <= 7 ? 'urgent' : 'open';
+                }
+            }
+            return out;
+        }
+
+        function renderBanner($card, status) {
+            var $b = $card.find('.college-card-banner').first();
+            if ($b.length === 0) return;
+            $b.removeClass('urgent open upcoming closed');
+            if (status === 'urgent') {
+                $b.addClass('urgent').html('<span class="material-symbols-outlined" style="font-size:14px">timer</span> REGISTRATION OPEN – ENDS SOON!');
+            } else if (status === 'upcoming') {
+                $b.addClass('upcoming').html('<span class="material-symbols-outlined" style="font-size:14px">schedule</span> COMING SOON');
+            } else if (status === 'closed') {
+                $b.addClass('closed').html('<span class="material-symbols-outlined" style="font-size:14px">lock</span> APPLICATIONS CLOSED');
+            } else {
+                $b.addClass('open').html('<span class="material-symbols-outlined" style="font-size:14px">check_circle</span> REGISTRATION OPEN');
+            }
+        }
+
+        function applyScheduleToCard($card, college, schedule) {
+            if (!$card || $card.length === 0 || !college) return;
+            var v = getScheduleViewForCollege(college, schedule);
+
+            var $dateRows = $card.find('.d-flex.justify-content-between.align-items-center.p-3.rounded-3');
+            var $appRow = $dateRows.first();
+            var $regRow = $dateRows.eq(1);
+            if ($appRow.length) {
+                $appRow.find('span.fw-bold.small').eq(0).text(v.openDate || 'TBA');
+                $appRow.find('span.fw-bold.small').eq(1).text(v.closeDate || 'TBA');
+            }
+            if ($regRow.length) {
+                $regRow.find('span.fw-bold.small').eq(0).text(v.meritListDate || 'TBA');
+                $regRow.find('span.fw-bold.small').eq(1).text(v.admissionReg || 'TBA');
+            }
+            renderBanner($card, v.status);
+            var isApplyable = (v.status === 'open' || v.status === 'urgent');
+            $card.find('.btn-apply-now').prop('disabled', !isApplyable);
+        }
+
+        // Only colleges that have a configured admission schedule are shown publicly
+        var listedColleges = $.grep(COLLEGES, function (c) {
+            return getScheduleForCollege(c.id) !== null;
+        });
 
         // Update counter text
         function updateCounter() {
-            var total = COLLEGES.length;
+            var total = listedColleges.length;
             var shown = Math.min(visibleCount, total);
+            if (total === 0) {
+                $('#collegeShowingCount').text('No admission schedules have been configured yet.');
+                $('#btnLoadMore').hide();
+                return;
+            }
             $('#collegeShowingCount').text('Showing ' + shown + ' of ' + total + ' Colleges in Sikkim');
             if (shown >= total) {
                 $('#btnLoadMore').hide();
@@ -302,52 +521,75 @@
                 $('#btnLoadMore').show();
             }
         }
-        updateCounter();
 
         // Build a college card HTML from data
         function buildCollegeCard(c) {
-            var bannerClass = c.status === 'urgent' ? 'urgent' : (c.status === 'upcoming' ? 'upcoming' : 'open');
-            var bannerIcon = c.status === 'urgent' ? 'timer' : (c.status === 'upcoming' ? 'schedule' : 'check_circle');
-            var bannerText = c.status === 'urgent' ? 'REGISTRATION OPEN – ENDS SOON!' : (c.status === 'upcoming' ? 'COMING SOON' : 'REGISTRATION OPEN');
-            var dateStyle = c.status === 'urgent' ? 'background:rgba(137,246,216,0.2);' : '';
-            var dateLabelColor = c.status === 'urgent' ? 'color:var(--clr-on-primary-fixed-var);' : 'color:var(--clr-on-tertiary-fixed-var);';
-            var dateValueColor = c.status === 'urgent' ? 'color:var(--clr-primary);' : 'color:var(--clr-on-tertiary-fixed);';
+            var sv = getScheduleViewForCollege(c, getScheduleForCollege(c.id));
+            var bannerClass = sv.status === 'urgent' ? 'urgent' : (sv.status === 'upcoming' ? 'upcoming' : (sv.status === 'closed' ? 'closed' : 'open'));
+            var bannerIcon = sv.status === 'urgent' ? 'timer' : (sv.status === 'upcoming' ? 'schedule' : (sv.status === 'closed' ? 'lock' : 'check_circle'));
+            var bannerText = sv.status === 'urgent' ? 'REGISTRATION OPEN – ENDS SOON!' : (sv.status === 'upcoming' ? 'COMING SOON' : (sv.status === 'closed' ? 'APPLICATIONS CLOSED' : 'REGISTRATION OPEN'));
+            var applyDisabled = (sv.status === 'upcoming' || sv.status === 'closed') ? ' disabled' : '';
+            var dateStyle = sv.status === 'urgent' ? 'background:rgba(137,246,216,0.2);' : '';
+            var dateLabelColor = sv.status === 'urgent' ? 'color:var(--clr-on-primary-fixed-var);' : 'color:var(--clr-on-tertiary-fixed-var);';
+            var dateValueColor = sv.status === 'urgent' ? 'color:var(--clr-primary);' : 'color:var(--clr-on-tertiary-fixed);';
 
-            // Collect all course keywords for filtering
+            // Derive offered courses from schedule selective windows, fallback to COLLEGES data
+            var _schedule = getScheduleForCollege(c.id);
+            var _scheduleCourseIds = getOfferedCoursesFromSchedule(_schedule);
             var streamKeywords = [c.stream];
-            $.each(c.courses || [], function (_, cr) {
-                if (cr.name.indexOf('B.A.') >= 0 || cr.name.indexOf('B.A ') >= 0) streamKeywords.push('B.A');
-                if (cr.name.indexOf('B.Sc') >= 0) streamKeywords.push('B.Sc');
-                if (cr.name.indexOf('B.Com') >= 0) streamKeywords.push('B.Com');
-                if (cr.name.indexOf('Law') >= 0) streamKeywords.push('B.A Law');
-            });
+            var coursesForDisplay = [];
+            if (_scheduleCourseIds && _scheduleCourseIds.length) {
+                $.each(_scheduleCourseIds, function (_, cid) {
+                    var cat = COURSE_CATALOG[cid];
+                    if (!cat) return;
+                    coursesForDisplay.push(cat);
+                    if (cat.name.indexOf('B.A') >= 0) streamKeywords.push('B.A');
+                    if (cat.name.indexOf('B.Sc') >= 0) streamKeywords.push('B.Sc');
+                    if (cat.name.indexOf('B.Com') >= 0) streamKeywords.push('B.Com');
+                    if (cat.name.indexOf('Law') >= 0) streamKeywords.push('B.A Law');
+                });
+            } else {
+                $.each(c.courses || [], function (_, cr) {
+                    coursesForDisplay.push({ name: cr.name, duration: cr.duration, fee: cr.fee, subjects: cr.subjects || [] });
+                    if (cr.name.indexOf('B.A.') >= 0 || cr.name.indexOf('B.A ') >= 0) streamKeywords.push('B.A');
+                    if (cr.name.indexOf('B.Sc') >= 0) streamKeywords.push('B.Sc');
+                    if (cr.name.indexOf('B.Com') >= 0) streamKeywords.push('B.Com');
+                    if (cr.name.indexOf('Law') >= 0) streamKeywords.push('B.A Law');
+                });
+            }
             var streamData = $.grep(streamKeywords, function (v, i) { return $.inArray(v, streamKeywords) === i; }).join(' ');
 
             var imgHtml = c.image ? '<div class="ratio ratio-16x9"><img src="' + c.image + '" class="w-100 h-100" style="object-fit:cover;" alt="' + c.name + '"></div>' : '';
 
-            // Merit + admission dates row
+            // Registration dates row
             var meritRowHtml = '';
-            if (c.meritListDate || c.admissionReg) {
+            if (sv.meritListDate || c.meritListDate || sv.admissionReg || c.admissionReg) {
                 meritRowHtml = '<div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-surface-low">' +
-                    '<div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Merit List Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">' + (c.meritListDate || 'TBA') + '</span></div>' +
-                    '<div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Admission Registration</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">' + (c.admissionReg || 'TBA') + '</span></div>' +
+                    '<div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Merit List Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">' + (sv.meritListDate || c.meritListDate || 'TBA') + '</span></div>' +
+                    '<div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Admission Registration</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">' + (sv.admissionReg || c.admissionReg || 'TBA') + '</span></div>' +
                     '</div>';
             }
 
-            // Courses expandable
+            // Notification block — shown only when schedule has a notification set
+            var notifText = sv.notification;
+            var notifHtml = notifText
+                ? '<div class="p-3 rounded-3 bg-surface-low">' +
+                  '<span class="d-block text-uppercase fw-bold mb-1" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Important Notification</span>' +
+                  '<p class="mb-0 small" style="color:var(--clr-on-tertiary-fixed-var); line-height:1.5;">' + $('<span>').text(notifText).html() + '</p>' +
+                  '</div>'
+                : '';
+
+            // Courses — names only, sourced from schedule selective windows
             var coursesHtml = '';
-            $.each(c.courses || [], function (_, cr) {
-                var subjectBadges = '';
-                $.each(cr.subjects || [], function (_, s) {
-                    subjectBadges += '<span class="badge rounded-1 fw-medium" style="font-size:.5625rem; background:#fff; border:1px solid var(--clr-outline-variant); color:var(--clr-on-tertiary-fixed-var);">' + s + '</span>';
-                });
-                coursesHtml += '<div class="p-3 rounded-3 bg-surface-low mb-2">' +
-                    '<div class="d-flex justify-content-between mb-1"><div><strong class="small">' + cr.name + '</strong><br><span style="font-size:.65rem; color:var(--clr-on-tertiary-fixed-var);">' + cr.duration + ' • ' + cr.fee + '</span></div></div>' +
-                    '<div class="d-flex flex-wrap gap-1 mt-2">' + subjectBadges + '</div></div>';
+            $.each(coursesForDisplay, function (_, cr) {
+                coursesHtml += '<div class="d-flex align-items-center gap-2 py-2 border-bottom" style="border-color:var(--clr-outline-variant) !important;">' +
+                    '<span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-primary);">school</span>' +
+                    '<span class="small fw-semibold" style="color:var(--clr-on-tertiary-fixed);">' + cr.name + '</span>' +
+                    '</div>';
             });
 
             return '<div class="col-12 col-md-6 col-lg-4 col-xl-3">' +
-                '<div class="college-card h-100" data-name="' + c.name + '" data-district="' + c.district + '" data-stream="' + streamData + '">' +
+                '<div class="college-card h-100" data-college-id="' + c.id + '" data-name="' + c.name + '" data-district="' + c.district + '" data-stream="' + streamData + '">' +
                 '<div class="college-card-banner ' + bannerClass + '"><span class="material-symbols-outlined" style="font-size:14px">' + bannerIcon + '</span> ' + bannerText + '</div>' +
                 imgHtml +
                 '<div class="card-body d-flex flex-column flex-grow-1 p-4">' +
@@ -358,17 +600,14 @@
                 '</div>' +
                 '<div class="d-flex flex-column gap-3 mb-4">' +
                 '<div class="d-flex justify-content-between align-items-center p-3 rounded-3' + (dateStyle ? '' : ' bg-surface-low') + '"' + (dateStyle ? ' style="' + dateStyle + '"' : '') + '>' +
-                '<div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; ' + dateLabelColor + '">Opening Date</span><span class="fw-bold small" style="' + dateValueColor + '">' + c.openDate + '</span></div>' +
-                '<div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; ' + dateLabelColor + '">Closing Date</span><span class="fw-bold small" style="' + dateValueColor + '">' + c.closeDate + '</span></div>' +
+                '<div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; ' + dateLabelColor + '">Opening Date</span><span class="fw-bold small" style="' + dateValueColor + '">' + (sv.openDate || c.openDate) + '</span></div>' +
+                '<div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; ' + dateLabelColor + '">Closing Date</span><span class="fw-bold small" style="' + dateValueColor + '">' + (sv.closeDate || c.closeDate) + '</span></div>' +
                 '</div>' +
                 meritRowHtml +
-                '<div class="p-3 rounded-3 bg-surface-low">' +
-                '<span class="d-block text-uppercase fw-bold mb-1" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Notification</span>' +
-                '<p class="mb-0 small" style="color:var(--clr-on-tertiary-fixed-var); line-height:1.5;">' + c.notification + '</p>' +
-                '</div>' +
+                notifHtml +
                 '</div>' +
                 '<div class="mt-auto d-grid gap-2">' +
-                '<button class="btn btn-primary py-2 btn-apply-now" data-college-id="' + c.id + '">Apply Now</button>' +
+                '<button class="btn btn-primary py-2 btn-apply-now" data-college-id="' + c.id + '"' + applyDisabled + '>Apply Now</button>' +
                 '<button class="btn btn-sm text-center d-flex align-items-center justify-content-center gap-1 btn-toggle-courses" style="color:var(--clr-on-tertiary-fixed-var); font-size:.75rem; font-weight:600;">View Course Details <span class="material-symbols-outlined" style="font-size:16px">expand_more</span></button>' +
                 '</div>' +
                 '<div class="college-courses mt-3 pt-3 border-top" style="display:none;">' +
@@ -378,9 +617,28 @@
                 '</div></div></div>';
         }
 
+        // Render initial batch — only colleges with a configured schedule
+        if (listedColleges.length === 0) {
+            $('#collegeGrid').html(
+                '<div class="col-12 text-center py-5">' +
+                '<span class="material-symbols-outlined d-block mb-3" style="font-size:48px;color:var(--clr-outline);">event_busy</span>' +
+                '<h5 class="fw-bold mb-1" style="color:var(--clr-on-surface);">No Admission Schedules Open</h5>' +
+                '<p class="text-on-surface-variant mb-0">Admission windows have not been configured yet. Check back soon.</p>' +
+                '</div>'
+            );
+        } else {
+            var initialBatch = listedColleges.slice(0, pageSize);
+            $.each(initialBatch, function (_, c) {
+                $('#collegeGrid').append(buildCollegeCard(c));
+            });
+            visibleCount = initialBatch.length;
+        }
+        updateCounter();
+        filterColleges();
+
         // Load More click
         $(document).on('click', '#btnLoadMore', function () {
-            var nextBatch = COLLEGES.slice(visibleCount, visibleCount + pageSize);
+            var nextBatch = listedColleges.slice(visibleCount, visibleCount + pageSize);
             $.each(nextBatch, function (_, c) {
                 $('#collegeGrid').append(buildCollegeCard(c));
             });
@@ -495,13 +753,32 @@
     // 6. APPLICATION PAGE (application.html) — All sections
     // ============================================================
 
+    function populateCollegeStickyHeader() {
+        var app = getApplication();
+        var collegeId = app && app.collegeId ? parseInt(app.collegeId, 10) : null;
+        if (!collegeId) return;
+        var college = null;
+        $.each(COLLEGES, function (_, c) { if (c.id === collegeId) { college = c; return false; } });
+        if (!college) return;
+        var schedule = getScheduleForCollege(collegeId);
+        var session = schedule ? schedule.session : '';
+        $('#stickyCollegeName').text(college.name);
+        $('#stickyCollegeLocation').text(college.location);
+        $('#stickySession').text(session ? 'Session ' + session : '');
+    }
+
     function initApplication() {
-        // If user came via "Apply Now" from index.html, go straight to registration form
+        // If user came via "Apply Now", save the selected college to app data
         var pendingCollege = localStorage.getItem('emmis_he_selected_college');
         if (pendingCollege) {
             localStorage.removeItem('emmis_he_selected_college');
+            var app = getOrCreateApplication();
+            app.collegeId = parseInt(pendingCollege, 10);
+            saveApplication(app);
+            populateCollegeStickyHeader();
             showSection('section-step1');
         } else {
+            populateCollegeStickyHeader();
             showSection('section-dashboard');
         }
 
@@ -521,6 +798,9 @@
             e.preventDefault();
             var step = $(this).data('step');
             showSection('section-step' + step);
+            // Close mobile sidebar
+            $('#appSidebar').removeClass('sidebar-open');
+            $('#sidebarBackdrop').removeClass('backdrop-visible');
         });
 
         // -- Save & Next --
@@ -543,15 +823,6 @@
             } else {
                 showSection('section-step' + (stepNum - 1));
             }
-        });
-
-        // -- Save Draft --
-        $(document).on('click', '.btn-save-draft', function (e) {
-            e.preventDefault();
-            var currentSection = $(this).closest('.app-section').attr('id');
-            var stepNum = parseInt(currentSection.replace('section-step', ''));
-            saveCurrentForm(stepNum);
-            showToast('Draft saved successfully!');
         });
 
         // -- Discard --
@@ -627,19 +898,26 @@
 
         // -- Academic: Add Subject --
         $(document).on('click', '.btn-add-subject', function () {
-            var $tbody = $('#subjectsTable tbody');
-            var n = $tbody.find('tr').length + 1;
-            $tbody.append(
-                '<tr><td><input type="text" class="form-control form-control-sm" name="subject_' + n + '" placeholder="Subject ' + n + '"></td>' +
-                '<td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_' + n + '" placeholder="0" min="0"></td>' +
-                '<td class="text-center align-middle"><input type="number" class="form-control form-control-sm text-center total-marks-input" name="total_' + n + '" value="100" min="1"></td>' +
-                '<td class="text-end align-middle"><select class="form-select form-select-sm subject-status-select" style="max-width:140px;"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></td>' +
-                '<td class="text-end align-middle"><button type="button" class="btn btn-link p-0 btn-remove-subject" style="color:var(--clr-error);"><span class="material-symbols-outlined" style="font-size:18px;">close</span></button></td></tr>'
+            var n = $('#subjectsContainer .subject-card').length + 1;
+            $('#subjectsContainer').append(
+                '<div class="subject-card rounded-3 p-3 mb-3" style="background:var(--clr-surface-low); border:1px solid var(--clr-outline-variant);">' +
+                '<div class="d-flex align-items-center justify-content-between mb-2">' +
+                '<span class="fw-semibold small" style="color:var(--clr-primary);">Subject ' + n + '</span>' +
+                '<button type="button" class="btn btn-link p-0 btn-remove-subject" style="color:var(--clr-error);"><span class="material-symbols-outlined" style="font-size:18px;">close</span></button>' +
+                '</div>' +
+                '<div class="mb-2"><input type="text" class="form-control" name="subject_' + n + '" placeholder="Enter subject name"></div>' +
+                '<div class="row g-2">' +
+                '<div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Marks Obtained</label><input type="number" class="form-control marks-input" name="marks_' + n + '" placeholder="0" min="0"></div>' +
+                '<div class="col-auto d-flex flex-column justify-content-end pb-1"><span class="fw-bold" style="color:var(--clr-on-surface-variant);">/</span></div>' +
+                '<div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Total Marks</label><input type="number" class="form-control total-marks-input" name="total_' + n + '" value="100" min="1"></div>' +
+                '<div class="col-12 col-sm"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Status</label><select class="form-select subject-status-select"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></div>' +
+                '</div>' +
+                '</div>'
             );
             recalcAggregate();
         });
         $(document).on('click', '.btn-remove-subject', function () {
-            $(this).closest('tr').remove();
+            $(this).closest('.subject-card').remove();
             recalcAggregate();
         });
         $(document).on('input', '.marks-input', function () { recalcAggregate(); updateSubjectStatus($(this)); });
@@ -718,6 +996,9 @@
         $(document).on('click', '.btn-go-dashboard', function (e) {
             e.preventDefault();
             showSection('section-dashboard');
+            // Close mobile sidebar
+            $('#appSidebar').removeClass('sidebar-open');
+            $('#sidebarBackdrop').removeClass('backdrop-visible');
         });
     }
 
@@ -735,7 +1016,7 @@
 
     function recalcAggregate() {
         var total = 0, obtained = 0, count = 0;
-        $('#subjectsTable tbody tr').each(function () {
+        $('#subjectsContainer .subject-card').each(function () {
             var v = parseInt($(this).find('.marks-input').val()) || 0;
             var t = parseInt($(this).find('.total-marks-input').val()) || 100;
             obtained += v; total += t; count++;
@@ -749,7 +1030,7 @@
 
     function updateSubjectStatus($input) {
         var v = parseInt($input.val());
-        var $select = $input.closest('tr').find('.subject-status-select');
+        var $select = $input.closest('.subject-card').find('.subject-status-select');
         if (isNaN(v) || $input.val() === '') {
             $select.val('');
         } else if (v >= 33) {

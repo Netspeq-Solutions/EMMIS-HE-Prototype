@@ -17,6 +17,9 @@
 <header class="navbar navbar-dark fixed-top px-3 py-2 shadow" style="background:rgba(15,74,42,0.85); backdrop-filter:blur(12px); z-index:1050;">
     <div class="container-fluid d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-3">
+            <button class="btn d-md-none p-1 text-white btn-toggle-sidebar" aria-label="Menu" style="background:none;border:none;">
+                <span class="material-symbols-outlined" style="font-size:1.5rem;">menu</span>
+            </button>
             <span class="navbar-brand fw-bold tracking-tighter mb-0 fs-5">Sikkim Portal</span>
         </div>
         <nav class="d-none d-md-flex gap-4 align-items-center">
@@ -32,6 +35,9 @@
         </div>
     </div>
 </header>
+
+<!-- Sidebar overlay backdrop (mobile) -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <!-- ===== SIDEBAR (Steps 1-6) ===== -->
 <aside class="sidebar-portal d-none d-md-flex" id="appSidebar">
@@ -65,13 +71,13 @@
             <span class="material-symbols-outlined" style="color:var(--clr-primary); font-size:28px;">account_balance</span>
         </div>
         <div>
-            <h2 class="fw-bold fs-5 mb-0 tracking-tight" style="color:var(--clr-on-surface);">Sikkim Government College, Burtuk</h2>
-            <p class="mb-0 small" style="color:var(--clr-on-surface-variant);">Directorate of Technical Education</p>
+            <h2 class="fw-bold fs-5 mb-0 tracking-tight" id="stickyCollegeName" style="color:var(--clr-on-surface);">—</h2>
+            <p class="mb-0 small" id="stickyCollegeLocation" style="color:var(--clr-on-surface-variant);"></p>
         </div>
     </div>
     <div class="text-end d-none d-sm-block mt-2 mt-md-0">
-        <p class="text-uppercase fw-bold mb-0" style="font-size:.65rem; letter-spacing:.1em; color:var(--clr-secondary);">Phase I Admission</p>
-        <p class="mb-0 small fw-medium" style="color:var(--clr-on-surface);">Session 2024-25</p>
+        <p class="text-uppercase fw-bold mb-0" style="font-size:.65rem; letter-spacing:.1em; color:var(--clr-secondary);">Admission</p>
+        <p class="mb-0 small fw-medium" id="stickySession" style="color:var(--clr-on-surface);"></p>
     </div>
 </div>
 </div>
@@ -226,7 +232,6 @@
                         </div>
                         <div id="sikkimeseFields" class="row g-3 mt-3">
                             <div class="col-md-6"><label class="form-label small fw-bold text-uppercase" style="font-size:.7rem; color:var(--clr-secondary);">COI / RC / Domicile No *</label><input type="text" class="form-control" name="coiNumber" placeholder="Enter Certificate Number"></div>
-                            <div class="col-md-6"><label class="form-label small fw-bold text-uppercase" style="font-size:.7rem; color:var(--clr-secondary);">Upload Certificate *</label><div class="upload-zone d-flex align-items-center justify-content-between p-3 position-relative" style="cursor:pointer;"><span class="small text-on-surface-variant upload-label">Choose File (PDF/JPG)</span><span class="material-symbols-outlined" style="color:var(--clr-secondary);">cloud_upload</span><input type="file" class="position-absolute top-0 start-0 w-100 h-100" style="opacity:0; cursor:pointer;" accept=".pdf,.jpg,.jpeg,.png"></div></div>
                         </div>
                     </div>
                     <!-- PWD -->
@@ -236,7 +241,6 @@
                             <label class="d-flex align-items-center gap-2 cursor-pointer"><input type="radio" name="pwd" value="Yes" class="form-check-input" style="width:1.2em;height:1.2em;">Yes</label>
                             <label class="d-flex align-items-center gap-2 cursor-pointer"><input type="radio" name="pwd" value="No" class="form-check-input" checked style="width:1.2em;height:1.2em;">No</label>
                         </div>
-                        <div id="pwdUpload" style="display:none;" class="mt-3"><div class="upload-zone d-flex align-items-center justify-content-center gap-3 p-3"><span class="material-symbols-outlined" style="color:var(--clr-secondary);">medical_services</span><span class="small fw-medium" style="color:var(--clr-secondary);">Upload Disability Certificate</span></div></div>
                     </div>
                     <!-- Actions -->
                     <div class="d-flex justify-content-end align-items-center pt-4 border-top">
@@ -289,25 +293,10 @@
                             <div class="col-md-6"><label class="form-label">Pincode *</label><input type="text" class="form-control" name="pincode" placeholder="737xxx"></div>
                         </div>
                         <div class="mb-3"><label class="form-label">Permanent Address *</label><textarea class="form-control" name="permanentAddress" rows="3" placeholder="Building No, Street, Village/Locality..."></textarea></div>
-                        <!-- Photo & Signature -->
-                        <div class="pt-4 border-top mb-3">
-                            <h6 class="fw-bold small d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="font-size:18px;">add_a_photo</span>Photograph &amp; Signature</h6>
-                            <div class="row g-4">
-                                <div class="col-auto">
-                                    <label class="form-label small fw-bold text-uppercase" style="font-size:.65rem;">Recent Passport Photo *</label>
-                                    <div class="upload-zone d-flex flex-column align-items-center justify-content-center gap-2" style="width:120px;height:150px;"><span class="material-symbols-outlined fs-2 text-outline">account_circle</span><p class="mb-0 fw-bold text-uppercase" style="font-size:.5625rem; color:var(--clr-outline);">Upload</p><p class="mb-0" style="font-size:.5rem; color:var(--clr-outline-variant);">JPG/PNG, max 200KB</p></div>
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label small fw-bold text-uppercase" style="font-size:.65rem;">Signature *</label>
-                                    <div class="upload-zone d-flex flex-column align-items-center justify-content-center gap-2" style="width:200px;height:80px;"><span class="material-symbols-outlined text-outline">draw</span><p class="mb-0 fw-bold text-uppercase" style="font-size:.5625rem; color:var(--clr-outline);">Upload Signature</p></div>
-                                </div>
-                            </div>
-                        </div>
                         <!-- Actions -->
                         <div class="d-flex flex-wrap justify-content-between align-items-center pt-4 border-top gap-3">
                             <button type="button" class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-primary);"><span class="material-symbols-outlined">arrow_back</span>Back</button>
                             <div class="d-flex gap-3">
-                                <button type="button" class="btn btn-surface px-4 py-2 fw-bold btn-save-draft">Save Draft</button>
                                 <button type="button" class="btn btn-gradient px-5 py-3 fw-bold btn-save-next">Save &amp; Next</button>
                             </div>
                         </div>
@@ -331,47 +320,82 @@
             <div class="col-md-8 order-2 order-md-1">
                 <h2 class="fs-3 fw-bold tracking-tight mb-1">Academic Qualification Details</h2>
                 <p class="text-secondary fw-medium mb-4">Please provide your Class XII academic performance data accurately.</p>
-                <!-- Marks Table -->
+                <!-- Subject Cards -->
                 <div class="card p-4 rounded-3 mb-4">
                     <div class="d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined p-2 rounded-2" style="background:var(--clr-secondary-fixed); color:var(--clr-primary);">menu_book</span><h5 class="fw-bold mb-0">Class XII Details</h5></div>
-                    <div class="table-responsive">
-                        <table class="table table-borderless mb-0" id="subjectsTable">
-                            <thead><tr class="text-uppercase small fw-bold" style="font-size:.7rem; letter-spacing:.05em; color:var(--clr-secondary); border-bottom:1px solid var(--clr-surface-variant);"><th class="py-3">Subject Name</th><th class="py-3">Theory+Practical Marks Obtained</th><th class="py-3 text-center">Total Marks</th><th class="py-3 text-end">Status</th><th class="py-3 text-end" style="width:40px;"></th></tr></thead>
-                            <tbody>
-                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_1" placeholder="Subject 1 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_1" placeholder="0" min="0"></td><td class="text-center align-middle"><input type="number" class="form-control form-control-sm text-center total-marks-input" name="total_1" value="100" min="1"></td><td class="text-end align-middle"><select class="form-select form-select-sm subject-status-select" style="max-width:140px;"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></td><td></td></tr>
-                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_2" placeholder="Subject 2 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_2" placeholder="0" min="0"></td><td class="text-center align-middle"><input type="number" class="form-control form-control-sm text-center total-marks-input" name="total_2" value="100" min="1"></td><td class="text-end align-middle"><select class="form-select form-select-sm subject-status-select" style="max-width:140px;"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></td><td></td></tr>
-                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_3" placeholder="Subject 3 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_3" placeholder="0" min="0"></td><td class="text-center align-middle"><input type="number" class="form-control form-control-sm text-center total-marks-input" name="total_3" value="100" min="1"></td><td class="text-end align-middle"><select class="form-select form-select-sm subject-status-select" style="max-width:140px;"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></td><td></td></tr>
-                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_4" placeholder="Subject 4 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_4" placeholder="0" min="0"></td><td class="text-center align-middle"><input type="number" class="form-control form-control-sm text-center total-marks-input" name="total_4" value="100" min="1"></td><td class="text-end align-middle"><select class="form-select form-select-sm subject-status-select" style="max-width:140px;"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></td><td></td></tr>
-                                <tr data-required="true"><td><input type="text" class="form-control form-control-sm" name="subject_5" placeholder="Subject 5 *" required></td><td><input type="number" class="form-control form-control-sm text-center marks-input" name="marks_5" placeholder="0" min="0"></td><td class="text-center align-middle"><input type="number" class="form-control form-control-sm text-center total-marks-input" name="total_5" value="100" min="1"></td><td class="text-end align-middle"><select class="form-select form-select-sm subject-status-select" style="max-width:140px;"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></td><td></td></tr>
-                            </tbody>
-                        </table>
+                    <div id="subjectsContainer">
+
+                        <div class="subject-card rounded-3 p-3 mb-3" data-required="true" style="background:var(--clr-surface-low); border:1px solid var(--clr-outline-variant);">
+                            <div class="d-flex align-items-center gap-2 mb-2"><span class="fw-semibold small" style="color:var(--clr-primary);">Subject 1</span><span class="badge rounded-pill" style="font-size:.6rem; background:rgba(211,47,47,0.1); color:#c62828;">Required</span></div>
+                            <div class="mb-2"><input type="text" class="form-control" name="subject_1" placeholder="Enter subject name *" required></div>
+                            <div class="row g-2">
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Marks Obtained</label><input type="number" class="form-control marks-input" name="marks_1" placeholder="0" min="0"></div>
+                                <div class="col-auto d-flex flex-column justify-content-end pb-1"><span class="fw-bold" style="color:var(--clr-on-surface-variant);">/</span></div>
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Total Marks</label><input type="number" class="form-control total-marks-input" name="total_1" value="100" min="1"></div>
+                                <div class="col-12 col-sm"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Status</label><select class="form-select subject-status-select"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></div>
+                            </div>
+                        </div>
+
+                        <div class="subject-card rounded-3 p-3 mb-3" data-required="true" style="background:var(--clr-surface-low); border:1px solid var(--clr-outline-variant);">
+                            <div class="d-flex align-items-center gap-2 mb-2"><span class="fw-semibold small" style="color:var(--clr-primary);">Subject 2</span><span class="badge rounded-pill" style="font-size:.6rem; background:rgba(211,47,47,0.1); color:#c62828;">Required</span></div>
+                            <div class="mb-2"><input type="text" class="form-control" name="subject_2" placeholder="Enter subject name *" required></div>
+                            <div class="row g-2">
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Marks Obtained</label><input type="number" class="form-control marks-input" name="marks_2" placeholder="0" min="0"></div>
+                                <div class="col-auto d-flex flex-column justify-content-end pb-1"><span class="fw-bold" style="color:var(--clr-on-surface-variant);">/</span></div>
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Total Marks</label><input type="number" class="form-control total-marks-input" name="total_2" value="100" min="1"></div>
+                                <div class="col-12 col-sm"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Status</label><select class="form-select subject-status-select"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></div>
+                            </div>
+                        </div>
+
+                        <div class="subject-card rounded-3 p-3 mb-3" data-required="true" style="background:var(--clr-surface-low); border:1px solid var(--clr-outline-variant);">
+                            <div class="d-flex align-items-center gap-2 mb-2"><span class="fw-semibold small" style="color:var(--clr-primary);">Subject 3</span><span class="badge rounded-pill" style="font-size:.6rem; background:rgba(211,47,47,0.1); color:#c62828;">Required</span></div>
+                            <div class="mb-2"><input type="text" class="form-control" name="subject_3" placeholder="Enter subject name *" required></div>
+                            <div class="row g-2">
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Marks Obtained</label><input type="number" class="form-control marks-input" name="marks_3" placeholder="0" min="0"></div>
+                                <div class="col-auto d-flex flex-column justify-content-end pb-1"><span class="fw-bold" style="color:var(--clr-on-surface-variant);">/</span></div>
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Total Marks</label><input type="number" class="form-control total-marks-input" name="total_3" value="100" min="1"></div>
+                                <div class="col-12 col-sm"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Status</label><select class="form-select subject-status-select"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></div>
+                            </div>
+                        </div>
+
+                        <div class="subject-card rounded-3 p-3 mb-3" data-required="true" style="background:var(--clr-surface-low); border:1px solid var(--clr-outline-variant);">
+                            <div class="d-flex align-items-center gap-2 mb-2"><span class="fw-semibold small" style="color:var(--clr-primary);">Subject 4</span><span class="badge rounded-pill" style="font-size:.6rem; background:rgba(211,47,47,0.1); color:#c62828;">Required</span></div>
+                            <div class="mb-2"><input type="text" class="form-control" name="subject_4" placeholder="Enter subject name *" required></div>
+                            <div class="row g-2">
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Marks Obtained</label><input type="number" class="form-control marks-input" name="marks_4" placeholder="0" min="0"></div>
+                                <div class="col-auto d-flex flex-column justify-content-end pb-1"><span class="fw-bold" style="color:var(--clr-on-surface-variant);">/</span></div>
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Total Marks</label><input type="number" class="form-control total-marks-input" name="total_4" value="100" min="1"></div>
+                                <div class="col-12 col-sm"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Status</label><select class="form-select subject-status-select"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></div>
+                            </div>
+                        </div>
+
+                        <div class="subject-card rounded-3 p-3 mb-3" data-required="true" style="background:var(--clr-surface-low); border:1px solid var(--clr-outline-variant);">
+                            <div class="d-flex align-items-center gap-2 mb-2"><span class="fw-semibold small" style="color:var(--clr-primary);">Subject 5</span><span class="badge rounded-pill" style="font-size:.6rem; background:rgba(211,47,47,0.1); color:#c62828;">Required</span></div>
+                            <div class="mb-2"><input type="text" class="form-control" name="subject_5" placeholder="Enter subject name *" required></div>
+                            <div class="row g-2">
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Marks Obtained</label><input type="number" class="form-control marks-input" name="marks_5" placeholder="0" min="0"></div>
+                                <div class="col-auto d-flex flex-column justify-content-end pb-1"><span class="fw-bold" style="color:var(--clr-on-surface-variant);">/</span></div>
+                                <div class="col"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Total Marks</label><input type="number" class="form-control total-marks-input" name="total_5" value="100" min="1"></div>
+                                <div class="col-12 col-sm"><label class="form-label small mb-1" style="color:var(--clr-on-surface-variant);">Status</label><select class="form-select subject-status-select"><option value="">— Select —</option><option value="pass">Pass</option><option value="fail">Fail</option><option value="absent">Absent</option><option value="compartment">Compartment</option></select></div>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="d-flex align-items-center gap-3 mt-3">
+                    <div class="d-flex align-items-center gap-3 mt-2">
                         <button class="btn btn-link p-0 fw-bold small text-decoration-none d-flex align-items-center gap-1 btn-add-subject" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:16px;">add_circle</span>Add Subject</button>
                         <span class="small text-on-surface-variant">(Minimum 5 subjects required)</span>
                     </div>
-                </div>
-                <!-- Document Upload -->
-                <div class="card p-4 rounded-3 mb-4">
-                    <div class="d-flex align-items-center gap-2 mb-4"><span class="material-symbols-outlined p-2 rounded-2" style="background:var(--clr-tertiary-fixed); color:var(--clr-tertiary);">upload_file</span><h5 class="fw-bold mb-0">Document Verification</h5></div>
-                    <label class="form-label fw-bold small">Class XII Marksheet (Original/Self-Attested)</label>
-                    <div class="upload-zone position-relative py-5"><span class="material-symbols-outlined d-block text-center mb-2 fs-1 text-outline">cloud_upload</span><p class="text-center fw-semibold mb-1">Click to upload or drag and drop</p><p class="text-center small" style="color:var(--clr-secondary);">Accepted formats: JPG, PNG, PDF (Max size: 2MB)</p><input type="file" class="position-absolute top-0 start-0 w-100 h-100" style="opacity:0; cursor:pointer;"></div>
                 </div>
                 <!-- Actions -->
                 <div class="card p-4 rounded-3 d-flex flex-row justify-content-between align-items-center gap-3">
                     <div class="d-flex gap-3">
                         <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>Back</button>
-                        <button class="btn btn-outline-primary fw-bold px-4 btn-save-draft"><span class="material-symbols-outlined me-1" style="font-size:18px;">save</span>Save Draft</button>
                     </div>
                     <button class="btn btn-primary fw-bold px-5 py-2 d-flex align-items-center gap-2 btn-save-next">Save &amp; Next <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span></button>
                 </div>
             </div>
             <!-- Right Sidebar -->
             <div class="col-md-4 order-1 order-md-2">
-                <div class="card p-4 rounded-3 text-white position-relative overflow-hidden mb-3" style="background:var(--clr-primary);">
-                    <div class="position-relative" style="z-index:1;"><p class="small fw-medium text-uppercase mb-1" style="opacity:.8;letter-spacing:.1em;">Calculation Summary</p><h3 class="display-6 fw-extrabold mb-3" id="aggregatePercent">53.7%</h3><div class="pt-3 border-top" style="border-color:rgba(255,255,255,0.2)!important;"><div class="d-flex justify-content-between small mb-2"><span style="opacity:.8;">Total Subjects</span><span class="fw-bold" id="totalSubjects">3</span></div><div class="d-flex justify-content-between small"><span style="opacity:.8;">Total Theory+Practical Marks</span><span class="fw-bold" id="totalObtained">161 / 300</span></div></div></div>
-                    <div class="position-absolute" style="bottom:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%;filter:blur(32px);"></div>
-                </div>
                 <div class="p-4 rounded-3" style="background:rgba(193,235,221,0.3); border:1px solid var(--clr-secondary-fixed);">
                     <div class="d-flex align-items-start gap-2"><span class="material-symbols-outlined filled" style="color:var(--clr-primary); font-variation-settings:'FILL' 1;">lightbulb</span><div><h6 class="small fw-bold mb-1" style="color:var(--clr-on-secondary-container);">Admission Tip</h6><p class="small mb-0" style="color:var(--clr-on-secondary-container); line-height:1.6;">Best 4 subjects calculation will be performed automatically during rank list generation.</p></div></div>
                 </div>
@@ -411,7 +435,7 @@
             <!-- Actions -->
             <div class="d-flex justify-content-between align-items-center pt-3 pb-5">
                 <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-secondary);"><span class="material-symbols-outlined">arrow_back</span>Back</button>
-                <div class="d-flex gap-3"><button class="btn btn-secondary-container px-4 py-2 fw-bold btn-save-draft" style="background:var(--clr-secondary-container); color:var(--clr-on-secondary-container); border:none; border-radius:.75rem;">Save Draft</button><button class="btn btn-primary px-5 py-2 fw-bold btn-save-next">Save &amp; Next</button></div>
+                <div class="d-flex gap-3"><button class="btn btn-primary px-5 py-2 fw-bold btn-save-next">Save &amp; Next</button></div>
             </div>
         </div>
         <!-- Selection Summary Sidebar -->
@@ -571,9 +595,6 @@
             <!-- Right sidebar: Applicant Photo & Summary -->
             <div class="col-md-4 order-1 order-md-2">
                 <div class="card p-4 rounded-3 text-center mb-3 position-sticky" style="top:10rem;">
-                    <div class="d-inline-flex mx-auto align-items-center justify-content-center rounded-circle overflow-hidden mb-3 border border-3" style="width:120px;height:120px;border-color:var(--clr-primary)!important;">
-                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB70Li49woNLK7igwjm2bjw7JNziqttmgGk5IdquG0QV2lQzrYFDc1WvnyHRVuylwINua-lLsfhwcDtbcZ2Y2zPQ33YMCN-WwiIVUJYFwjHoDGn0Eo-OXGSL_vyFHlF346j7J3dwMvOXhep8GSng4cjZxsvYlWH2ermhNo16YSg2_5sAdZ6R3rw8N24Nez18wcH_qrDopDJiwE_aZqNF3NFVAnqPDQmBp0f7BmE8jeBg4TxhFwmNWy0ZFjp9aE9ZCQPV4uQBDaiyWgJ" class="w-100 h-100" style="object-fit:cover;" alt="Applicant Photo" id="previewPhoto">
-                    </div>
                     <h5 class="fw-bold mb-1" id="previewName" style="color:var(--clr-on-surface);">—</h5>
                     <p class="small text-on-surface-variant mb-3" id="previewAppId">Application ID: —</p>
                     <div class="text-start">
@@ -638,14 +659,6 @@
     </div>
 </div></div></div>
 
-<!-- Mobile Bottom Nav -->
-<div class="mobile-bottom-nav d-md-none">
-    <a href="#" class="nav-tab btn-go-dashboard"><span class="material-symbols-outlined filled" style="font-variation-settings:'FILL' 1;">description</span><span>Apply</span></a>
-    <a href="index.html" class="nav-tab"><span class="material-symbols-outlined">school</span><span>Colleges</span></a>
-    <a href="#" class="nav-tab"><span class="material-symbols-outlined">receipt_long</span><span>Status</span></a>
-    <a href="#" class="nav-tab"><span class="material-symbols-outlined">person</span><span>Profile</span></a>
-</div>
-
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/app.js"></script>
@@ -660,11 +673,29 @@
                 $('.main-content-with-sidebar').css('margin-left','0');
             }
         }
-        $(window).on('resize', adjustLayout);
+        $(window).on('resize', function(){
+            // Close mobile sidebar on resize to desktop
+            if($(window).width()>=768){
+                $('#appSidebar').removeClass('sidebar-open');
+                $('#sidebarBackdrop').removeClass('backdrop-visible');
+            }
+            adjustLayout();
+        });
         // observe sidebar visibility
         var observer = new MutationObserver(adjustLayout);
         observer.observe(document.getElementById('appSidebar'), {attributes:true, attributeFilter:['class']});
         adjustLayout();
+
+        // Mobile sidebar toggle
+        $('.btn-toggle-sidebar').on('click', function(){
+            $('#appSidebar').toggleClass('sidebar-open');
+            $('#sidebarBackdrop').toggleClass('backdrop-visible', $('#appSidebar').hasClass('sidebar-open'));
+        });
+        // Close sidebar when backdrop clicked
+        $('#sidebarBackdrop').on('click', function(){
+            $('#appSidebar').removeClass('sidebar-open');
+            $(this).removeClass('backdrop-visible');
+        });
     });
 </script>
 </body>
