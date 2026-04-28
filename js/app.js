@@ -344,6 +344,40 @@
     // ============================================================
 
     function initCollegeListing() {
+        // Handle direct ?invite=TOKEN URL — for restricted/invite-only colleges
+        var urlParams = new URLSearchParams(window.location.search);
+        var inviteToken = urlParams.get('invite');
+        var directCollegeId = urlParams.get('college') ? parseInt(urlParams.get('college'), 10) : null;
+
+        if (inviteToken) {
+            // Find the schedule that owns this token
+            var tokenSched = null, tokenCollegeId = null;
+            var schedules = JSON.parse(localStorage.getItem('emmis_ca_admission_schedules') || '{}');
+            $.each(schedules, function (_, sched) {
+                if (sched.inviteToken === inviteToken) {
+                    tokenSched = sched;
+                    tokenCollegeId = sched.collegeId;
+                    return false;
+                }
+            });
+            if (tokenSched && tokenCollegeId) {
+                localStorage.setItem('emmis_he_selected_college', tokenCollegeId);
+                localStorage.setItem('emmis_he_invite_pending', inviteToken);
+                window.location.href = isLoggedIn() ? 'application.html' : 'login.html';
+                return;
+            }
+            // Invalid token — show error and fall through to normal listing
+            $('#inviteTokenError').css('display', 'flex');
+        } else if (directCollegeId) {
+            // Non-restricted direct link (no invite token needed)
+            var directSched = getScheduleForCollege(directCollegeId);
+            if (directSched && !directSched.restricted) {
+                localStorage.setItem('emmis_he_selected_college', directCollegeId);
+                window.location.href = isLoggedIn() ? 'application.html' : 'login.html';
+                return;
+            }
+        }
+
         // Track how many are currently visible (all rendered dynamically from COLLEGES array)
         var visibleCount = 0;
         var pageSize = 4;
@@ -500,9 +534,10 @@
             $card.find('.btn-apply-now').prop('disabled', !isApplyable);
         }
 
-        // Only colleges that have a configured admission schedule are shown publicly
+        // Only non-restricted colleges with a configured admission schedule are shown publicly
         var listedColleges = $.grep(COLLEGES, function (c) {
-            return getScheduleForCollege(c.id) !== null;
+            var sched = getScheduleForCollege(c.id);
+            return sched !== null && !sched.restricted;
         });
 
         // Update counter text
@@ -659,7 +694,6 @@
         $(document).on('click', '.btn-apply-now', function () {
             var cid = $(this).data('college-id');
             if (cid) localStorage.setItem('emmis_he_selected_college', cid);
-            // Skip OTP if already logged in
             window.location.href = isLoggedIn() ? 'application.html' : 'login.html';
         });
 
@@ -768,6 +802,23 @@
     }
 
     function initApplication() {
+        // If user arrived via an invite link, stamp the application as a recommendation
+        var pendingInvite = localStorage.getItem('emmis_he_invite_pending');
+        if (pendingInvite) {
+            localStorage.removeItem('emmis_he_invite_pending');
+            var inviteApp = getOrCreateApplication();
+            inviteApp.isRecommendation = true;
+            inviteApp.inviteToken = pendingInvite;
+            saveApplication(inviteApp);
+            // Write to shared recommendations store so admin can see it
+            var recs = JSON.parse(localStorage.getItem('emmis_ca_recommendations') || '[]');
+            var alreadyStored = false;
+            $.each(recs, function(_, r) { if (r.appNo === inviteApp.applicationId) { alreadyStored = true; return false; } });
+            if (!alreadyStored) {
+                recs.push({ appNo: inviteApp.applicationId, inviteToken: pendingInvite, appliedAt: new Date().toISOString() });
+                localStorage.setItem('emmis_ca_recommendations', JSON.stringify(recs));
+            }
+        }
         // If user came via "Apply Now", save the selected college to app data
         var pendingCollege = localStorage.getItem('emmis_he_selected_college');
         if (pendingCollege) {

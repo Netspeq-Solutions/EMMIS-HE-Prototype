@@ -119,22 +119,13 @@
                     <div class="kpi-label mt-1">Registered</div>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
-                <div class="admin-kpi">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div class="kpi-icon" style="background:rgba(186,26,26,0.08);"><span class="material-symbols-outlined" style="color:var(--clr-error);">event_seat</span></div>
-                    </div>
-                    <div class="kpi-value" id="kpiSeatsLeft">0</div>
-                    <div class="kpi-label mt-1">Seats Remaining</div>
-                </div>
-            </div>
         </div>
         <!-- Course-wise Table -->
         <div class="card p-4 rounded-3 mb-4">
             <h5 class="fw-bold d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="color:var(--clr-primary);">table_chart</span>Course-wise Application Stats</h5>
             <div class="table-responsive">
                 <table class="data-table">
-                    <thead><tr><th>Course</th><th>Applications</th><th>Merit Listed</th><th>Registered</th><th>Vacant</th><th>Fill Rate</th></tr></thead>
+                    <thead><tr><th>Course</th><th>Applications</th><th>Merit Listed</th><th>Registered</th></tr></thead>
                     <tbody id="courseStatsBody"></tbody>
                 </table>
             </div>
@@ -210,6 +201,36 @@
                     <textarea class="form-control" id="cfgNotification" rows="2" placeholder="e.g., Verification of original documents starts from May 12. Bring all originals."></textarea>
                     <div class="form-text">This message will be displayed on the public college listing card. Leave blank to hide the notification block.</div>
                 </div>
+                <!-- Restricted Access -->
+                <div class="col-12">
+                    <div class="p-3 rounded-3" style="background:rgba(186,26,26,0.05);border:1px solid rgba(186,26,26,0.15);">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="cfgRestricted" role="switch">
+                            <label class="form-check-label fw-bold small" for="cfgRestricted">
+                                <span class="material-symbols-outlined align-middle" style="font-size:15px;vertical-align:-2px;">lock</span>
+                                Restricted Access (Invitation / Recommendation Only)
+                            </label>
+                        </div>
+                        <p class="small text-on-surface-variant mb-0" style="padding-left:2.4rem;">When enabled, the college will <strong>not appear</strong> on the public listing. A unique shareable invite link will be generated automatically when you save — share it only with recommended/invited students.</p>
+                    </div>
+                </div>
+                <!-- Application Fee -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Application Fee (₹)</label>
+                    <input type="number" class="form-control" id="cfgAppFee" min="0" placeholder="e.g., 200">
+                    <div class="form-text">Amount students pay to submit an application. Set 0 for free.</div>
+                </div>
+                <!-- Prospectus -->
+                <div class="col-md-9">
+                    <label class="form-label fw-bold small">Prospectus / Information Brochure</label>
+                    <div class="input-group">
+                        <input type="file" class="form-control" id="cfgProspectusFile" accept=".pdf,.doc,.docx" style="display:none;">
+                        <input type="text" class="form-control" id="cfgProspectusName" placeholder="No file uploaded" readonly>
+                        <button class="btn btn-outline-secondary fw-bold" type="button" id="btnPickProspectus"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">upload_file</span> Upload</button>
+                        <button class="btn btn-outline-secondary fw-bold" type="button" id="btnClearProspectus" title="Remove"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">close</span></button>
+                    </div>
+                    <div class="form-text">PDF or Word document. Will be made available to students as a downloadable link.</div>
+                </div>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-2 mt-3">
@@ -243,6 +264,12 @@
             </div>
             <h2 class="fs-3 fw-bold tracking-tight mb-2">Student Registration</h2>
             <p class="text-on-surface-variant" style="max-width:500px;margin:0 auto;">Search by application number or student name to begin the registration process.</p>
+            <div class="mt-2" id="regSessionIndicator" style="display:none;">
+                <span class="badge rounded-pill fw-semibold px-3 py-2" id="regSessionBadge" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);font-size:.8rem;"><span class="material-symbols-outlined align-middle" style="font-size:14px;vertical-align:-2px;">calendar_month</span> Session: <span id="regSessionLabel">—</span></span>
+            </div>
+            <div class="mt-2" id="regNoSessionNotice" style="display:none;">
+                <span class="badge rounded-pill fw-semibold px-3 py-2" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.8rem;"><span class="material-symbols-outlined align-middle" style="font-size:14px;vertical-align:-2px;">warning</span> No active admission session configured</span>
+            </div>
         </div>
         <div class="autocomplete-wrap mx-auto mb-5" style="max-width:600px;">
             <div class="input-group input-group-lg">
@@ -296,8 +323,21 @@
                 <div class="d-flex gap-2 align-items-center flex-wrap">
                     <span id="regMeritBadges"></span>
                     <span class="badge rounded-pill px-3 py-2 fw-bold" id="regStageBadge">—</span>
+                    <button class="btn btn-sm fw-bold align-items-center gap-1" id="btnUnregister" style="display:none;background:rgba(186,26,26,0.1);color:var(--clr-error);border:1px solid rgba(186,26,26,0.25);">
+                        <span class="material-symbols-outlined" style="font-size:15px;">person_remove</span>Unregister
+                    </button>
                     <button class="btn btn-surface btn-sm fw-bold d-flex align-items-center gap-1" id="btnBackToSearch"><span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>Back</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Recommendation Banner -->
+        <div id="regRecommendationBanner" class="alert align-items-center gap-3 rounded-3 mb-3 mt-3" role="alert"
+            style="display:none;background:rgba(186,26,26,0.07);border:1px solid rgba(186,26,26,0.2);color:var(--clr-error);">
+            <span class="material-symbols-outlined flex-shrink-0">star</span>
+            <div>
+                <div class="fw-bold small">Recommendation / Invite-Only Applicant</div>
+                <div class="small" style="opacity:.8;">This student applied through a restricted invite link shared by the college. Handle with priority as per college policy.</div>
             </div>
         </div>
 
@@ -375,7 +415,7 @@
                 </div>
 
                 <!-- Marks Updated Indicator + Edit Toggle -->
-                <div id="marksUpdatedBadge" style="display:none;" class="d-flex align-items-start gap-3 rounded-3 p-3 mb-3" style="border-left:4px solid var(--clr-error);" >
+                <div id="marksUpdatedBadge" style="display:none;border-left:4px solid var(--clr-error);" class="align-items-start gap-3 rounded-3 p-3 mb-3">
                     <span class="material-symbols-outlined mt-1 flex-shrink-0" style="color:var(--clr-error);font-size:22px;">warning</span>
                     <div class="flex-grow-1">
                         <p class="fw-bold mb-1" style="font-size:.9rem;color:var(--clr-error);">Marks Updated by Admin<span class="upd-date" style="font-weight:400;font-size:.8rem;"></span></p>
@@ -386,7 +426,7 @@
                     </button>
                 </div>
                 <!-- Edit Marks trigger when no update yet -->
-                <div id="btnEditMarksWrap" class="d-flex justify-content-end mb-3">
+                <div id="btnEditMarksWrap" class="justify-content-end mb-3" style="display:flex;">
                     <button class="btn btn-sm btn-outline-secondary fw-bold d-flex align-items-center gap-1 btn-edit-marks" type="button" style="font-size:.78rem;">
                         <span class="material-symbols-outlined" style="font-size:15px;">edit_note</span>Edit Class XII Marks
                     </button>
@@ -885,6 +925,10 @@
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">how_to_reg</span>
                     Registered <span class="badge ms-1 rounded-pill" id="tabCountReg">0</span>
                 </button>
+                <button class="btn btn-outline-primary btn-sm fw-bold px-3 py-2 app-view-tab" data-view="recommendation">
+                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">star</span>
+                    Recommendations <span class="badge ms-1 rounded-pill" id="tabCountRec">0</span>
+                </button>
             </div>
             <p class="small fw-semibold mb-0 text-on-surface-variant" id="appsResultCount"></p>
         </div>
@@ -895,11 +939,12 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th style="width:40px;">#</th>
+                            <th>#</th>
                             <th>App No</th>
                             <th>Candidate</th>
                             <th>Program</th>
-                            <th class="text-end">Marks</th>
+                            <th>Course</th>
+                            <th class="text-center">Marks</th>
                             <th>Gender</th>
                             <th>Category</th>
                             <th>Merit List</th>
@@ -938,5 +983,35 @@
         adjustLayout();
     });
 </script>
+
+<!-- Unregister Confirmation Modal -->
+<div class="modal fade" id="unregisterModal" tabindex="-1" aria-labelledby="unregisterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3" style="border:none;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:40px;height:40px;background:rgba(186,26,26,0.1);">
+                        <span class="material-symbols-outlined" style="color:var(--clr-error);font-size:20px;">person_remove</span>
+                    </div>
+                    <h5 class="modal-title fw-bold mb-0" id="unregisterModalLabel" style="color:var(--clr-error);">Unregister Student</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="text-on-surface-variant small mb-3">This will <strong>clear all registration data</strong> (verification, seat allocation, fee collection and marks updates) for <strong id="unregStudentName"></strong>. This action cannot be undone.</p>
+                <label class="form-label fw-semibold">Reason for Unregistering <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="unregReason" rows="3" placeholder="e.g. Registered wrong student, duplicate entry, student withdrew admission..."></textarea>
+                <div class="invalid-feedback" id="unregReasonError">Please provide a reason before unregistering.</div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-surface fw-bold" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn fw-bold d-flex align-items-center gap-1" id="btnConfirmUnregister" style="background:var(--clr-error);color:#fff;">
+                    <span class="material-symbols-outlined" style="font-size:16px;">person_remove</span>Confirm Unregister
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
