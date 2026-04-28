@@ -50,7 +50,7 @@
 
     var STUDENTS = [
         {
-            appNo: "SK-2024-1001", name: "Tshering Dorjee Bhutia", course: "bcom", marks: 78.5, status: "applied", photo: "",
+            appNo: "SK-2026-1001", name: "Tshering Dorjee Bhutia", course: "bcom", marks: 78.5, status: "applied", photo: "",
             rollNo: "12345/24", board: "CBSE", stream: "Commerce", gender: "Male", mobile: "9876543210", email: "tshering.bhutia@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0012", pwd: "No", dob: "2006-05-12", community: "ST",
             fatherName: "Karma Sangay Bhutia", fatherContact: "9876000001", motherName: "Doma Bhutia",
@@ -60,7 +60,7 @@
             appFee: {txn:"TXN2024100112",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1002", name: "Pema Wangchuk Lepcha", course: "bcom", marks: 76.2, status: "applied", photo: "",
+            appNo: "SK-2026-1002", name: "Pema Wangchuk Lepcha", course: "bcom", marks: 76.2, status: "applied", photo: "",
             rollNo: "12346/24", board: "Sikkim Board", stream: "Commerce", gender: "Male", mobile: "9876543211", email: "pema.lepcha@yahoo.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0034", pwd: "No", dob: "2006-03-22", community: "ST",
             fatherName: "Sonam Lepcha", fatherContact: "9876000002", motherName: "Yangki Lepcha",
@@ -70,7 +70,7 @@
             appFee: {txn:"TXN2024100215",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1003", name: "Diki Yangzom Sherpa", course: "bcom", marks: 82.1, status: "applied", photo: "",
+            appNo: "SK-2026-1003", name: "Diki Yangzom Sherpa", course: "bcom", marks: 82.1, status: "applied", photo: "",
             rollNo: "12347/24", board: "ICSE", stream: "Commerce", gender: "Female", mobile: "9876543212", email: "diki.sherpa@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0056", pwd: "No", dob: "2005-11-15", community: "OBC",
             fatherName: "Dawa Sherpa", fatherContact: "9876000003", motherName: "Phuti Sherpa",
@@ -80,7 +80,7 @@
             appFee: {txn:"TXN2024100309",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1004", name: "Rajesh Kumar Rai", course: "ba-polsci", marks: 71.3, status: "applied", photo: "",
+            appNo: "SK-2026-1004", name: "Rajesh Kumar Rai", course: "ba-polsci", marks: 71.3, status: "applied", photo: "",
             rollNo: "12348/24", board: "Sikkim Board", stream: "Arts", gender: "Male", mobile: "9876543213", email: "rajesh.rai04@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0078", pwd: "No", dob: "2006-07-08", community: "OBC",
             fatherName: "Hari Kumar Rai", fatherContact: "9876000004", motherName: "Sita Rai",
@@ -90,7 +90,7 @@
             appFee: {txn:"TXN2024100418",amount:200,status:"Paid",method:"Cash"}
         },
         {
-            appNo: "SK-2024-1005", name: "Anjali Tamang", course: "ba-polsci", marks: 68.9, status: "applied", photo: "",
+            appNo: "SK-2026-1005", name: "Anjali Tamang", course: "ba-polsci", marks: 68.9, status: "applied", photo: "",
             rollNo: "12349/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543214", email: "anjali.tamang@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0090", pwd: "No", dob: "2006-01-30", community: "SC",
             fatherName: "Bikram Tamang", fatherContact: "9876000005", motherName: "Kamala Tamang",
@@ -100,7 +100,7 @@
             appFee: {txn:"TXN2024100522",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1006", name: "Sonam Tshering Bhutia", course: "bsc-phy", marks: 85.4, status: "applied", photo: "",
+            appNo: "SK-2026-1006", name: "Sonam Tshering Bhutia", course: "bsc-phy", marks: 85.4, status: "applied", photo: "",
             rollNo: "12350/24", board: "CBSE", stream: "Science", gender: "Male", mobile: "9876543215", email: "sonam.tshering@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0102", pwd: "No", dob: "2005-09-18", community: "ST",
             fatherName: "Passang Bhutia", fatherContact: "9876000006", motherName: "Lhamu Bhutia",
@@ -110,7 +110,7 @@
             appFee: {txn:"TXN2024100603",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1007", name: "Nima Doma Bhutia", course: "bsc-phy", marks: 79.8, status: "applied", photo: "",
+            appNo: "SK-2026-1007", name: "Nima Doma Bhutia", course: "bsc-phy", marks: 79.8, status: "applied", photo: "",
             rollNo: "12351/24", board: "Sikkim Board", stream: "Science", gender: "Female", mobile: "9876543216", email: "nima.doma@yahoo.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0114", pwd: "No", dob: "2006-04-05", community: "ST",
             fatherName: "Thendup Bhutia", fatherContact: "9876000007", motherName: "Passang Lhamu Bhutia",
@@ -120,7 +120,7 @@
             appFee: {txn:"TXN2024100711",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1008", name: "Prakash Chettri", course: "ba-eng", marks: 74.6, status: "applied", photo: "",
+            appNo: "SK-2026-1008", name: "Prakash Chettri", course: "ba-eng", marks: 74.6, status: "applied", photo: "",
             rollNo: "12352/24", board: "ICSE", stream: "Arts", gender: "Male", mobile: "9876543217", email: "prakash.chettri@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0126", pwd: "No", dob: "2006-06-25", community: "General",
             fatherName: "Gopal Chettri", fatherContact: "9876000008", motherName: "Maya Chettri",
@@ -130,7 +130,7 @@
             appFee: {txn:"TXN2024100818",amount:200,status:"Paid",method:"Cash"}
         },
         {
-            appNo: "SK-2024-1009", name: "Lhamu Diki Sherpa", course: "ba-eng", marks: 81.0, status: "applied", photo: "",
+            appNo: "SK-2026-1009", name: "Lhamu Diki Sherpa", course: "ba-eng", marks: 81.0, status: "applied", photo: "",
             rollNo: "12353/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543218", email: "lhamu.sherpa@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0138", pwd: "No", dob: "2005-12-10", community: "OBC",
             fatherName: "Mingma Sherpa", fatherContact: "9876000009", motherName: "Dawa Sherpa",
@@ -140,7 +140,7 @@
             appFee: {txn:"TXN2024100905",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1010", name: "Tenzing Norgay Lepcha", course: "bcom", marks: 69.5, status: "applied", photo: "",
+            appNo: "SK-2026-1010", name: "Tenzing Norgay Lepcha", course: "bcom", marks: 69.5, status: "applied", photo: "",
             rollNo: "12354/24", board: "Sikkim Board", stream: "Commerce", gender: "Male", mobile: "9876543219", email: "tenzing.lepcha@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0150", pwd: "No", dob: "2006-02-14", community: "ST",
             fatherName: "Dawa Lepcha", fatherContact: "9876000010", motherName: "Chungki Lepcha",
@@ -150,7 +150,7 @@
             appFee: {txn:"TXN2024101015",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1011", name: "Kesang Ongmu", course: "ba-polsci", marks: 73.2, status: "applied", photo: "",
+            appNo: "SK-2026-1011", name: "Kesang Ongmu", course: "ba-polsci", marks: 73.2, status: "applied", photo: "",
             rollNo: "12355/24", board: "Sikkim Board", stream: "Arts", gender: "Female", mobile: "9876543220", email: "kesang.ongmu@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0162", pwd: "No", dob: "2006-08-19", community: "ST",
             fatherName: "Norbu Ongmu", fatherContact: "9876000011", motherName: "Dolma Ongmu",
@@ -160,7 +160,7 @@
             appFee: {txn:"TXN2024101122",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1012", name: "Bikash Gurung", course: "bsc-phy", marks: 77.1, status: "applied", photo: "",
+            appNo: "SK-2026-1012", name: "Bikash Gurung", course: "bsc-phy", marks: 77.1, status: "applied", photo: "",
             rollNo: "12356/24", board: "CBSE", stream: "Science", gender: "Male", mobile: "9876543221", email: "bikash.gurung@yahoo.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0174", pwd: "No", dob: "2006-10-03", community: "OBC",
             fatherName: "Ram Gurung", fatherContact: "9876000012", motherName: "Sarita Gurung",
@@ -170,7 +170,7 @@
             appFee: {txn:"TXN2024101209",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1013", name: "Yangchen Dolma", course: "ba-eng", marks: 88.3, status: "applied", photo: "",
+            appNo: "SK-2026-1013", name: "Yangchen Dolma", course: "ba-eng", marks: 88.3, status: "applied", photo: "",
             rollNo: "12357/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543222", email: "yangchen.dolma@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0186", pwd: "No", dob: "2005-07-28", community: "ST",
             fatherName: "Paljor Dolma", fatherContact: "9876000013", motherName: "Sonam Dolma",
@@ -180,7 +180,7 @@
             appFee: {txn:"TXN2024101316",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1014", name: "Sanjay Subba", course: "bcom", marks: 65.7, status: "applied", photo: "",
+            appNo: "SK-2026-1014", name: "Sanjay Subba", course: "bcom", marks: 65.7, status: "applied", photo: "",
             rollNo: "12358/24", board: "Sikkim Board", stream: "Commerce", gender: "Male", mobile: "9876543223", email: "sanjay.subba@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0198", pwd: "No", dob: "2006-11-11", community: "SC",
             fatherName: "Man Bahadur Subba", fatherContact: "9876000014", motherName: "Dhan Maya Subba",
@@ -190,7 +190,7 @@
             appFee: {txn:"TXN2024101420",amount:200,status:"Paid",method:"Cash"}
         },
         {
-            appNo: "SK-2024-1015", name: "Phurba Lhamu Tamang", course: "ba-polsci", marks: 70.4, status: "applied", photo: "",
+            appNo: "SK-2026-1015", name: "Phurba Lhamu Tamang", course: "ba-polsci", marks: 70.4, status: "applied", photo: "",
             rollNo: "12359/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543224", email: "phurba.tamang@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0210", pwd: "No", dob: "2006-05-01", community: "SC",
             fatherName: "Dorjee Tamang", fatherContact: "9876000015", motherName: "Yangchen Tamang",
@@ -200,7 +200,7 @@
             appFee: {txn:"TXN2024101508",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1016", name: "Rinzin Dorjee", course: "bsc-phy", marks: 83.9, status: "applied", photo: "",
+            appNo: "SK-2026-1016", name: "Rinzin Dorjee", course: "bsc-phy", marks: 83.9, status: "applied", photo: "",
             rollNo: "12360/24", board: "ICSE", stream: "Science", gender: "Male", mobile: "9876543225", email: "rinzin.dorjee@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0222", pwd: "No", dob: "2005-08-16", community: "General",
             fatherName: "Lopsang Dorjee", fatherContact: "9876000016", motherName: "Lhaki Dorjee",
@@ -210,7 +210,7 @@
             appFee: {txn:"TXN2024101612",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1017", name: "Dechen Wangmo", course: "ba-eng", marks: 79.2, status: "applied", photo: "",
+            appNo: "SK-2026-1017", name: "Dechen Wangmo", course: "ba-eng", marks: 79.2, status: "applied", photo: "",
             rollNo: "12361/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543226", email: "dechen.wangmo@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0234", pwd: "No", dob: "2006-03-09", community: "General",
             fatherName: "Jigme Wangmo", fatherContact: "9876000017", motherName: "Karma Wangmo",
@@ -220,7 +220,7 @@
             appFee: {txn:"TXN2024101718",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1018", name: "Karma Tshering Lepcha", course: "bcom", marks: 72.8, status: "applied", photo: "",
+            appNo: "SK-2026-1018", name: "Karma Tshering Lepcha", course: "bcom", marks: 72.8, status: "applied", photo: "",
             rollNo: "12362/24", board: "Sikkim Board", stream: "Commerce", gender: "Male", mobile: "9876543227", email: "karma.lepcha@yahoo.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0246", pwd: "No", dob: "2006-09-22", community: "ST",
             fatherName: "Sonam Tshering", fatherContact: "9876000018", motherName: "Mingma Lepcha",
@@ -230,7 +230,7 @@
             appFee: {txn:"TXN2024101822",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2024-1019", name: "Passang Diki", course: "ba-polsci", marks: 67.5, status: "applied", photo: "",
+            appNo: "SK-2026-1019", name: "Passang Diki", course: "ba-polsci", marks: 67.5, status: "applied", photo: "",
             rollNo: "12363/24", board: "Sikkim Board", stream: "Arts", gender: "Female", mobile: "9876543228", email: "passang.diki@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0258", pwd: "No", dob: "2006-01-15", community: "ST",
             fatherName: "Tashi Diki", fatherContact: "9876000019", motherName: "Pema Diki",
@@ -240,7 +240,7 @@
             appFee: {txn:"TXN2024101905",amount:200,status:"Paid",method:"Cash"}
         },
         {
-            appNo: "SK-2024-1020", name: "Suraj Pradhan", course: "bcom", marks: 75.0, status: "applied", photo: "",
+            appNo: "SK-2026-1020", name: "Suraj Pradhan", course: "bcom", marks: 75.0, status: "applied", photo: "",
             rollNo: "12364/24", board: "CBSE", stream: "Commerce", gender: "Male", mobile: "9876543229", email: "suraj.pradhan@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0270", pwd: "No", dob: "2006-04-18", community: "General",
             fatherName: "Krishna Pradhan", fatherContact: "9876000020", motherName: "Gita Pradhan",
@@ -254,30 +254,30 @@
     // Pre-built merit lists (entries-based: each entry has appNo, program, course)
     var MERIT_LISTS = [
         {
-            id: "ML-001", name: "Merit List 1", date: "2024-10-20", session: "2024-25", program: "",
+            id: "ML-001", name: "Merit List 1", date: "2024-10-20", session: "2026-27", program: "",
             entries: [
-                { appNo: "SK-2024-1003", program: "B.Com (Hons)", course: "Accounting & Finance" },
-                { appNo: "SK-2024-1001", program: "B.Com (Hons)", course: "Accounting & Finance" },
-                { appNo: "SK-2024-1020", program: "B.Com (Hons)", course: "General" },
-                { appNo: "SK-2024-1011", program: "B.A. Political Science", course: "Political Science" },
-                { appNo: "SK-2024-1004", program: "B.A. Political Science", course: "Political Science" },
-                { appNo: "SK-2024-1006", program: "B.Sc. Physics", course: "Physics" },
-                { appNo: "SK-2024-1016", program: "B.Sc. Physics", course: "Physics" },
-                { appNo: "SK-2024-1013", program: "B.A. English (Hons)", course: "English Literature" },
-                { appNo: "SK-2024-1009", program: "B.A. English (Hons)", course: "English Literature" }
+                { appNo: "SK-2026-1003", program: "B.Com (Hons)", course: "Accounting & Finance" },
+                { appNo: "SK-2026-1001", program: "B.Com (Hons)", course: "Accounting & Finance" },
+                { appNo: "SK-2026-1020", program: "B.Com (Hons)", course: "General" },
+                { appNo: "SK-2026-1011", program: "B.A. Political Science", course: "Political Science" },
+                { appNo: "SK-2026-1004", program: "B.A. Political Science", course: "Political Science" },
+                { appNo: "SK-2026-1006", program: "B.Sc. Physics", course: "Physics" },
+                { appNo: "SK-2026-1016", program: "B.Sc. Physics", course: "Physics" },
+                { appNo: "SK-2026-1013", program: "B.A. English (Hons)", course: "English Literature" },
+                { appNo: "SK-2026-1009", program: "B.A. English (Hons)", course: "English Literature" }
             ]
         },
         {
-            id: "ML-002", name: "Merit List 2", date: "2024-11-05", session: "2024-25", program: "",
+            id: "ML-002", name: "Merit List 2", date: "2024-11-05", session: "2026-27", program: "",
             entries: [
-                { appNo: "SK-2024-1002", program: "B.Com (Hons)", course: "Business Management" },
-                { appNo: "SK-2024-1018", program: "B.Com (Hons)", course: "General" },
-                { appNo: "SK-2024-1015", program: "B.A. Political Science", course: "Political Science" },
-                { appNo: "SK-2024-1005", program: "B.A. Political Science", course: "Political Science" },
-                { appNo: "SK-2024-1007", program: "B.Sc. Physics", course: "Physics" },
-                { appNo: "SK-2024-1012", program: "B.Sc. Physics", course: "Physics" },
-                { appNo: "SK-2024-1008", program: "B.A. English (Hons)", course: "English Literature" },
-                { appNo: "SK-2024-1017", program: "B.A. English (Hons)", course: "English Literature" }
+                { appNo: "SK-2026-1002", program: "B.Com (Hons)", course: "Business Management" },
+                { appNo: "SK-2026-1018", program: "B.Com (Hons)", course: "General" },
+                { appNo: "SK-2026-1015", program: "B.A. Political Science", course: "Political Science" },
+                { appNo: "SK-2026-1005", program: "B.A. Political Science", course: "Political Science" },
+                { appNo: "SK-2026-1007", program: "B.Sc. Physics", course: "Physics" },
+                { appNo: "SK-2026-1012", program: "B.Sc. Physics", course: "Physics" },
+                { appNo: "SK-2026-1008", program: "B.A. English (Hons)", course: "English Literature" },
+                { appNo: "SK-2026-1017", program: "B.A. English (Hons)", course: "English Literature" }
             ]
         }
     ];
@@ -306,6 +306,37 @@
     }
     function generateRollNo() { return "SGC-" + (2024000 + Math.floor(Math.random() * 999)); }
     function generateReceiptNo() { return "RCP-" + Date.now().toString().slice(-8); }
+
+    // Returns the session string (e.g. "2024-25") for the current ongoing admission.
+    // Priority: active ADMISSION_SCHEDULE → most recent MERIT_LIST session → COLLEGE_INFO.session
+    function getCurrentAdmissionSession() {
+        var activeSession = null;
+        $.each(ADMISSION_SCHEDULES, function(k, s) {
+            if (s && s.collegeId === COLLEGE_INFO.id && s.status === 'active') {
+                activeSession = s.session;
+                return false; // break
+            }
+        });
+        if (activeSession) return activeSession;
+        // Fall back to most recent merit list session
+        var latestSession = null;
+        $.each(MERIT_LISTS, function(_, ml) {
+            if (!latestSession || ml.session > latestSession) latestSession = ml.session;
+        });
+        if (latestSession) return latestSession;
+        // Final fallback
+        return COLLEGE_INFO.session || null;
+    }
+
+    // Returns true if the student's appNo belongs to the current ongoing session.
+    // Students are matched by the start-year embedded in their appNo (e.g. "SK-2026-" → session "2024-25").
+    function isStudentCurrentSession(student) {
+        var session = getCurrentAdmissionSession();
+        if (!session) return true; // no session info at all — show everyone
+        var year = session.split('-')[0];
+        if (!year) return true;
+        return student.appNo.indexOf('-' + year + '-') >= 0;
+    }
 
     function getMeritListsForApp(appNo) {
         var lists = [];
@@ -690,11 +721,23 @@
     // ============================================================
 
     function renderRegisteredList() {
+        // Update session badge
+        var curSession = getCurrentAdmissionSession();
+        if (curSession) {
+            $('#regSessionLabel').text(curSession);
+            $('#regSessionIndicator').show();
+            $('#regNoSessionNotice').hide();
+        } else {
+            $('#regSessionIndicator').hide();
+            $('#regNoSessionNotice').show();
+        }
+
         var $tbody = $('#registeredBody').empty();
         var hasAny = false;
         $.each(REGISTRATIONS, function(appNo, reg) {
             var s = getStudentByApp(appNo);
             if (!s) return;
+            if (!isStudentCurrentSession(s)) return; // skip previous session students
             hasAny = true;
             var stage = getRegStage(appNo);
             $tbody.append(
@@ -728,6 +771,7 @@
             var q = $input.val().toLowerCase().trim();
             if (q.length < 2) { $dropdown.removeClass('show').empty(); return; }
             var results = $.grep(STUDENTS, function (s) {
+                if (!isStudentCurrentSession(s)) return false;
                 return s.appNo.toLowerCase().indexOf(q) >= 0 || s.name.toLowerCase().indexOf(q) >= 0;
             });
             if (results.length === 0) {
@@ -865,11 +909,11 @@
         $('#roAggregate').text(aggPct + '% (' + totalMarksObt + '/' + totalMarksFull + ')');
         if (reg.marksUpdated) {
             var updAt = reg.marksUpdatedAt ? new Date(reg.marksUpdatedAt).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : '';
-            $('#marksUpdatedBadge').css({'background':'rgba(186,26,26,0.08)','border-left':'4px solid var(--clr-error)'}).show().find('.upd-date').text(updAt ? ' (' + updAt + ')' : '');
-            $('#btnEditMarksWrap').hide();
+            $('#marksUpdatedBadge').css({'display':'flex','background':'rgba(186,26,26,0.08)'}).find('.upd-date').text(updAt ? ' (' + updAt + ')' : '');
+            $('#btnEditMarksWrap').css('display','none');
         } else {
-            $('#marksUpdatedBadge').hide();
-            $('#btnEditMarksWrap').show();
+            $('#marksUpdatedBadge').css('display','none');
+            $('#btnEditMarksWrap').css('display','flex');
         }
         $('#editMarksPanel').hide();
 
@@ -993,6 +1037,13 @@
     }
 
     function updateBoothButtons(reg) {
+        // Unregister button: visible only after Verification & Registration (Booth 1) is complete
+        if (reg.verified) {
+            $('#btnUnregister').css('display', 'inline-flex');
+        } else {
+            $('#btnUnregister').css('display', 'none');
+        }
+
         // Seat Allocation: requires reg.verified
         var seatOk = !!reg.verified;
         $('#btnSaveSeat').prop('disabled', !seatOk);
@@ -1659,8 +1710,8 @@
             $('#roAggregate').text(newAgg + '% (' + totalObt + '/' + totalFull + ')');
             $('#regMarks').text(newAgg + '%');
             var updAtStr = new Date().toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
-            $('#marksUpdatedBadge').css({'background':'rgba(186,26,26,0.08)','border-left':'4px solid var(--clr-error)'}).show().find('.upd-date').text(' (' + updAtStr + ')');
-            $('#btnEditMarksWrap').hide();
+            $('#marksUpdatedBadge').css({'display':'flex','background':'rgba(186,26,26,0.08)'}).find('.upd-date').text(' (' + updAtStr + ')');
+            $('#btnEditMarksWrap').css('display','none');
             $('#editMarksPanel').slideUp(200);
             showToast('Class XII marks updated successfully.');
         });
@@ -1757,6 +1808,43 @@
 
         // Print receipt
         $(document).on('click', '#btnPrintReceipt', function () { window.print(); });
+
+        // Unregister — open modal
+        $(document).on('click', '#btnUnregister', function () {
+            if (!currentRegApp) return;
+            var student = getStudentByApp(currentRegApp);
+            $('#unregStudentName').text(student ? student.name + ' (' + currentRegApp + ')' : currentRegApp);
+            $('#unregReason').val('').removeClass('is-invalid');
+            var modal = new bootstrap.Modal(document.getElementById('unregisterModal'));
+            modal.show();
+        });
+
+        // Unregister — confirm
+        $(document).on('click', '#btnConfirmUnregister', function () {
+            var reason = $('#unregReason').val().trim();
+            if (!reason) {
+                $('#unregReason').addClass('is-invalid');
+                $('#unregReasonError').show();
+                return;
+            }
+            if (!currentRegApp) return;
+            // Preserve only a minimal audit record; wipe all booth data
+            REGISTRATIONS[currentRegApp] = {
+                verified: false, corrections: {}, documents: {},
+                seatAllocated: false, rollNo: '', section: '', electives: [], allocatedCourse: '',
+                feeCollected: false, paymentMode: '', receiptNo: '', amountPaid: 0,
+                updatedMarks: [], marksUpdated: false, marksUpdatedAt: '',
+                remarksVerification: '', remarksVerificationSavedAt: '',
+                remarksSeat: '', remarksFee: '',
+                unregisteredAt: new Date().toISOString(),
+                unregisterReason: reason
+            };
+            saveRegistrations();
+            bootstrap.Modal.getInstance(document.getElementById('unregisterModal')).hide();
+            // Refresh form UI
+            openRegistrationForm(currentRegApp);
+            showToast('Student unregistered. All booth data has been cleared.');
+        });
 
         // Back to search
         $(document).on('click', '#btnBackToSearch', function () {
@@ -1881,8 +1969,8 @@
             e.preventDefault();
             var wsData = [
                 ['Application ID', 'Program', 'Course'],
-                ['SK-2024-1003', 'B.Com (Hons)', 'Accounting & Finance'],
-                ['SK-2024-1001', 'B.A. Political Science', 'Political Science']
+                ['SK-2026-1003', 'B.Com (Hons)', 'Accounting & Finance'],
+                ['SK-2026-1001', 'B.A. Political Science', 'Political Science']
             ];
             var ws = XLSX.utils.aoa_to_sheet(wsData);
             ws['!cols'] = [{ wch: 18 }, { wch: 25 }, { wch: 25 }];
