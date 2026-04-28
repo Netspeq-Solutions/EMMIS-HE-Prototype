@@ -362,6 +362,7 @@
             });
             if (tokenSched && tokenCollegeId) {
                 localStorage.setItem('emmis_he_selected_college', tokenCollegeId);
+                localStorage.setItem('emmis_he_invite_pending', inviteToken);
                 window.location.href = isLoggedIn() ? 'application.html' : 'login.html';
                 return;
             }
@@ -801,6 +802,23 @@
     }
 
     function initApplication() {
+        // If user arrived via an invite link, stamp the application as a recommendation
+        var pendingInvite = localStorage.getItem('emmis_he_invite_pending');
+        if (pendingInvite) {
+            localStorage.removeItem('emmis_he_invite_pending');
+            var inviteApp = getOrCreateApplication();
+            inviteApp.isRecommendation = true;
+            inviteApp.inviteToken = pendingInvite;
+            saveApplication(inviteApp);
+            // Write to shared recommendations store so admin can see it
+            var recs = JSON.parse(localStorage.getItem('emmis_ca_recommendations') || '[]');
+            var alreadyStored = false;
+            $.each(recs, function(_, r) { if (r.appNo === inviteApp.applicationId) { alreadyStored = true; return false; } });
+            if (!alreadyStored) {
+                recs.push({ appNo: inviteApp.applicationId, inviteToken: pendingInvite, appliedAt: new Date().toISOString() });
+                localStorage.setItem('emmis_ca_recommendations', JSON.stringify(recs));
+            }
+        }
         // If user came via "Apply Now", save the selected college to app data
         var pendingCollege = localStorage.getItem('emmis_he_selected_college');
         if (pendingCollege) {

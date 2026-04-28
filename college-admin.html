@@ -119,22 +119,13 @@
                     <div class="kpi-label mt-1">Registered</div>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
-                <div class="admin-kpi">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
-                        <div class="kpi-icon" style="background:rgba(186,26,26,0.08);"><span class="material-symbols-outlined" style="color:var(--clr-error);">event_seat</span></div>
-                    </div>
-                    <div class="kpi-value" id="kpiSeatsLeft">0</div>
-                    <div class="kpi-label mt-1">Seats Remaining</div>
-                </div>
-            </div>
         </div>
         <!-- Course-wise Table -->
         <div class="card p-4 rounded-3 mb-4">
             <h5 class="fw-bold d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="color:var(--clr-primary);">table_chart</span>Course-wise Application Stats</h5>
             <div class="table-responsive">
                 <table class="data-table">
-                    <thead><tr><th>Course</th><th>Applications</th><th>Merit Listed</th><th>Registered</th><th>Vacant</th><th>Fill Rate</th></tr></thead>
+                    <thead><tr><th>Course</th><th>Applications</th><th>Merit Listed</th><th>Registered</th></tr></thead>
                     <tbody id="courseStatsBody"></tbody>
                 </table>
             </div>
@@ -222,6 +213,23 @@
                         </div>
                         <p class="small text-on-surface-variant mb-0" style="padding-left:2.4rem;">When enabled, the college will <strong>not appear</strong> on the public listing. A unique shareable invite link will be generated automatically when you save — share it only with recommended/invited students.</p>
                     </div>
+                </div>
+                <!-- Application Fee -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Application Fee (₹)</label>
+                    <input type="number" class="form-control" id="cfgAppFee" min="0" placeholder="e.g., 200">
+                    <div class="form-text">Amount students pay to submit an application. Set 0 for free.</div>
+                </div>
+                <!-- Prospectus -->
+                <div class="col-md-9">
+                    <label class="form-label fw-bold small">Prospectus / Information Brochure</label>
+                    <div class="input-group">
+                        <input type="file" class="form-control" id="cfgProspectusFile" accept=".pdf,.doc,.docx" style="display:none;">
+                        <input type="text" class="form-control" id="cfgProspectusName" placeholder="No file uploaded" readonly>
+                        <button class="btn btn-outline-secondary fw-bold" type="button" id="btnPickProspectus"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">upload_file</span> Upload</button>
+                        <button class="btn btn-outline-secondary fw-bold" type="button" id="btnClearProspectus" title="Remove"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">close</span></button>
+                    </div>
+                    <div class="form-text">PDF or Word document. Will be made available to students as a downloadable link.</div>
                 </div>
             </div>
 
@@ -320,6 +328,16 @@
                     </button>
                     <button class="btn btn-surface btn-sm fw-bold d-flex align-items-center gap-1" id="btnBackToSearch"><span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>Back</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Recommendation Banner -->
+        <div id="regRecommendationBanner" class="alert align-items-center gap-3 rounded-3 mb-3 mt-3" role="alert"
+            style="display:none;background:rgba(186,26,26,0.07);border:1px solid rgba(186,26,26,0.2);color:var(--clr-error);">
+            <span class="material-symbols-outlined flex-shrink-0">star</span>
+            <div>
+                <div class="fw-bold small">Recommendation / Invite-Only Applicant</div>
+                <div class="small" style="opacity:.8;">This student applied through a restricted invite link shared by the college. Handle with priority as per college policy.</div>
             </div>
         </div>
 
@@ -907,6 +925,10 @@
                     <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">how_to_reg</span>
                     Registered <span class="badge ms-1 rounded-pill" id="tabCountReg">0</span>
                 </button>
+                <button class="btn btn-outline-primary btn-sm fw-bold px-3 py-2 app-view-tab" data-view="recommendation">
+                    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">star</span>
+                    Recommendations <span class="badge ms-1 rounded-pill" id="tabCountRec">0</span>
+                </button>
             </div>
             <p class="small fw-semibold mb-0 text-on-surface-variant" id="appsResultCount"></p>
         </div>
@@ -917,11 +939,12 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th style="width:40px;">#</th>
+                            <th>#</th>
                             <th>App No</th>
                             <th>Candidate</th>
                             <th>Program</th>
-                            <th class="text-end">Marks</th>
+                            <th>Course</th>
+                            <th class="text-center">Marks</th>
                             <th>Gender</th>
                             <th>Category</th>
                             <th>Merit List</th>

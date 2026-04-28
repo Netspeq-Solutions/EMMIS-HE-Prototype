@@ -180,7 +180,7 @@
             appFee: {txn:"TXN2024101316",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1014", name: "Sanjay Subba", course: "bcom", marks: 65.7, status: "applied", photo: "",
+            appNo: "SK-2026-1014", name: "Sanjay Subba", course: "bcom", marks: 65.7, status: "applied", photo: "", isRecommendation: true,
             rollNo: "12358/24", board: "Sikkim Board", stream: "Commerce", gender: "Male", mobile: "9876543223", email: "sanjay.subba@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0198", pwd: "No", dob: "2006-11-11", community: "SC",
             fatherName: "Man Bahadur Subba", fatherContact: "9876000014", motherName: "Dhan Maya Subba",
@@ -230,7 +230,7 @@
             appFee: {txn:"TXN2024101822",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1019", name: "Passang Diki", course: "ba-polsci", marks: 67.5, status: "applied", photo: "",
+            appNo: "SK-2026-1019", name: "Passang Diki", course: "ba-polsci", marks: 67.5, status: "applied", photo: "", isRecommendation: true,
             rollNo: "12363/24", board: "Sikkim Board", stream: "Arts", gender: "Female", mobile: "9876543228", email: "passang.diki@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0258", pwd: "No", dob: "2006-01-15", community: "ST",
             fatherName: "Tashi Diki", fatherContact: "9876000019", motherName: "Pema Diki",
@@ -356,6 +356,36 @@
     }
     function saveRegistrations() { localStorage.setItem('emmis_ca_registrations', JSON.stringify(REGISTRATIONS)); }
 
+    // Recommendations: keyed by appNo — from invite-link applications (app.js) + seed data
+    var RECOMMENDATIONS_SET = {};
+    function loadRecommendations() {
+        // From shared store written by app.js when student arrives via invite link
+        var recs = JSON.parse(localStorage.getItem('emmis_ca_recommendations') || '[]');
+        $.each(recs, function(_, r) { RECOMMENDATIONS_SET[r.appNo] = r; });
+        // Also mark seed students that have isRecommendation:true in STUDENTS array
+        $.each(STUDENTS, function(_, s) {
+            if (s.isRecommendation) RECOMMENDATIONS_SET[s.appNo] = { appNo: s.appNo, seed: true };
+        });
+    }
+    function isStudentRecommendation(appNo) {
+        return !!RECOMMENDATIONS_SET[appNo];
+    }
+
+    // Recommendations: load appNos that came via invite link (from student portal)
+    var RECOMMENDATIONS_SET = {}; // keyed by appNo
+    function loadRecommendations() {
+        // From shared store written by app.js
+        var recs = JSON.parse(localStorage.getItem('emmis_ca_recommendations') || '[]');
+        $.each(recs, function(_, r) { RECOMMENDATIONS_SET[r.appNo] = r; });
+        // Also mark seed students that have isRecommendation:true in STUDENTS array
+        $.each(STUDENTS, function(_, s) {
+            if (s.isRecommendation) RECOMMENDATIONS_SET[s.appNo] = { appNo: s.appNo, seed: true };
+        });
+    }
+    function isStudentRecommendation(appNo) {
+        return !!RECOMMENDATIONS_SET[appNo] || !!(REGISTRATIONS[appNo] && REGISTRATIONS[appNo].isRecommendation);
+    }
+
     function loadMeritLists() {
         var d = localStorage.getItem('emmis_ca_meritlists');
         if (d) {
@@ -468,14 +498,11 @@
                 var s = getStudentByApp(app);
                 if (s && s.course === c.id && r.feeCollected) reg++;
             });
-            var fillPct = Math.round((reg / c.seats) * 100);
             $tbody.append(
                 '<tr><td class="fw-semibold">' + c.name + '</td>' +
                 '<td class="cell-number">' + apps + '</td>' +
                 '<td class="cell-number">' + adm + '</td>' +
-                '<td class="cell-number">' + reg + '</td>' +
-                '<td class="cell-number">' + (c.seats - reg) + '</td>' +
-                '<td class="cell-bar"><div class="cell-bar-track"><div class="cell-bar-fill" style="width:' + fillPct + '%;"></div></div></td></tr>'
+                '<td class="cell-number">' + reg + '</td></tr>'
             );
         });
 
@@ -610,6 +637,8 @@
         $('#cfgRegClose').val('');
         $('#cfgNotification').val('');
         $('#cfgRestricted').prop('checked', false);
+        $('#cfgAppFee').val('');
+        $('#cfgProspectusName').val('');
         $('#cfgSelectiveBody').html(SELECTIVE_EMPTY_HTML);
     }
 
@@ -622,6 +651,8 @@
         $('#cfgRegClose').val(schedule.defaultWindow && schedule.defaultWindow.regClose || '');
         $('#cfgNotification').val(schedule.notification || '');
         $('#cfgRestricted').prop('checked', !!schedule.restricted);
+        $('#cfgAppFee').val(schedule.appFee != null ? schedule.appFee : '');
+        $('#cfgProspectusName').val(schedule.prospectusName || '');
 
         var $body = $('#cfgSelectiveBody').empty();
         if ((schedule.selectiveWindows || []).length === 0) {
@@ -875,6 +906,13 @@
         $('#regCommunity').text(student.community);
         $('#regMobile').text(student.mobile);
         $('#regStageBadge').text(stage.label).css({ 'background': stage.bg, 'color': stage.color });
+
+        // Recommendation banner
+        if (isStudentRecommendation(appNo)) {
+            $('#regRecommendationBanner').css('display', 'flex');
+        } else {
+            $('#regRecommendationBanner').hide();
+        }
 
         // Merit list badges in registration header
         var $mb = $('#regMeritBadges').empty();
@@ -1334,16 +1372,19 @@
         var cntReg    = $.grep(basePassed, function(s) {
             return REGISTRATIONS[s.appNo] && REGISTRATIONS[s.appNo].verified;
         }).length;
+        var cntRec    = $.grep(basePassed, function(s) { return isStudentRecommendation(s.appNo); }).length;
         $('#tabCountAll').text(cntAll);
         $('#tabCountMerit').text(cntMerit);
         $('#tabCountReg').text(cntReg);
+        $('#tabCountRec').text(cntRec);
 
         // Full filter (adds status + view tab)
         var filtered = $.grep(basePassed, function(s) {
             var appStatus = getStudentAppStatus(s.appNo);
             if (status !== 'all' && appStatus !== status) return false;
-            if (view === 'merit'      && !isStudentMeritListed(s.appNo))               return false;
-            if (view === 'registered' && !(REGISTRATIONS[s.appNo] && REGISTRATIONS[s.appNo].verified)) return false;
+            if (view === 'merit'           && !isStudentMeritListed(s.appNo))               return false;
+            if (view === 'registered'      && !(REGISTRATIONS[s.appNo] && REGISTRATIONS[s.appNo].verified)) return false;
+            if (view === 'recommendation'  && !isStudentRecommendation(s.appNo))             return false;
             return true;
         });
 
@@ -1379,18 +1420,31 @@
                 }).join('')
                 : '<span class="text-on-surface-variant" style="font-size:.75rem;">—</span>';
 
+            // Marks: compute obtained / total / subject count from subjects array
+            var obtained = 0, maxMarks = 0, subjectCount = (s.subjects || []).length;
+            $.each(s.subjects || [], function(_, sub) { obtained += sub.marks; maxMarks += sub.total; });
+            var marksUpdated = REGISTRATIONS[s.appNo] && REGISTRATIONS[s.appNo].marksUpdated;
+            var marksCell = obtained + ' / ' + maxMarks +
+                '<br><span class="text-on-surface-variant" style="font-size:.68rem;">' + subjectCount + ' subject' + (subjectCount !== 1 ? 's' : '') + '</span>' +
+                (marksUpdated ? ' <span title="Marks updated by admin" style="color:var(--clr-tertiary);font-size:.7rem;cursor:help;">✎</span>' : '');
+
+            // Program vs Course split
+            var programLabel = courseToProgramLabel(getCourseName(s.course));
+            var courseLabel  = getCourseName(s.course);
+
             $tbody.append(
                 '<tr>' +
                 '<td class="text-on-surface-variant small">' + (i + 1) + '</td>' +
                 '<td style="font-family:monospace;color:var(--clr-primary);font-size:.8rem;white-space:nowrap;">' + s.appNo + '</td>' +
                 '<td>' +
-                    '<span class="fw-semibold d-block">' + s.name + '</span>' +
+                    '<span class="fw-semibold d-block">' + s.name +
+                    (isStudentRecommendation(s.appNo) ? ' <span class="badge rounded-pill ms-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.62rem;vertical-align:middle;"><span class="material-symbols-outlined" style="font-size:10px;vertical-align:-1px;">star</span> Recommendation</span>' : '') +
+                    '</span>' +
                     '<span class="text-on-surface-variant" style="font-size:.72rem;">' + s.board + ' · ' + s.district + '</span>' +
                 '</td>' +
-                '<td class="small">' + getCourseName(s.course) + '</td>' +
-                '<td class="cell-number fw-bold" style="color:var(--clr-primary);">' + s.marks + '%' +
-                (REGISTRATIONS[s.appNo] && REGISTRATIONS[s.appNo].marksUpdated ? ' <span title="Marks updated by admin" style="color:var(--clr-tertiary);font-size:.7rem;cursor:help;">✎</span>' : '') +
-                '</td>' +
+                '<td class="small fw-semibold">' + programLabel + '</td>' +
+                '<td class="small">' + courseLabel + '</td>' +
+                '<td class="cell-number" style="font-size:.8rem;">' + marksCell + '</td>' +
                 '<td class="small">' + s.gender + '</td>' +
                 '<td class="small">' + s.community + '</td>' +
                 '<td>' + mlHtml + '</td>' +
@@ -1434,7 +1488,7 @@
         header = header.concat([
             'Program Applied', 'Preference 1', 'Preference 2', 'Preference 3',
             'App Fee Txn', 'App Fee Amount (₹)', 'App Fee Status', 'App Fee Method',
-            'Merit Lists', 'Admission Status'
+            'Merit Lists', 'Admission Status', 'Recommendation'
         ]);
 
         // Build data rows
@@ -1500,7 +1554,8 @@
                 fee.status || '',
                 fee.method || '',
                 mlText,
-                statusLabel
+                statusLabel,
+                isStudentRecommendation(s.appNo) ? 'Yes' : 'No'
             ]);
             rows.push(row);
         });
@@ -1625,6 +1680,19 @@
             resetScheduleForm();
         });
 
+        // Prospectus file picker
+        $(document).on('click', '#btnPickProspectus', function () {
+            $('#cfgProspectusFile').val('').trigger('click');
+        });
+        $(document).on('change', '#cfgProspectusFile', function () {
+            var file = this.files[0];
+            if (file) $('#cfgProspectusName').val(file.name);
+        });
+        $(document).on('click', '#btnClearProspectus', function () {
+            $('#cfgProspectusFile').val('');
+            $('#cfgProspectusName').val('');
+        });
+
         // Admission schedule: save config
         $(document).on('click', '#btnSaveScheduleConfig', function () {
             var session = ($('#cfgSession').val() || '').trim();
@@ -1639,6 +1707,8 @@
                 status: 'active',
                 notification: ($('#cfgNotification').val() || '').trim(),
                 restricted: $('#cfgRestricted').is(':checked'),
+                appFee: parseFloat($('#cfgAppFee').val()) || 0,
+                prospectusName: ($('#cfgProspectusName').val() || '').trim(),
                 defaultWindow: {
                     appOpen: $('#cfgAppOpen').val() || '',
                     appClose: $('#cfgAppClose').val() || '',
@@ -2144,6 +2214,7 @@
 
     $(function () {
         loadRegistrations();
+        loadRecommendations();
         loadMeritLists();
         loadAdmissionSchedules();
         initRegistrationSearch();
