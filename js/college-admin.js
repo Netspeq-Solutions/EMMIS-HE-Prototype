@@ -286,7 +286,8 @@
     var REGISTRATIONS = {};
     // Session-wise admission schedule configurations
     var ADMISSION_SCHEDULES = {};
-    var editingScheduleSession = null;
+    var editingScheduleSession = null; // year value shown in form
+    var editingScheduleKey = null;    // full storage key (collegeId_uniqueId)
 
     // ============================================================
     // 2. HELPERS
@@ -630,7 +631,8 @@
 
     function resetScheduleForm() {
         editingScheduleSession = null;
-        $('#cfgSession').prop('readonly', false).val(COLLEGE_INFO.session || '');
+        editingScheduleKey = null;
+        $('#cfgSession').prop('disabled', false).val('');
         $('#cfgAppOpen').val('');
         $('#cfgAppClose').val('');
         $('#cfgRegOpen').val('');
@@ -642,9 +644,10 @@
         $('#cfgSelectiveBody').html(SELECTIVE_EMPTY_HTML);
     }
 
-    function populateScheduleForm(schedule) {
+    function populateScheduleForm(schedule, schedKey) {
         editingScheduleSession = schedule.session;
-        $('#cfgSession').val(schedule.session).prop('readonly', true);
+        editingScheduleKey = schedKey || null;
+        $('#cfgSession').val(schedule.session).prop('disabled', true);
         $('#cfgAppOpen').val(schedule.defaultWindow && schedule.defaultWindow.appOpen || '');
         $('#cfgAppClose').val(schedule.defaultWindow && schedule.defaultWindow.appClose || '');
         $('#cfgRegOpen').val(schedule.defaultWindow && schedule.defaultWindow.regOpen || '');
@@ -708,24 +711,35 @@
             var statusColor = s.status === 'active' ? 'var(--clr-primary-container);color:var(--clr-on-primary-container);' :
                 (s.status === 'closed' ? 'rgba(186,26,26,0.1);color:var(--clr-error);' : 'var(--clr-tertiary-container);color:var(--clr-on-tertiary-container);');
             var selectiveCount = (s.selectiveWindows || []).length;
-            var selectiveHtml = '';
+            var coverageLabel, coverageHtml;
 
-            $.each((s.selectiveWindows || []).slice(0, 4), function(__, w) {
-                var programLabel, courseLabel;
-                if (w.applyToAll) {
-                    programLabel = 'All Programs';
-                    courseLabel  = 'All Courses';
-                } else {
-                    programLabel = w.program || 'All Programs';
-                    var ids = w.courseIds || (w.courseId ? [w.courseId] : []);
-                    courseLabel = ids.length
-                        ? $.map(ids, function(cid) { return getCourseName(cid) || cid; }).join(', ')
-                        : 'All Courses';
+            if (selectiveCount === 0) {
+                // Default window covers all programs & courses
+                coverageLabel = 'Programs & Courses: All';
+                coverageHtml = '';
+                $.each(COURSES, function(__, c) {
+                    coverageHtml += '<li class="small mb-1"><strong>' + c.name + '</strong></li>';
+                });
+            } else {
+                coverageLabel = 'Selective Windows: ' + selectiveCount;
+                coverageHtml = '';
+                $.each((s.selectiveWindows || []).slice(0, 4), function(__, w) {
+                    var programLabel, courseLabel;
+                    if (w.applyToAll) {
+                        programLabel = 'All Programs';
+                        courseLabel  = 'All Courses';
+                    } else {
+                        programLabel = w.program || 'All Programs';
+                        var ids = w.courseIds || (w.courseId ? [w.courseId] : []);
+                        courseLabel = ids.length
+                            ? $.map(ids, function(cid) { return getCourseName(cid) || cid; }).join(', ')
+                            : 'All Courses';
+                    }
+                    coverageHtml += '<li class="small mb-1"><strong>' + programLabel + '</strong> / ' + courseLabel + '</li>';
+                });
+                if (selectiveCount > 4) {
+                    coverageHtml += '<li class="small text-on-surface-variant">+' + (selectiveCount - 4) + ' more window(s)</li>';
                 }
-                selectiveHtml += '<li class="small mb-1"><strong>' + programLabel + '</strong> / ' + courseLabel + '</li>';
-            });
-            if (selectiveCount > 4) {
-                selectiveHtml += '<li class="small text-on-surface-variant">+' + (selectiveCount - 4) + ' more window(s)</li>';
             }
 
             var notifLine = s.notification
@@ -748,15 +762,15 @@
             $wrap.append(
                 '<div class="col-md-6"><div class="card p-3 rounded-3 h-100">' +
                 '<div class="d-flex justify-content-between align-items-start mb-2">' +
-                '<div><h6 class="fw-bold mb-1">Session ' + s.session + '</h6>' +
+                '<div><h6 class="fw-bold mb-1">Admission Year ' + s.session + '</h6>' +
                 (s.restricted ? '<span class="badge rounded-pill me-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.7rem;"><span class="material-symbols-outlined" style="font-size:11px;vertical-align:-1px;">lock</span> Restricted – Invite Only</span>' : '') +
                 '<p class="small text-on-surface-variant mb-0">Default Application: ' + ((s.defaultWindow && s.defaultWindow.appOpen) || '—') + ' to ' + ((s.defaultWindow && s.defaultWindow.appClose) || '—') + '</p>' +
                 '<p class="small text-on-surface-variant mb-0">Default Registration: ' + ((s.defaultWindow && s.defaultWindow.regOpen) || '—') + ' to ' + ((s.defaultWindow && s.defaultWindow.regClose) || '—') + '</p>' +
                 notifLine + inviteBlock + '</div>' +
                 '<span class="badge rounded-pill" style="' + statusColor + '">' + (s.status || 'draft').toUpperCase() + '</span>' +
                 '</div>' +
-                '<div class="small fw-semibold mb-2">Selective Windows: ' + selectiveCount + '</div>' +
-                '<ul class="ps-3 mb-3">' + (selectiveHtml || '<li class="small text-on-surface-variant">No selective windows configured</li>') + '</ul>' +
+                '<div class="small fw-semibold mb-2">' + coverageLabel + '</div>' +
+                '<ul class="ps-3 mb-3">' + coverageHtml + '</ul>' +
                 '<div class="d-flex gap-2 justify-content-end">' +
                 '<button class="btn btn-sm btn-outline-primary fw-bold btn-edit-schedule" data-key="' + schedKey + '">Edit</button>' +
                 '<button class="btn btn-sm btn-outline-danger fw-bold btn-delete-schedule" data-key="' + schedKey + '">Delete</button>' +
@@ -766,7 +780,7 @@
     }
 
     function renderAdmissionScheduleSection() {
-        if (!editingScheduleSession) {
+        if (!editingScheduleKey) {
             resetScheduleForm();
         }
         renderScheduleCards();
@@ -1029,7 +1043,8 @@
         });
         $('#regRollNo').val(reg.rollNo || generateRollNo());
         $('#regSection').val(reg.section || 'A');
-        populateElectives(reg.allocatedCourse || student.course, reg.electives);
+        populateElectives(reg.allocatedCourse || student.course, reg.electives, reg.moocsCourseName);
+        $('#regMinorSubject').val(reg.minorSubject || '');
 
         // Fee tab
         var course = getCourseById(reg.allocatedCourse || student.course);
@@ -1087,7 +1102,7 @@
         }
     }
 
-    function populateElectives(courseId, selected) {
+    function populateElectives(courseId, selected, moocsCourseName) {
         var $container = $('#regElectives').empty();
         var elecs = ELECTIVES[courseId] || [];
         $.each(elecs, function(i, e) {
@@ -1097,6 +1112,21 @@
                 '<label class="form-check-label small" for="elec' + i + '">' + e + '</label></div>'
             );
         });
+        // MOOCS option (always appended after course-specific electives)
+        var moocsChecked = $.inArray('MOOCS', selected || []) >= 0;
+        var moocsIdx = elecs.length;
+        $container.append(
+            '<div class="form-check"><input class="form-check-input elective-check" type="checkbox" value="MOOCS" id="elec' + moocsIdx + '"' + (moocsChecked ? ' checked' : '') + '>' +
+            '<label class="form-check-label small fw-semibold" for="elec' + moocsIdx + '">MOOCS</label></div>'
+        );
+        // Show/hide MOOCS course name field
+        if (moocsChecked) {
+            $('#moocsNameWrap').show();
+            $('#regMoocsName').val(moocsCourseName || '');
+        } else {
+            $('#moocsNameWrap').hide();
+            $('#regMoocsName').val('');
+        }
     }
 
     function updateBoothButtons(reg) {
@@ -1156,15 +1186,7 @@
         var visible = $.grep(MERIT_LISTS, function(ml) {
             if (filterSession !== 'all' && ml.session !== filterSession) return false;
             if (filterProgram !== 'all') {
-                // Program filter: match if the list's assigned program matches,
-                // OR (for combined lists) if any entry's program matches
-                var mlProg = ml.program || '';
-                if (mlProg && mlProg !== filterProgram) return false;
-                if (!mlProg) {
-                    var hasMatch = false;
-                    $.each(ml.entries, function(_, e) { if (e.program === filterProgram) { hasMatch = true; return false; } });
-                    if (!hasMatch) return false;
-                }
+                if ((ml.program || '') !== filterProgram) return false;
             }
             return true;
         });
@@ -1187,7 +1209,7 @@
             // Collect unique programs in the list
             var programs = {};
             $.each(ml.entries, function(__, e) { programs[e.program] = true; });
-            var progLabel = ml.program || Object.keys(programs).join(', ');
+            var progLabel = ml.course ? (ml.program + ' — ' + ml.course) : (ml.program || Object.keys(programs).join(', '));
 
             $container.append(
                 '<div class="col-md-6"><div class="merit-card" data-ml-id="' + ml.id + '">' +
@@ -1278,7 +1300,7 @@
         $('#mlDetailDate').text(ml.date);
         $('#mlDetailTotal').text(ml.entries.length);
         $('#mlDetailSession').text(ml.session || '—');
-        $('#mlDetailProgram').text(ml.program || 'All Programs');
+        $('#mlDetailProgram').text(ml.course ? (ml.program + ' — ' + ml.course) : (ml.program || '—'));
         $('#btnDeleteMeritList').data('ml-id', mlId);
 
         // Reset filters
@@ -1312,8 +1334,7 @@
     function getStudentSession(s) {
         var m = s.appNo.match(/SK-(\d{4})-/);
         if (m) {
-            var yr = parseInt(m[1], 10);
-            return yr + '-' + String(yr + 1).slice(-2);
+            return m[1]; // e.g. '2026'
         }
         return 'Unknown';
     }
@@ -1441,6 +1462,7 @@
                     (isStudentRecommendation(s.appNo) ? ' <span class="badge rounded-pill ms-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.62rem;vertical-align:middle;"><span class="material-symbols-outlined" style="font-size:10px;vertical-align:-1px;">star</span> Recommendation</span>' : '') +
                     '</span>' +
                     '<span class="text-on-surface-variant" style="font-size:.72rem;">' + s.board + ' · ' + s.district + '</span>' +
+                    '<span class="badge rounded-pill ms-0 mt-1 d-inline-block" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);font-size:.6rem;" title="Admission Schedule ID: ' + COLLEGE_INFO.id + '_' + getStudentSession(s) + '">AY ' + getStudentSession(s) + '</span>' +
                 '</td>' +
                 '<td class="small fw-semibold">' + programLabel + '</td>' +
                 '<td class="small">' + courseLabel + '</td>' +
@@ -1588,9 +1610,161 @@
             $(this).removeClass('btn-outline-primary').addClass('active btn-primary');
             renderAllApplications();
         });
-        $(document).on('click', '#btnExportApps', function() {
-            exportAppsCSV();
+        // Export modal: cascade program → course
+        $(document).on('change', '#expFilterProgram', function () {
+            var prog = $(this).val();
+            var $course = $('#expFilterCourse');
+            if (!prog || prog === 'all') {
+                $course.prop('disabled', true).html('<option value="all">&mdash; All Courses &mdash;</option>');
+            } else {
+                var catalog = getProgramCatalog();
+                var courses = catalog[prog] || [];
+                var opts = '<option value="all">All Courses</option>';
+                $.each(courses, function(_, c) { opts += '<option value="' + c.id + '">' + c.name + '</option>'; });
+                $course.prop('disabled', false).html(opts);
+            }
+            updateExportEstimate();
         });
+
+        // Export modal: update estimate count on any filter change
+        $(document).on('change', '#expFilterCourse, #expFilterYear, #expFilterStatus, #expFilterGender, #expFilterCommunity, #expFilterDistrict, #expFilterBoard', updateExportEstimate);
+
+        // Update estimate when modal opens
+        $('#exportAppsModal').on('show.bs.modal', function () {
+            // Reset form
+            $('#expFilterProgram, #expFilterCourse, #expFilterYear, #expFilterStatus, #expFilterGender, #expFilterCommunity, #expFilterDistrict, #expFilterBoard').val('all');
+            $('#expFilterCourse').prop('disabled', true).html('<option value="all">&mdash; All Courses &mdash;</option>');
+            updateExportEstimate();
+        });
+
+        $(document).on('click', '#btnConfirmExportApps', function () {
+            exportAppsCSVFiltered();
+            bootstrap.Modal.getInstance(document.getElementById('exportAppsModal')).hide();
+        });
+    }
+
+    function getExportFilters() {
+        return {
+            program:   $('#expFilterProgram').val() || 'all',
+            course:    $('#expFilterCourse').val() || 'all',
+            year:      $('#expFilterYear').val() || 'all',
+            status:    $('#expFilterStatus').val() || 'all',
+            gender:    $('#expFilterGender').val() || 'all',
+            community: $('#expFilterCommunity').val() || 'all',
+            district:  $('#expFilterDistrict').val() || 'all',
+            board:     $('#expFilterBoard').val() || 'all'
+        };
+    }
+
+    function applyExportFilters(students) {
+        var f = getExportFilters();
+        return $.grep(students, function(s) {
+            if (f.program !== 'all') {
+                var prog = courseToProgramLabel(getCourseName(s.course));
+                if (prog !== f.program) return false;
+            }
+            if (f.course !== 'all' && s.course !== f.course) return false;
+            if (f.year !== 'all' && String(getStudentSession(s)) !== f.year) return false;
+            if (f.status !== 'all' && getStudentAppStatus(s.appNo) !== f.status) return false;
+            if (f.gender !== 'all' && (s.gender || '').toLowerCase() !== f.gender.toLowerCase()) return false;
+            if (f.community !== 'all' && s.community !== f.community) return false;
+            if (f.district !== 'all' && s.district !== f.district) return false;
+            if (f.board !== 'all' && s.board !== f.board) return false;
+            return true;
+        });
+    }
+
+    function updateExportEstimate() {
+        var count = applyExportFilters(STUDENTS).length;
+        $('#expEstimateCount').text(count + ' record' + (count !== 1 ? 's' : ''));
+    }
+
+    function exportAppsCSVFiltered() {
+        var data = applyExportFilters(STUDENTS);
+        if (!data.length) { showToast('No records match the selected filters.', 'warning'); return; }
+
+        // Collect all unique subject names
+        var subjectNames = [];
+        var subjectIndex = {};
+        $.each(data, function(i, s) {
+            $.each(s.subjects || [], function(j, sub) {
+                if (!subjectIndex.hasOwnProperty(sub.name)) {
+                    subjectIndex[sub.name] = subjectNames.length;
+                    subjectNames.push(sub.name);
+                }
+            });
+        });
+
+        var header = [
+            '#', 'Session', 'App No', 'Roll No', 'Name', 'Date of Birth', 'Gender',
+            'Community', 'COI No.', 'PWD',
+            'Mobile', 'Email',
+            'Father Name', 'Father Contact', 'Mother Name',
+            'District', 'State', 'Pincode', 'Permanent Address',
+            'Board', 'Stream', 'Aggregate %'
+        ];
+        $.each(subjectNames, function(i, name) {
+            header.push(name + ' (Marks)');
+            header.push(name + ' (Max)');
+        });
+        header = header.concat([
+            'Program Applied', 'Preference 1', 'Preference 2', 'Preference 3',
+            'App Fee Txn', 'App Fee Amount (₹)', 'App Fee Status', 'App Fee Method',
+            'Merit Lists', 'Admission Status', 'Recommendation'
+        ]);
+
+        var rows = [header];
+        $.each(data, function(idx, s) {
+            var subMarks = {}, subTotal = {};
+            $.each(s.subjects || [], function(j, sub) { subMarks[sub.name] = sub.marks; subTotal[sub.name] = sub.total; });
+
+            var mls = getMeritListsForApp(s.appNo);
+            var mlText = mls.length ? $.map(mls, function(m) { return m.name; }).join(' | ') : '';
+
+            var statusLabelMap = {
+                'applied': 'Applied', 'merit-listed': 'Merit Listed',
+                'verified': 'Verified', 'registered': 'Seat Allotted', 'completed': 'Fee Collected'
+            };
+            var appStatus = getStudentAppStatus(s.appNo);
+            var statusLabel = statusLabelMap[appStatus] || 'Applied';
+
+            var fee = s.appFee || {};
+            var row = [
+                idx + 1, getStudentSession(s), s.appNo, s.rollNo || '', s.name, s.dob || '',
+                s.gender, s.community, s.coiNumber || '', s.pwd || '',
+                s.mobile || '', s.email || '',
+                s.fatherName || '', s.fatherContact || '', s.motherName || '',
+                s.district || '', s.state || '', s.pincode || '', s.permanentAddress || '',
+                s.board, s.stream || '', s.marks
+            ];
+            $.each(subjectNames, function(i, name) {
+                row.push(subMarks.hasOwnProperty(name) ? subMarks[name] : '');
+                row.push(subTotal.hasOwnProperty(name) ? subTotal[name] : '');
+            });
+            row = row.concat([
+                getCourseName(s.course), s.pref1 || '', s.pref2 || '', s.pref3 || '',
+                fee.txn || '', fee.amount || '', fee.status || '', fee.method || '',
+                mlText, statusLabel,
+                isStudentRecommendation(s.appNo) ? 'Yes' : 'No'
+            ]);
+            rows.push(row);
+        });
+
+        var f = getExportFilters();
+        var nameParts = ['applications'];
+        if (f.program !== 'all') nameParts.push(f.program);
+        if (f.course !== 'all') nameParts.push(getCourseName(f.course));
+        if (f.year !== 'all') nameParts.push(f.year);
+        var filename = nameParts.join('_').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '') + '_' + new Date().toISOString().slice(0, 10) + '.csv';
+
+        var csv = rows.map(function(r) {
+            return r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
+        }).join('\r\n');
+
+        var a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = filename;
+        a.click();
     }
 
     // ============================================================
@@ -1688,6 +1862,16 @@
             var file = this.files[0];
             if (file) $('#cfgProspectusName').val(file.name);
         });
+
+        // MOOCS elective toggle
+        $(document).on('change', '.elective-check[value="MOOCS"]', function () {
+            if ($(this).is(':checked')) {
+                $('#moocsNameWrap').show().find('#regMoocsName').focus();
+            } else {
+                $('#moocsNameWrap').hide();
+                $('#regMoocsName').val('');
+            }
+        });
         $(document).on('click', '#btnClearProspectus', function () {
             $('#cfgProspectusFile').val('');
             $('#cfgProspectusName').val('');
@@ -1697,7 +1881,7 @@
         $(document).on('click', '#btnSaveScheduleConfig', function () {
             var session = ($('#cfgSession').val() || '').trim();
             if (!session) {
-                showToast('Session is required', 'warning');
+                showToast('Admission Year is required', 'warning');
                 return;
             }
 
@@ -1719,7 +1903,8 @@
                 updatedAt: new Date().toISOString()
             };
 
-            var schedKey = COLLEGE_INFO.id + '_' + session;
+            // For edits: reuse the existing key. For new schedules: generate a unique key.
+            var schedKey = editingScheduleKey || (COLLEGE_INFO.id + '_' + Date.now());
             // Preserve existing inviteToken if already generated
             var existing = ADMISSION_SCHEDULES[schedKey];
             if (cfg.restricted) {
@@ -1730,14 +1915,15 @@
             ADMISSION_SCHEDULES[schedKey] = cfg;
             saveAdmissionSchedules();
             renderScheduleCards();
-            showToast('Session schedule saved successfully');
+            resetScheduleForm();
+            showToast('Admission schedule saved successfully');
         });
 
         // Admission schedule: edit
         $(document).on('click', '.btn-edit-schedule', function () {
             var key = $(this).data('key');
             if (!ADMISSION_SCHEDULES[key]) return;
-            populateScheduleForm(ADMISSION_SCHEDULES[key]);
+            populateScheduleForm(ADMISSION_SCHEDULES[key], key);
             $('html, body').scrollTop(0);
         });
 
@@ -1746,9 +1932,9 @@
             var key = $(this).data('key');
             if (!ADMISSION_SCHEDULES[key]) return;
             var session = ADMISSION_SCHEDULES[key].session;
-            if (!confirm('Delete schedule for session ' + session + '?')) return;
+            if (!confirm('Delete schedule for Admission Year ' + session + '?')) return;
             delete ADMISSION_SCHEDULES[key];
-            if (editingScheduleSession === session) resetScheduleForm();
+            if (editingScheduleKey === key) resetScheduleForm();
             saveAdmissionSchedules();
             renderScheduleCards();
             showToast('Session schedule deleted', 'warning');
@@ -1840,6 +2026,13 @@
         $(document).on('click', '#btnSaveVerification', function () {
             if (!currentRegApp) return;
             var reg = REGISTRATIONS[currentRegApp];
+
+            // Warn if marks were updated by admin before proceeding
+            if (reg.marksUpdated) {
+                var proceed = confirm('⚠️ Marks Updated by Admin\n\nThe Class XII marks for this student have been modified by an admin. Please review the updated marks carefully before registering.\n\nClick OK to proceed with registration, or Cancel to review the marks again.');
+                if (!proceed) return;
+            }
+
             // Save corrections (only non-empty values)
             var corrections = {};
             var editName = $('#regEditName').val().trim();
@@ -1882,6 +2075,8 @@
             reg.section = $('#regSection').val();
             reg.electives = [];
             $('.elective-check:checked').each(function () { reg.electives.push($(this).val()); });
+            reg.minorSubject = $('#regMinorSubject').val().trim();
+            reg.moocsCourseName = $('.elective-check[value="MOOCS"]').is(':checked') ? ($('#regMoocsName').val().trim()) : '';
             reg.remarksSeat = $('#regRemarksSeat').val().trim();
             reg.seatAllocated = true;
             saveRegistrations();
@@ -1995,6 +2190,21 @@
             showSection('section-ca-merit-manage');
         });
 
+        // Cascade: program → course for merit upload
+        $(document).on('change', '#mlUploadProgram', function () {
+            var prog = $(this).val();
+            var $course = $('#mlUploadCourse');
+            if (!prog) {
+                $course.prop('disabled', true).html('<option value="">— Select Program First —</option>');
+                return;
+            }
+            var catalog = getProgramCatalog();
+            var courses = catalog[prog] || [];
+            var opts = '<option value="">— Select Course —</option>';
+            $.each(courses, function(_, c) { opts += '<option value="' + c.name + '">' + c.name + '</option>'; });
+            $course.prop('disabled', false).html(opts);
+        });
+
         // Validate merit list upload
         var pendingEntries = [];
 
@@ -2005,14 +2215,12 @@
 
             $.each(rows, function(i, row) {
                 var appNo = String(row[0] || '').trim();
-                var program = String(row[1] || '').trim();
-                var course = String(row[2] || '').trim();
                 if (!appNo) return;
                 var s = getStudentByApp(appNo);
                 var isMatched = !!s;
                 if (isMatched) matched++; else unmatched++;
 
-                pendingEntries.push({ appNo: appNo, program: program, course: course });
+                pendingEntries.push({ appNo: appNo });
 
                 var statusBadge = isMatched
                     ? '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">Matched</span>'
@@ -2023,7 +2231,6 @@
                     '<td style="font-family:monospace;" class="fw-semibold">' + appNo + '</td>' +
                     '<td>' + (s ? s.name : '—') + '</td>' +
                     '<td class="cell-number">' + (s ? s.marks + '%' : '—') + '</td>' +
-                    '<td>' + program + '</td><td>' + course + '</td>' +
                     '<td>' + statusBadge + '</td></tr>'
                 );
             });
@@ -2083,12 +2290,13 @@
         $(document).on('click', '#btnDownloadTemplate', function(e) {
             e.preventDefault();
             var wsData = [
-                ['Application ID', 'Program', 'Course'],
-                ['SK-2026-1003', 'B.Com (Hons)', 'Accounting & Finance'],
-                ['SK-2026-1001', 'B.A. Political Science', 'Political Science']
+                ['Application ID'],
+                ['SK-2026-1003'],
+                ['SK-2026-1001'],
+                ['SK-2026-1007']
             ];
             var ws = XLSX.utils.aoa_to_sheet(wsData);
-            ws['!cols'] = [{ wch: 18 }, { wch: 25 }, { wch: 25 }];
+            ws['!cols'] = [{ wch: 20 }];
             var wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Merit List');
             XLSX.writeFile(wb, 'merit_list_template.xlsx');
@@ -2105,12 +2313,15 @@
             var session = $('#mlUploadSession').val() || '2026-27';
             var date = $('#mlUploadDate').val();
             var program = $('#mlUploadProgram').val() || '';
+            var course = $('#mlUploadCourse').val() || '';
             if (!name) { showToast('Please enter a merit list name', 'warning'); return; }
             if (!date) { showToast('Please select a date', 'warning'); return; }
+            if (!program) { showToast('Please select a program', 'warning'); return; }
+            if (!course) { showToast('Please select a course', 'warning'); return; }
             if (pendingEntries.length === 0) { showToast('No entries to upload', 'warning'); return; }
 
             var newId = 'ML-' + (MERIT_LISTS.length + 1).toString().padStart(3, '0');
-            MERIT_LISTS.push({ id: newId, name: name, date: date, session: session, program: program, entries: pendingEntries });
+            MERIT_LISTS.push({ id: newId, name: name, date: date, session: session, program: program, course: course, entries: pendingEntries });
             saveMeritLists();
 
             // Reset form
@@ -2118,6 +2329,7 @@
             $('#mlUploadSession').val('2026-27');
             $('#mlUploadDate').val('');
             $('#mlUploadProgram').val('');
+            $('#mlUploadCourse').prop('disabled', true).html('<option value="">— Select Program First —</option>');
             $('#mlFileInput').val('');
             $('#mlDropIcon').text('cloud_upload');
             $('#mlDropLabel').text('Click to upload or drag & drop');

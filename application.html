@@ -23,9 +23,9 @@
             <span class="navbar-brand fw-bold tracking-tighter mb-0 fs-5">Sikkim Portal</span>
         </div>
         <nav class="d-none d-md-flex gap-4 align-items-center">
-            <a href="#" class="text-white-50 text-decoration-none fw-bold">Guidelines</a>
+            <!-- <a href="#" class="text-white-50 text-decoration-none fw-bold">Guidelines</a>
             <a href="#" class="text-white-50 text-decoration-none fw-bold">Colleges</a>
-            <a href="#" class="text-white-50 text-decoration-none fw-bold">Support</a>
+            <a href="#" class="text-white-50 text-decoration-none fw-bold">Support</a> -->
         </nav>
         <div class="d-flex align-items-center gap-3">
             <button class="btn btn-sm text-white fw-bold btn-sign-out" style="background:rgba(255,255,255,0.1);">Sign Out</button>
@@ -41,13 +41,6 @@
 
 <!-- ===== SIDEBAR (Steps 1-6) ===== -->
 <aside class="sidebar-portal d-none d-md-flex" id="appSidebar">
-    <div class="sidebar-header">
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="material-symbols-outlined filled" style="color:var(--clr-primary); font-variation-settings:'FILL' 1;">shield</span>
-            <span class="fw-black fs-6" style="color:#0f4a2a;">Admission 2024</span>
-        </div>
-        <p class="small text-secondary mb-0" style="font-size:.75rem;">Application ID: SK-2093</p>
-    </div>
     <nav class="sidebar-nav d-flex flex-column gap-1">
         <a href="#" class="sidebar-nav-item btn-go-dashboard" data-step="0"><span class="material-symbols-outlined">dashboard</span>My Applications</a>
         <hr class="my-1" style="border-color:var(--clr-outline-variant); opacity:.3;">
@@ -108,11 +101,15 @@
             <h2 class="fs-2 fw-bold tracking-tight mb-1">My Applications</h2>
             <p class="text-on-surface-variant">Manage and track your admission progress across various institutions.</p>
         </div>
+        <!-- Govt-only eligibility notice -->
+        <div class="d-flex align-items-start gap-3 rounded-3 px-4 py-3 mb-4" style="background:rgba(191,233,218,0.15); border:1px solid var(--clr-secondary-fixed);">
+            <span class="material-symbols-outlined mt-1 flex-shrink-0" style="color:var(--clr-secondary); font-size:20px;">info</span>
+            <p class="mb-0 small fw-medium" style="color:var(--clr-on-surface-variant); line-height:1.6;"><span class="fw-bold" style="color:var(--clr-on-surface);">Eligibility Notice:</span> This portal accepts applications for <span class="fw-bold">Government Colleges</span> only. Applications to private or autonomous universities are not processed through this system.</p>
+        </div>
         <!-- Stats Row -->
         <div class="row g-4 mb-5">
-            <div class="col-sm-4"><div class="stat-card"><div class="stat-label">Total Applications</div><div class="stat-value">3</div><span class="material-symbols-outlined stat-icon">school</span></div></div>
-            <div class="col-sm-4"><div class="stat-card"><div class="stat-label">Drafts</div><div class="stat-value">1</div><span class="material-symbols-outlined stat-icon">edit_document</span></div></div>
-            <div class="col-sm-4"><div class="stat-card"><div class="stat-label">Submitted</div><div class="stat-value">2</div><span class="material-symbols-outlined stat-icon">task_alt</span></div></div>
+            <div class="col-sm-6"><div class="stat-card"><div class="stat-label">Total Applications</div><div class="stat-value">1</div><span class="material-symbols-outlined stat-icon">school</span></div></div>
+            <div class="col-sm-6"><div class="stat-card"><div class="stat-label">Drafts</div><div class="stat-value">1</div><span class="material-symbols-outlined stat-icon">edit_document</span></div></div>
         </div>
         <!-- Filters -->
         <div class="row g-3 mb-4">
@@ -121,25 +118,7 @@
         </div>
         <!-- Application Cards -->
         <div class="row g-4">
-            <!-- Card 1: Submitted -->
-            <div class="col-12 col-lg-6">
-                <div class="card application-card h-100">
-                    <div class="card-body p-4 d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex gap-3 align-items-center">
-                                <div class="rounded-circle bg-surface-container d-flex align-items-center justify-content-center overflow-hidden" style="width:48px;height:48px;"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKg4H9haR6MYvK999WfWcWKpCB0GMd2fi5qhP4vSR6NdPvYAZAS7lhjKgOWfQ_u9Kxkvxafg4wrXhc4ZfmGQSbd3wRmWENOFE5kMXaymakAq-8lw3z7ifII1yGymo_2dQCN77zcwLuiFwg1ZR-n_n3vECMsAtaSqpqCfKH0rFkTRzQQ1xPH0lWC3zi2AT92Qn10yf2FQNEcVsxrmv3EkMueQXmuHSfPZM-e-NySVsFcZUpCm0BfHvavrNAE0kGEeb70KgGcYowWNw6" class="w-100 h-100" style="object-fit:cover;" alt=""></div>
-                                <div><h5 class="fw-bold mb-0 fs-6">Sikkim University</h5><p class="mb-0 small text-on-surface-variant">ID: 2026001522</p></div>
-                            </div>
-                            <span class="badge badge-submitted rounded-pill px-3 py-1 small">Submitted</span>
-                        </div>
-                        <p class="fw-medium mb-1">B.Com Hons</p>
-                        <p class="small text-on-surface-variant d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>Applied: Oct 12, 2023</p>
-                        <div class="mt-auto pt-3 border-top" style="border-color:rgba(188,201,195,0.2)!important;">
-                            <button class="btn btn-primary btn-sm w-100 fw-medium btn-track-status">Track Status</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             <!-- Card 2: Draft -->
             <div class="col-12 col-lg-6">
                 <div class="card application-card h-100">
@@ -159,26 +138,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Card 3: Incomplete -->
-            <div class="col-12 col-lg-6">
-                <div class="card application-card h-100 position-relative overflow-hidden">
-                    <div class="position-absolute top-0 start-0 h-100" style="width:4px; background:var(--clr-tertiary);"></div>
-                    <div class="card-body p-4 d-flex flex-column ps-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex gap-3 align-items-center">
-                                <div class="rounded-circle bg-surface-container d-flex align-items-center justify-content-center overflow-hidden" style="width:48px;height:48px;"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKN_fBXjwQuTYRE1Mvid00faZJeYHU8JvuWzOq070uNTqYe_yUTPouTeSSNLqoLvhP7Wjg5QO3p1AZOloQwkP2uqZc4QV3A_5MiW3QWYKZkAS6uvxcqBPcJhNIqQ1VM4YdDY0im96RqtPAslLSBpoilNzWTIRlwkbunWIZnAZcasP1upxG-ecfNvrpFrc-PddAbAMpwKE8JqBQlOMROoN1r9h9xW5kLpAwWzuX_GW8Mqmmr0CKG3Evu3NDltcD5KGhx5d5NtVFcG48" class="w-100 h-100" style="object-fit:cover;" alt=""></div>
-                                <div><h5 class="fw-bold mb-0 fs-6">Sikkim Manipal University</h5><p class="mb-0 small text-on-surface-variant">ID: 2026003441</p></div>
-                            </div>
-                            <span class="badge badge-incomplete rounded-pill px-3 py-1 small">Incomplete</span>
-                        </div>
-                        <p class="fw-medium mb-1">B.Tech Computer Science</p>
-                        <p class="small d-flex align-items-center gap-1" style="color:var(--clr-error);"><span class="material-symbols-outlined" style="font-size:14px;">error</span>Missing Documents</p>
-                        <div class="mt-auto pt-3 border-top" style="border-color:rgba(188,201,195,0.2)!important;">
-                            <button class="btn btn-tertiary btn-sm w-100 fw-medium btn-continue-app">Complete Now</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             <!-- Ghost Card: New Application -->
             <div class="col-12 col-lg-6">
                 <div class="card h-100 d-flex align-items-center justify-content-center text-center p-4 btn-new-application" style="border:2px dashed var(--clr-outline-variant); background:transparent; cursor:pointer; min-height:250px;" role="button">
@@ -397,7 +357,7 @@
             <!-- Right Sidebar -->
             <div class="col-md-4 order-1 order-md-2">
                 <div class="p-4 rounded-3" style="background:rgba(193,235,221,0.3); border:1px solid var(--clr-secondary-fixed);">
-                    <div class="d-flex align-items-start gap-2"><span class="material-symbols-outlined filled" style="color:var(--clr-primary); font-variation-settings:'FILL' 1;">lightbulb</span><div><h6 class="small fw-bold mb-1" style="color:var(--clr-on-secondary-container);">Admission Tip</h6><p class="small mb-0" style="color:var(--clr-on-secondary-container); line-height:1.6;">Best 4 subjects calculation will be performed automatically during rank list generation.</p></div></div>
+                    <div class="d-flex align-items-start gap-2"><span class="material-symbols-outlined filled" style="color:var(--clr-primary); font-variation-settings:'FILL' 1;">lightbulb</span><div><h6 class="small fw-bold mb-1" style="color:var(--clr-on-secondary-container);">Admission Tip</h6><p class="small mb-0" style="color:var(--clr-on-secondary-container); line-height:1.6;"></p></div></div>
                 </div>
             </div>
         </div>
@@ -620,7 +580,7 @@
             <div class="success-glow"><div class="glow-circle"></div></div>
             <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4 position-relative" style="width:80px;height:80px;background:var(--clr-primary-container); box-shadow:0 4px 24px rgba(107,217,188,0.3); z-index:1;"><span class="material-symbols-outlined filled display-5" style="color:var(--clr-on-primary-container);font-variation-settings:'FILL' 1;">check_circle</span></div>
             <h1 class="fs-3 fw-bold tracking-tight mb-2 position-relative" style="color:var(--clr-primary); z-index:1;">Application Submitted Successfully!</h1>
-            <p class="text-on-surface-variant fs-6 position-relative" style="z-index:1; max-width:500px; margin:0 auto; line-height:1.6;">Your application has been received and is currently being processed by the Sikkim State Higher Education Directorate.</p>
+            <p class="text-on-surface-variant fs-6 position-relative" style="z-index:1; max-width:500px; margin:0 auto; line-height:1.6;">Your application has been received and is currently being processed by the College.</p>
         </div>
         <!-- Content -->
         <div class="p-4 p-md-5 d-flex flex-column gap-4">
@@ -628,9 +588,9 @@
             <!-- Preferences Summary -->
             <div class="bg-surface-low rounded-2 p-4 border" style="border-color:rgba(222,228,224,0.5)!important;">
                 <h6 class="small fw-semibold text-uppercase d-flex align-items-center gap-2 mb-3" style="letter-spacing:.1em; color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:16px;">summarize</span>Summary of Preferences</h6>
-                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">First Preference</span><span class="fw-medium">Government Degree College, Gangtok</span><br><span class="small text-on-surface-variant">B.A. Political Science (Hons.)</span></div><span class="badge rounded-1 px-2 py-1 small fw-semibold" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);">Priority 1</span></div>
-                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Second Preference</span><span class="fw-medium">Sikkim Government College, Namchi</span><br><span class="small text-on-surface-variant">B.A. History</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 2</span></div>
-                <div class="d-flex justify-content-between align-items-start"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Third Preference</span><span class="fw-medium">Nar Bahadur Bhandari Degree College</span><br><span class="small text-on-surface-variant">B.A. Sociology</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 3</span></div>
+                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">First Preference</span><span class="small text-on-surface-variant">B.A. Political Science (Hons.)</span></div><span class="badge rounded-1 px-2 py-1 small fw-semibold" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);">Priority 1</span></div>
+                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Second Preference</span><span class="small text-on-surface-variant">B.A. History</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 2</span></div>
+                <div class="d-flex justify-content-between align-items-start"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Third Preference</span><span class="small text-on-surface-variant">B.A. Sociology</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 3</span></div>
             </div>
             <!-- Actions -->
             <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">

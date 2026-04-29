@@ -192,11 +192,11 @@
             app = {
                 applicationId: generateAppId(),
                 collegeId: 1, collegeName: "Sikkim Government College",
-                step1: { rollNo: "", candidateName: "", board: "", stream: "", mobile: "9876543210", gender: "", email: "", category: "Sikkimese", coiNumber: "", pwd: "No" },
-                step2: { dob: "", community: "", fatherName: "", fatherContact: "", motherName: "", district: "", pincode: "", permanentAddress: "", country: "India", state: "Sikkim" },
-                step3: { subjects: [{ name: "English", marks: 78, total: 100 }, { name: "Accountancy", marks: 45, total: 100 }, { name: "Economics", marks: 38, total: 100 }] },
-                step4: { pref1Program: "Bachelor of Commerce", pref1Course: "B.Com Hons Accounting & Finance", pref2Program: "", pref2Course: "", pref3Program: "", pref3Course: "" },
-                step5: { paymentMethod: "", transactionId: "", amount: 200, status: "pending" },
+                step1: { rollNo: "SKBSE2025-1142", candidateName: "Tenzin Dorje Bhutia", board: "Sikkim Board", stream: "Arts", mobile: "9876543210", gender: "Male", email: "tenzin.dorje@gmail.com", category: "Sikkimese", coiNumber: "COI-SK-2019-004821", pwd: "No" },
+                step2: { dob: "2006-08-14", community: "ST", fatherName: "Karma Bhutia", fatherContact: "9800112233", motherName: "Diki Bhutia", district: "Gangtok", pincode: "737101", permanentAddress: "Near Enchey Monastery, Upper Sichey, Gangtok", country: "India", state: "Sikkim" },
+                step3: { subject_1: "English", marks_1: 78, total_1: 100, subject_2: "Political Science", marks_2: 82, total_2: 100, subject_3: "Economics", marks_3: 74, total_3: 100, subject_4: "History", marks_4: 69, total_4: 100, subject_5: "Geography", marks_5: 71, total_5: 100 },
+                step4: { pref1Program: "Bachelor of Arts", pref1Course: "B.A. Political Science", pref2Program: "Bachelor of Arts", pref2Course: "B.A. Economics", pref3Program: "", pref3Course: "" },
+                step5: { paymentMethod: "Online", transactionId: "TXN202604281142", amount: 200, status: "paid" },
                 currentStep: 1, status: "draft"
             };
             saveApplication(app);
@@ -534,22 +534,26 @@
             $card.find('.btn-apply-now').prop('disabled', !isApplyable);
         }
 
-        // Only non-restricted colleges with a configured admission schedule are shown publicly
-        var listedColleges = $.grep(COLLEGES, function (c) {
-            var sched = getScheduleForCollege(c.id);
-            return sched !== null && !sched.restricted;
+        // Build one entry per admission schedule (non-restricted), not per college
+        var allScheduleData = JSON.parse(localStorage.getItem('emmis_ca_admission_schedules') || '{}');
+        var listedSchedules = [];
+        $.each(allScheduleData, function (schedKey, sched) {
+            if (!sched || sched.restricted) return;
+            var college = null;
+            $.each(COLLEGES, function (_, c) { if (c.id === sched.collegeId) { college = c; return false; } });
+            if (college) listedSchedules.push({ college: college, schedule: sched, schedKey: schedKey });
         });
 
         // Update counter text
         function updateCounter() {
-            var total = listedColleges.length;
+            var total = listedSchedules.length;
             var shown = Math.min(visibleCount, total);
             if (total === 0) {
                 $('#collegeShowingCount').text('No admission schedules have been configured yet.');
                 $('#btnLoadMore').hide();
                 return;
             }
-            $('#collegeShowingCount').text('Showing ' + shown + ' of ' + total + ' Colleges in Sikkim');
+            $('#collegeShowingCount').text('Showing ' + shown + ' of ' + total + ' Schedule(s) in Sikkim');
             if (shown >= total) {
                 $('#btnLoadMore').hide();
             } else {
@@ -557,9 +561,9 @@
             }
         }
 
-        // Build a college card HTML from data
-        function buildCollegeCard(c) {
-            var sv = getScheduleViewForCollege(c, getScheduleForCollege(c.id));
+        // Build a college card HTML from data (one card per schedule)
+        function buildCollegeCard(c, schedule) {
+            var sv = getScheduleViewForCollege(c, schedule);
             var bannerClass = sv.status === 'urgent' ? 'urgent' : (sv.status === 'upcoming' ? 'upcoming' : (sv.status === 'closed' ? 'closed' : 'open'));
             var bannerIcon = sv.status === 'urgent' ? 'timer' : (sv.status === 'upcoming' ? 'schedule' : (sv.status === 'closed' ? 'lock' : 'check_circle'));
             var bannerText = sv.status === 'urgent' ? 'REGISTRATION OPEN – ENDS SOON!' : (sv.status === 'upcoming' ? 'COMING SOON' : (sv.status === 'closed' ? 'APPLICATIONS CLOSED' : 'REGISTRATION OPEN'));
@@ -569,8 +573,7 @@
             var dateValueColor = sv.status === 'urgent' ? 'color:var(--clr-primary);' : 'color:var(--clr-on-tertiary-fixed);';
 
             // Derive offered courses from schedule selective windows, fallback to COLLEGES data
-            var _schedule = getScheduleForCollege(c.id);
-            var _scheduleCourseIds = getOfferedCoursesFromSchedule(_schedule);
+            var _scheduleCourseIds = getOfferedCoursesFromSchedule(schedule);
             var streamKeywords = [c.stream];
             var coursesForDisplay = [];
             if (_scheduleCourseIds && _scheduleCourseIds.length) {
@@ -596,12 +599,12 @@
 
             var imgHtml = c.image ? '<div class="ratio ratio-16x9"><img src="' + c.image + '" class="w-100 h-100" style="object-fit:cover;" alt="' + c.name + '"></div>' : '';
 
-            // Registration dates row
+            // Registration dates row — show only when a registration start is configured
             var meritRowHtml = '';
-            if (sv.meritListDate || c.meritListDate || sv.admissionReg || c.admissionReg) {
+            if (sv.admissionReg && sv.admissionReg !== 'TBA – TBA') {
                 meritRowHtml = '<div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-surface-low">' +
-                    '<div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Merit List Date</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">' + (sv.meritListDate || c.meritListDate || 'TBA') + '</span></div>' +
-                    '<div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; color:var(--clr-on-tertiary-fixed-var);">Admission Registration</span><span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">' + (sv.admissionReg || c.admissionReg || 'TBA') + '</span></div>' +
+                    '<div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; color:var(--clr-on-tertiary-fixed-var);">Reg. / Admission</span>' +
+                    '<span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">' + sv.admissionReg + '</span></div>' +
                     '</div>';
             }
 
@@ -623,6 +626,7 @@
                     '</div>';
             });
 
+            var sessionLabel = schedule && schedule.session ? ' — AY ' + schedule.session : '';
             return '<div class="col-12 col-md-6 col-lg-4 col-xl-3">' +
                 '<div class="college-card h-100" data-college-id="' + c.id + '" data-name="' + c.name + '" data-district="' + c.district + '" data-stream="' + streamData + '">' +
                 '<div class="college-card-banner ' + bannerClass + '"><span class="material-symbols-outlined" style="font-size:14px">' + bannerIcon + '</span> ' + bannerText + '</div>' +
@@ -630,7 +634,7 @@
                 '<div class="card-body d-flex flex-column flex-grow-1 p-4">' +
                 '<div class="mb-3">' +
                 '<span class="text-uppercase fw-bold d-block mb-1" style="font-size:.625rem; letter-spacing:.1em; color:var(--clr-secondary);">' + c.type + '</span>' +
-                '<h5 class="fw-bold mb-1 tracking-tight" style="color:var(--clr-on-tertiary-fixed);">' + c.name + '</h5>' +
+                '<h5 class="fw-bold mb-1 tracking-tight" style="color:var(--clr-on-tertiary-fixed);">' + c.name + sessionLabel + '</h5>' +
                 '<div class="d-flex align-items-center gap-1 small" style="color:var(--clr-on-tertiary-fixed-var);"><span class="material-symbols-outlined" style="font-size:14px">location_on</span>' + c.location + '</div>' +
                 '</div>' +
                 '<div class="d-flex flex-column gap-3 mb-4">' +
@@ -652,8 +656,8 @@
                 '</div></div></div>';
         }
 
-        // Render initial batch — only colleges with a configured schedule
-        if (listedColleges.length === 0) {
+        // Render initial batch — one card per schedule
+        if (listedSchedules.length === 0) {
             $('#collegeGrid').html(
                 '<div class="col-12 text-center py-5">' +
                 '<span class="material-symbols-outlined d-block mb-3" style="font-size:48px;color:var(--clr-outline);">event_busy</span>' +
@@ -662,9 +666,9 @@
                 '</div>'
             );
         } else {
-            var initialBatch = listedColleges.slice(0, pageSize);
-            $.each(initialBatch, function (_, c) {
-                $('#collegeGrid').append(buildCollegeCard(c));
+            var initialBatch = listedSchedules.slice(0, pageSize);
+            $.each(initialBatch, function (_, item) {
+                $('#collegeGrid').append(buildCollegeCard(item.college, item.schedule));
             });
             visibleCount = initialBatch.length;
         }
@@ -673,9 +677,9 @@
 
         // Load More click
         $(document).on('click', '#btnLoadMore', function () {
-            var nextBatch = listedColleges.slice(visibleCount, visibleCount + pageSize);
-            $.each(nextBatch, function (_, c) {
-                $('#collegeGrid').append(buildCollegeCard(c));
+            var nextBatch = listedSchedules.slice(visibleCount, visibleCount + pageSize);
+            $.each(nextBatch, function (_, item) {
+                $('#collegeGrid').append(buildCollegeCard(item.college, item.schedule));
             });
             visibleCount += nextBatch.length;
             updateCounter();
@@ -1051,6 +1055,79 @@
             $('#appSidebar').removeClass('sidebar-open');
             $('#sidebarBackdrop').removeClass('backdrop-visible');
         });
+
+        // Prefill all form inputs from saved/default application data (demo)
+        function prefillFormInputs(app) {
+            var s1 = app.step1 || {};
+            var s2 = app.step2 || {};
+            var s3 = app.step3 || {};
+            var s4 = app.step4 || {};
+            var s5 = app.step5 || {};
+
+            // Step 1 — text/select fields
+            $.each(s1, function (name, val) {
+                var $inputs = $('#section-step1 [name="' + name + '"]');
+                if ($inputs.first().is(':radio')) {
+                    $inputs.filter('[value="' + val + '"]').prop('checked', true);
+                    // Sync radio-pill active class
+                    $inputs.closest('.radio-pill-group').find('.radio-pill').removeClass('active');
+                    $inputs.filter('[value="' + val + '"]').closest('.radio-pill').addClass('active');
+                } else {
+                    $inputs.val(val);
+                }
+            });
+            // Show/hide Sikkimese COI field
+            if (s1.category === 'Sikkimese') $('#sikkimeseFields').show();
+            else $('#sikkimeseFields').hide();
+
+            // Step 2 — text/select fields
+            $.each(s2, function (name, val) {
+                $('#section-step2 [name="' + name + '"]').val(val);
+            });
+
+            // Step 3 — subject card inputs (named subject_N, marks_N, total_N)
+            $.each(s3, function (name, val) {
+                $('#subjectsContainer [name="' + name + '"]').val(val);
+            });
+            recalcAggregate();
+
+            // Step 4 — cascade program → course selects
+            $.each([1, 2, 3], function (_, i) {
+                var prog = s4['pref' + i + 'Program'];
+                var course = s4['pref' + i + 'Course'];
+                if (prog) {
+                    var $progSel = $('[name="pref' + i + 'Program"]').val(prog);
+                    // Populate course options via the registered change handler
+                    var $courseSelect = $('[name="pref' + i + 'Course"]');
+                    $courseSelect.html('<option>Select Course</option>');
+                    if (programCourses[prog]) {
+                        $.each(programCourses[prog], function (_, c) {
+                            $courseSelect.append('<option>' + c + '</option>');
+                        });
+                    }
+                    if (course) $courseSelect.val(course);
+                }
+            });
+            updateSelectionSummary();
+
+            // Step 5 — restore paid state in UI
+            if (s5.status === 'paid') {
+                $('.btn-pay-now').prop('disabled', true)
+                    .html('<span class="material-symbols-outlined me-2">check_circle</span>Payment Successful!')
+                    .removeClass('btn-primary').addClass('btn-success');
+                $('#paymentSuccess').show();
+                $('#txnId').text(s5.transactionId || '');
+                $('.btn-proceed-preview').prop('disabled', false).css('opacity', '1');
+            }
+        }
+
+        // If stored application has no name (stale/empty from old session), reset to demo defaults
+        var _appForPrefill = getOrCreateApplication();
+        if (!(_appForPrefill.step1 && _appForPrefill.step1.candidateName)) {
+            localStorage.removeItem(APP_KEY);
+            _appForPrefill = getOrCreateApplication();
+        }
+        prefillFormInputs(_appForPrefill);
     }
 
     function saveCurrentForm(stepNumber) {
@@ -1102,7 +1179,9 @@
         // Sidebar / header
         $('#previewName').text(s1.candidateName || '—');
         $('#previewAppId').text('Application ID: ' + (app.applicationId || '—'));
-        $('#previewCollege').text(app.collegeName || '—');
+        var _previewCollege = null;
+        if (app.collegeId) { $.each(COLLEGES, function (_, c) { if (c.id === parseInt(app.collegeId, 10)) { _previewCollege = c; return false; } }); }
+        $('#previewCollege').text(_previewCollege ? _previewCollege.name : '—');
         $('#previewStreamSide').text(s1.stream || '—');
         $('#previewPaySide').text(s5.status === 'paid' ? 'Paid' : 'Pending');
 
@@ -1133,8 +1212,8 @@
         // Academic History — build subjects table dynamically
         var $tbody = $('#previewSubjectsBody').empty();
         var totalObt = 0, totalMax = 0;
-        // Read from the actual form inputs if available
-        $('#subjectsTable tbody tr').each(function () {
+        // Read from the card-based subject inputs
+        $('#subjectsContainer .subject-card').each(function () {
             var subj = $(this).find('input[name^="subject_"]').val() || '';
             var marks = parseInt($(this).find('.marks-input').val()) || 0;
             var totalM = parseInt($(this).find('.total-marks-input').val()) || 100;
