@@ -927,9 +927,9 @@
         $('#cfgAppOpen, #cfgAppClose, #cfgAppFee, #btnPickProspectus, #btnClearProspectus').prop('disabled', locked);
         $('#btnSaveScheduleConfig').prop('disabled', locked);
         if (locked) {
-            $('#scheduleExistsNotice').show();
+            $('#scheduleExistsNotice').css('display', 'flex');
         } else {
-            $('#scheduleExistsNotice').hide();
+            $('#scheduleExistsNotice').css('display', 'none');
         }
     }
 

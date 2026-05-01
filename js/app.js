@@ -464,20 +464,19 @@
             if (def.appOpen) out.openDate = formatYmdToDisplay(def.appOpen);
             if (def.appClose) out.closeDate = formatYmdToDisplay(def.appClose);
 
-            // Override windows (new schema)
+            // Override windows (new schema) — overrides are course-specific extensions;
+            // they do NOT change the default closing date shown on the card.
             var today = new Date(); today.setHours(0,0,0,0);
             $.each(schedule.overrides || [], function(_, ovr) {
                 if (!ovr.endDate) return;
                 var d = new Date(ovr.endDate + 'T00:00:00');
                 if (d >= today) {
-                    out.overrides.push(ovr);
-                    // If this override is relevant to the college's stream/courses, update closeDate
-                    var oProgram = (ovr.program || '').toLowerCase();
-                    var collegeProgram = normalizeProgram(college.stream).toLowerCase();
-                    var matches = !oProgram || oProgram === collegeProgram || collegeProgram.indexOf(oProgram) >= 0;
-                    if (matches && ovr.endDate > (def.appClose || '')) {
-                        out.closeDate = formatYmdToDisplay(ovr.endDate);
+                    // Resolve course display name from catalog when not stored on override
+                    var resolvedName = ovr.courseName || '';
+                    if (!resolvedName && ovr.courseId && COURSE_CATALOG[ovr.courseId]) {
+                        resolvedName = COURSE_CATALOG[ovr.courseId].name;
                     }
+                    out.overrides.push($.extend({}, ovr, { courseName: resolvedName }));
                 }
             });
 
@@ -668,17 +667,32 @@
 
             // Override windows notification
             var overrideHtml = '';            if (sv.overrides && sv.overrides.length) {
+                var ovrRows = '';
                 $.each(sv.overrides, function(_, ovr) {
-                    var label = (ovr.program ? ovr.program + ' ' : '') + (ovr.courseName || ovr.courseId ? '— ' + (ovr.courseName || ovr.courseId) : '');
-                    var endFmt = ovr.endDate ? formatYmdToDisplay(ovr.endDate) : '—';
-                    overrideHtml +=
-                        '<div class="p-2 rounded-3 mb-1" style="background:rgba(186,26,26,0.06);border:1px solid rgba(186,26,26,0.15);">' +
-                        '<span class="small" style="color:var(--clr-on-tertiary-fixed-var);">' +
-                        '<span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">date_range</span> ' +
-                        (label ? $('<span>').text(label).html() + ' — ' : 'All Courses — ') +
-                        'Applications extended to <strong style="color:var(--clr-error);">' + endFmt + '</strong>' +
-                        '</span></div>';
+                    var programLabel = ovr.program || '';
+                    var courseLabel = ovr.courseName || ovr.courseId || '';
+                    var courseDisplay;
+                    if (programLabel && courseLabel) {
+                        courseDisplay = programLabel + ' \u2014 ' + courseLabel;
+                    } else if (programLabel) {
+                        courseDisplay = programLabel + ' \u2014 All Courses';
+                    } else {
+                        courseDisplay = courseLabel || 'All Courses';
+                    }
+                    var endFmt = ovr.endDate ? formatYmdToDisplay(ovr.endDate) : '\u2014';
+                    ovrRows +=
+                        '<div class="d-flex justify-content-between align-items-center py-1">' +
+                        '<span class="small" style="color:var(--clr-on-tertiary-fixed-var);">' + $('<span>').text(courseDisplay).html() + '</span>' +
+                        '<span class="small fw-bold" style="color:var(--clr-tertiary);">Extended to ' + endFmt + '</span>' +
+                        '</div>';
                 });
+                overrideHtml =
+                    '<div class="p-2 rounded-3" style="background:rgba(135,82,30,0.06);border:1px solid rgba(135,82,30,0.2);">' +
+                    '<div class="d-flex align-items-center gap-1 mb-1" style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--clr-tertiary);">' +
+                    '<span class="material-symbols-outlined" style="font-size:13px;">event_available</span>Extended Deadlines (Course-wise)' +
+                    '</div>' +
+                    ovrRows +
+                    '</div>';
             }
 
             // Notification block — shown only when schedule has a notification set
@@ -713,7 +727,7 @@
                 '<div class="d-flex flex-column gap-3 mb-4">' +
                 '<div class="d-flex justify-content-between align-items-center p-3 rounded-3' + (dateStyle ? '' : ' bg-surface-low') + '"' + (dateStyle ? ' style="' + dateStyle + '"' : '') + '>' +
                 '<div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; ' + dateLabelColor + '">Opening Date</span><span class="fw-bold small" style="' + dateValueColor + '">' + (sv.openDate || c.openDate) + '</span></div>' +
-                '<div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; ' + dateLabelColor + '">Closing Date</span><span class="fw-bold small" style="' + dateValueColor + '">' + (sv.closeDate || c.closeDate) + '</span></div>' +
+                '<div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; ' + dateLabelColor + '">' + (sv.overrides && sv.overrides.length ? 'Default Close' : 'Closing Date') + '</span><span class="fw-bold small" style="' + dateValueColor + '">' + (sv.closeDate || c.closeDate) + '</span></div>' +
                 '</div>' +
                 meritRowHtml +
                 counsellingHtml +
@@ -749,6 +763,7 @@
         }
         updateCounter();
         filterColleges();
+        buildNoticeTicker();
 
         // Load More click
         $(document).on('click', '#btnLoadMore', function () {
@@ -804,6 +819,73 @@
             var s = ($c.data('stream') || '').toString().toLowerCase();
             var show = (!search || name.indexOf(search) >= 0) && (district === 'all' || d.indexOf(district) >= 0) && (stream === 'all' || s.indexOf(stream) >= 0);
             $c.closest('.col').toggle(show);
+        });
+    }
+
+    function buildNoticeTicker() {
+        var items = [];
+
+        // Published merit lists
+        try {
+            var allMerit = JSON.parse(localStorage.getItem('emmis_ca_meritlists') || '[]');
+            $.each(allMerit, function(_, ml) {
+                if (!ml.published) return;
+                var collegeName = '';
+                $.each(COLLEGES, function(_, c) { if (c.id === ml.collegeId) { collegeName = c.name; return false; } });
+                var dateStr = '';
+                if (ml.admissionStart && ml.admissionEnd) {
+                    dateStr = '&ensp;&middot;&ensp;Admission: ' + formatYmdToDisplay(ml.admissionStart) + ' \u2013 ' + formatYmdToDisplay(ml.admissionEnd);
+                }
+                items.push(
+                    '<span class="notice-ticker-item">' +
+                    '<span style="margin-right:.3rem;">&#x1F4CB;</span>' +
+                    '<strong>' + $('<span>').text(ml.name || 'Merit List').html() + '</strong>' +
+                    (collegeName ? ' &mdash; ' + $('<span>').text(collegeName).html() : '') +
+                    dateStr +
+                    '&ensp;<a href="#" class="ticker-view-link" data-college-id="' + (ml.collegeId || '') + '">View &rarr;</a>' +
+                    '</span>'
+                );
+            });
+        } catch(e) {}
+
+        // Published counselling sessions
+        try {
+            var allCs = JSON.parse(localStorage.getItem('emmis_ca_counselling_sessions') || '[]');
+            $.each(allCs, function(_, cs) {
+                if (!cs.published) return;
+                var collegeName = '';
+                $.each(COLLEGES, function(_, c) { if (c.id === cs.collegeId) { collegeName = c.name; return false; } });
+                var dateStr = '';
+                if (cs.counsellingStart && cs.counsellingEnd) {
+                    dateStr = '&ensp;&middot;&ensp;Counselling: ' + formatYmdToDisplay(cs.counsellingStart) + ' \u2013 ' + formatYmdToDisplay(cs.counsellingEnd);
+                }
+                items.push(
+                    '<span class="notice-ticker-item">' +
+                    '<span style="margin-right:.3rem;">&#x1F399;&#xFE0F;</span>' +
+                    '<strong>' + $('<span>').text(cs.name || 'Counselling').html() + '</strong>' +
+                    (collegeName ? ' &mdash; ' + $('<span>').text(collegeName).html() : '') +
+                    dateStr +
+                    '&ensp;<a href="#" class="ticker-view-link" data-college-id="' + (cs.collegeId || '') + '">View &rarr;</a>' +
+                    '</span>'
+                );
+            });
+        } catch(e) {}
+
+        if (!items.length) { $('#noticeTicker').hide(); return; }
+
+        var sep = '<span class="ticker-sep">&ensp;&ensp;&#9670;&ensp;&ensp;</span>';
+        var html = items.join(sep);
+        // Duplicate for seamless infinite loop
+        $('#tickerTrack').html(html + sep + html);
+        $('#noticeTicker').show();
+
+        $(document).off('click.ticker').on('click.ticker', '.ticker-view-link', function(e) {
+            e.preventDefault();
+            var cid = parseInt($(this).data('college-id'), 10);
+            var $target = cid ? $('[data-college-id="' + cid + '"]').first() : $('#collegeGrid');
+            if ($target && $target.length) {
+                $('html,body').animate({ scrollTop: $target.offset().top - 100 }, 400);
+            }
         });
     }
 
