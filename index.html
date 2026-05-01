@@ -84,6 +84,18 @@
             </div>
         </div>
 
+        <!-- ===== LIVE NOTICES TICKER ===== -->
+        <div id="noticeTicker" style="display:none; background:var(--clr-primary); overflow:hidden; border-bottom:2px solid rgba(255,255,255,0.1);">
+            <div class="d-flex align-items-stretch" style="height:42px;">
+                <div class="d-flex align-items-center gap-2 flex-shrink-0 px-3" style="background:rgba(0,0,0,0.18); font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#fff; white-space:nowrap; border-right:1px solid rgba(255,255,255,0.18);">
+                    <span class="material-symbols-outlined" style="font-size:16px;">campaign</span>Live Notices
+                </div>
+                <div style="overflow:hidden; flex:1; display:flex; align-items:center; position:relative;">
+                    <div id="tickerTrack" style="display:inline-block; white-space:nowrap; animation:ticker-slide 50s linear infinite; color:#fff; font-size:.8rem; padding-left:2rem;"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== COLLEGE GRID ===== -->
         <div class="container-fluid py-5 px-3 px-md-4">
             <!-- Invalid invite link error (shown only when ?invite= token is not recognised) -->
