@@ -998,6 +998,8 @@ a:hover {
 .sidebar-admin .sidebar-nav-item:hover { background: #f1f5f9; color: var(--clr-primary); transform: translateX(2px); }
 .sidebar-admin .sidebar-nav-item.active { background: rgba(0,107,88,.06); color: var(--clr-primary); font-weight: 700; border-right: 3px solid var(--clr-primary); }
 .sidebar-admin .sidebar-nav-item .material-symbols-outlined { font-size: 20px; }
+.sidebar-admin .sidebar-sub-item { padding-left: 2.75rem; font-size: .775rem; margin-top: 0; margin-bottom: 0; opacity: .9; }
+.sidebar-admin .sidebar-sub-item .material-symbols-outlined { font-size: 16px; }
 
 /* -- Print Receipt -- */
 .print-receipt { max-width: 420px; margin: 0 auto; }
