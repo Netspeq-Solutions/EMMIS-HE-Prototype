@@ -288,6 +288,7 @@
     var ADMISSION_SCHEDULES = {};
     var editingScheduleSession = null; // year value shown in form
     var editingScheduleKey = null;    // full storage key (collegeId_uniqueId)
+    var scheduleUserEditing = false;   // true only when user explicitly clicked Edit Session
 
     // ============================================================
     // 2. HELPERS
@@ -314,7 +315,7 @@
         var activeSession = null;
         $.each(ADMISSION_SCHEDULES, function(k, s) {
             if (s && s.collegeId === COLLEGE_INFO.id && s.status === 'active') {
-                activeSession = s.session;
+                activeSession = s.session || String(s.year || '');
                 return false; // break
             }
         });
@@ -322,20 +323,44 @@
         // Fall back to most recent merit list session
         var latestSession = null;
         $.each(MERIT_LISTS, function(_, ml) {
-            if (!latestSession || ml.session > latestSession) latestSession = ml.session;
+            if (!latestSession || (ml.session || ml.year || '') > latestSession) latestSession = ml.session || String(ml.year || '');
         });
         if (latestSession) return latestSession;
         // Final fallback
         return COLLEGE_INFO.session || null;
     }
 
+    // Returns the current admission year (integer) for the college
+    function getCurrentAdmissionYear() {
+        var sched = getCollegeSchedule();
+        if (sched && sched.year) return sched.year;
+        return new Date().getFullYear();
+    }
+
+    // Get the one admission schedule for the current college (one per year)
+    function getCollegeSchedule() {
+        var found = null;
+        $.each(ADMISSION_SCHEDULES, function(k, s) {
+            if (s && s.collegeId === COLLEGE_INFO.id) { found = s; found._key = k; return false; }
+        });
+        return found;
+    }
+
+    // Load/save per-year notification (stored separately)
+    function loadNotification(collegeId, year) {
+        var raw = localStorage.getItem('emmis_ca_notification_' + collegeId + '_' + year);
+        if (!raw) return '';
+        try { return JSON.parse(raw).text || ''; } catch(e) { return ''; }
+    }
+    function saveNotification(collegeId, year, text) {
+        localStorage.setItem('emmis_ca_notification_' + collegeId + '_' + year,
+            JSON.stringify({ text: text, updatedAt: new Date().toISOString() }));
+    }
+
     // Returns true if the student's appNo belongs to the current ongoing session.
-    // Students are matched by the start-year embedded in their appNo (e.g. "SK-2026-" → session "2024-25").
     function isStudentCurrentSession(student) {
-        var session = getCurrentAdmissionSession();
-        if (!session) return true; // no session info at all — show everyone
-        var year = session.split('-')[0];
-        if (!year) return true;
+        var year = getCurrentAdmissionYear();
+        if (!year) return true; // no session info at all — show everyone
         return student.appNo.indexOf('-' + year + '-') >= 0;
     }
 
@@ -408,11 +433,37 @@
     }
     function saveMeritLists() { localStorage.setItem('emmis_ca_meritlists', JSON.stringify(MERIT_LISTS)); }
 
+    // ── Counselling Sessions ──────────────────────────────────────
+    var COUNSELLING_SESSIONS = [];
+    function loadCounsellingSessions() {
+        var d = localStorage.getItem('emmis_ca_counselling_sessions');
+        if (d) {
+            try {
+                var parsed = JSON.parse(d);
+                if (Array.isArray(parsed)) COUNSELLING_SESSIONS = parsed;
+            } catch(e) {}
+        }
+    }
+    function saveCounsellingSessions() {
+        localStorage.setItem('emmis_ca_counselling_sessions', JSON.stringify(COUNSELLING_SESSIONS));
+    }
+
     function loadAdmissionSchedules() {
         var d = localStorage.getItem('emmis_ca_admission_schedules');
         if (d) {
             try {
                 ADMISSION_SCHEDULES = JSON.parse(d) || {};
+                // Backward compat: ensure new fields exist
+                $.each(ADMISSION_SCHEDULES, function(k, s) {
+                    if (!s) return;
+                    if (!s.year && s.session) s.year = parseInt(s.session, 10) || new Date().getFullYear();
+                    if (!s.overrides) s.overrides = [];
+                    if (!s.inviteLinks) s.inviteLinks = [];
+                    // Migrate old inviteToken → single invite link entry
+                    if (s.inviteToken && s.inviteLinks.length === 0) {
+                        s.inviteLinks.push({ token: s.inviteToken, label: 'Original invite link', createdAt: s.updatedAt || '', used: false });
+                    }
+                });
             } catch(e) {
                 ADMISSION_SCHEDULES = {};
             }
@@ -451,7 +502,10 @@
         // Trigger section-specific init
         if (sectionId === 'section-ca-dashboard') renderDashboard();
         if (sectionId === 'section-ca-admission-schedule') renderAdmissionScheduleSection();
+        if (sectionId === 'section-ca-prev-schedules') renderPrevSchedulesSection();
         if (sectionId === 'section-ca-merit-manage') renderMeritListDashboard();
+        if (sectionId === 'section-ca-counselling-manage') renderCounsellingDashboard();
+        if (sectionId === 'section-ca-counselling-upload') { var _csYear = new Date().getFullYear(); $('#csActiveYearDisplay').text(_csYear); }
         if (sectionId === 'section-ca-register-search') renderRegisteredList();
         if (sectionId === 'section-ca-all-applications') renderAllApplications();
     }
@@ -564,226 +618,444 @@
         return map;
     }
 
-    function getSelectiveRowHtml(row) {
-        row = row || {};
-        var catalog = getProgramCatalog();
-        var selectedProgram = row.program || '';
-        // Support legacy courseId (string) and new courseIds (array)
-        var selectedCourseIds = row.courseIds || (row.courseId ? [row.courseId] : []);
-        var applyToAll = !!row.applyToAll;
-
-        var programOptions = '<option value="">All Programs</option>';
-        $.each(Object.keys(catalog), function(_, p) {
-            programOptions += '<option value="' + p + '"' + (p === selectedProgram ? ' selected' : '') + '>' + p + '</option>';
-        });
-
-        var courseOptions = '';
-        var courseHint = '<div class="text-on-surface-variant mt-1" style="font-size:.72rem;">Select a program first to pick courses</div>';
-        if (selectedProgram && catalog[selectedProgram]) {
-            courseHint = '';
-            $.each(catalog[selectedProgram], function(_, c) {
-                var isSel = selectedCourseIds.indexOf(c.id) >= 0 ? ' selected' : '';
-                courseOptions += '<option value="' + c.id + '"' + isSel + '>' + c.name + '</option>';
-            });
-        }
-
-        var idx = $('#cfgSelectiveBody .selective-window-card').length + 1;
-        var disabledAttr   = applyToAll ? ' disabled' : '';
-        var wrapStyle      = applyToAll ? ' style="opacity:.45;pointer-events:none;"' : '';
-        var courseDisabled = (applyToAll || !courseOptions) ? ' disabled' : '';
-        var checkId        = 'applyAll_' + idx + '_' + Date.now();
-
-        return '<div class="selective-window-card card rounded-3 border mb-3" data-idx="' + idx + '">' +
-            '<div class="card-header d-flex justify-content-between align-items-center py-2 px-3" style="background:var(--clr-surface-low);">' +
-                '<span class="fw-bold small d-flex align-items-center gap-2">' +
-                    '<span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-secondary);">tune</span>' +
-                    'Override Window #' + idx +
-                '</span>' +
-                '<div class="d-flex align-items-center gap-3">' +
-                    '<div class="form-check form-switch mb-0 d-flex align-items-center gap-2">' +
-                        '<input class="form-check-input selective-apply-all" type="checkbox" role="switch" id="' + checkId + '"' + (applyToAll ? ' checked' : '') + ' style="cursor:pointer;">' +
-                        '<label class="form-check-label small fw-semibold mb-0" for="' + checkId + '" style="cursor:pointer;white-space:nowrap;">All Programs &amp; Courses</label>' +
-                    '</div>' +
-                    '<button class="btn btn-link p-0 text-danger btn-remove-selective-row" title="Remove"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>' +
-                '</div>' +
-            '</div>' +
-            '<div class="card-body p-3">' +
-                '<div class="selective-scope-wrap row g-2"' + wrapStyle + '>' +
-                    '<div class="col-12 col-md-5">' +
-                        '<label class="form-label fw-semibold small mb-1">Program <span class="fw-normal text-on-surface-variant">(blank = all)</span></label>' +
-                        '<select class="form-select form-select-sm selective-program"' + disabledAttr + '>' + programOptions + '</select>' +
-                    '</div>' +
-                    '<div class="col-12 col-md-7">' +
-                        '<label class="form-label fw-semibold small mb-1">Courses <span class="fw-normal text-on-surface-variant">(multi-select; none = all)</span></label>' +
-                        '<select class="form-select selective-course" multiple size="3"' + courseDisabled + '>' + courseOptions + '</select>' +
-                        courseHint +
-                    '</div>' +
-                '</div>' +
-            '</div>' +
-        '</div>';
-    }
-
-    var SELECTIVE_EMPTY_HTML =
-        '<div class="selective-empty-state text-center py-4 rounded-3" style="color:var(--clr-on-tertiary-fixed-var);border:1.5px dashed var(--clr-outline-variant);">' +
-        '<span class="material-symbols-outlined d-block mb-1" style="font-size:32px;opacity:.4;">tune</span>' +
-        '<span class="small fw-medium">No override windows configured. Click <strong>Add Window</strong> to define program-specific dates.</span>' +
-        '</div>';
-
-    function resetScheduleForm() {
-        editingScheduleSession = null;
-        editingScheduleKey = null;
-        $('#cfgSession').prop('disabled', false).val('');
-        $('#cfgAppOpen').val('');
-        $('#cfgAppClose').val('');
-        $('#cfgRegOpen').val('');
-        $('#cfgRegClose').val('');
-        $('#cfgNotification').val('');
-        $('#cfgRestricted').prop('checked', false);
-        $('#cfgAppFee').val('');
-        $('#cfgProspectusName').val('');
-        $('#cfgSelectiveBody').html(SELECTIVE_EMPTY_HTML);
-    }
-
-    function populateScheduleForm(schedule, schedKey) {
-        editingScheduleSession = schedule.session;
-        editingScheduleKey = schedKey || null;
-        $('#cfgSession').val(schedule.session).prop('disabled', true);
-        $('#cfgAppOpen').val(schedule.defaultWindow && schedule.defaultWindow.appOpen || '');
-        $('#cfgAppClose').val(schedule.defaultWindow && schedule.defaultWindow.appClose || '');
-        $('#cfgRegOpen').val(schedule.defaultWindow && schedule.defaultWindow.regOpen || '');
-        $('#cfgRegClose').val(schedule.defaultWindow && schedule.defaultWindow.regClose || '');
-        $('#cfgNotification').val(schedule.notification || '');
-        $('#cfgRestricted').prop('checked', !!schedule.restricted);
-        $('#cfgAppFee').val(schedule.appFee != null ? schedule.appFee : '');
-        $('#cfgProspectusName').val(schedule.prospectusName || '');
-
-        var $body = $('#cfgSelectiveBody').empty();
-        if ((schedule.selectiveWindows || []).length === 0) {
-            $body.html(SELECTIVE_EMPTY_HTML);
-        } else {
-            $.each(schedule.selectiveWindows, function(_, w) {
-                $body.append(getSelectiveRowHtml(w));
-            });
-        }
-    }
-
-    function readSelectiveRows() {
-        var rows = [];
-        $('#cfgSelectiveBody .selective-window-card').each(function() {
-            var $card = $(this);
-            var applyToAll = $card.find('.selective-apply-all').is(':checked');
-            var program    = applyToAll ? '' : ($card.find('.selective-program').val() || '');
-            var courseIds  = applyToAll ? [] : ($card.find('.selective-course').val() || []);
-            if (applyToAll || program || courseIds.length) {
-                rows.push({
-                    applyToAll: applyToAll,
-                    program:    program,
-                    courseIds:  courseIds
-                });
-            }
-        });
-        return rows;
-    }
-
     function generateInviteToken() {
         var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
         var token = '';
-        for (var i = 0; i < 24; i++) {
+        for (var i = 0; i < 32; i++) {
             token += chars.charAt(Math.floor(Math.random() * chars.length));
         }
         return token;
     }
 
-    function renderScheduleCards() {
-        var $wrap = $('#scheduleCards').empty();
-        // Only show schedules belonging to the currently selected college
-        var keys = $.grep(Object.keys(ADMISSION_SCHEDULES).sort().reverse(), function(k) {
-            var s = ADMISSION_SCHEDULES[k];
-            return s && s.collegeId === COLLEGE_INFO.id;
+    // ── Override windows ──
+    function getActiveOverrideEndDate(overrides) {
+        // Returns the common end date of active overrides, or null if none active
+        var today = new Date(); today.setHours(0,0,0,0);
+        var activeDate = null;
+        $.each(overrides || [], function(_, ovr) {
+            if (!ovr.endDate) return;
+            var d = new Date(ovr.endDate + 'T00:00:00');
+            if (d >= today) { activeDate = ovr.endDate; return false; }
         });
-        if (keys.length === 0) {
-            $wrap.html('<div class="col-12"><div class="text-center py-4 text-on-surface-variant">No session schedules configured yet.</div></div>');
+        return activeDate;
+    }
+
+    function renderOverrideList(overrides, schedKey) {
+        var $list = $('#overrideList').empty();
+        var today = new Date(); today.setHours(0,0,0,0);
+        if (!overrides || overrides.length === 0) {
+            $list.html('<div class="text-center py-3 text-on-surface-variant small" style="border:1.5px dashed var(--clr-outline-variant);border-radius:8px;"><span class="material-symbols-outlined d-block mb-1" style="font-size:28px;opacity:.35;">date_range</span>No overrides configured yet.</div>');
             return;
         }
-
-        $.each(keys, function(_, schedKey) {
-            var s = ADMISSION_SCHEDULES[schedKey];
-            var statusColor = s.status === 'active' ? 'var(--clr-primary-container);color:var(--clr-on-primary-container);' :
-                (s.status === 'closed' ? 'rgba(186,26,26,0.1);color:var(--clr-error);' : 'var(--clr-tertiary-container);color:var(--clr-on-tertiary-container);');
-            var selectiveCount = (s.selectiveWindows || []).length;
-            var coverageLabel, coverageHtml;
-
-            if (selectiveCount === 0) {
-                // Default window covers all programs & courses
-                coverageLabel = 'Programs & Courses: All';
-                coverageHtml = '';
-                $.each(COURSES, function(__, c) {
-                    coverageHtml += '<li class="small mb-1"><strong>' + c.name + '</strong></li>';
-                });
-            } else {
-                coverageLabel = 'Selective Windows: ' + selectiveCount;
-                coverageHtml = '';
-                $.each((s.selectiveWindows || []).slice(0, 4), function(__, w) {
-                    var programLabel, courseLabel;
-                    if (w.applyToAll) {
-                        programLabel = 'All Programs';
-                        courseLabel  = 'All Courses';
-                    } else {
-                        programLabel = w.program || 'All Programs';
-                        var ids = w.courseIds || (w.courseId ? [w.courseId] : []);
-                        courseLabel = ids.length
-                            ? $.map(ids, function(cid) { return getCourseName(cid) || cid; }).join(', ')
-                            : 'All Courses';
-                    }
-                    coverageHtml += '<li class="small mb-1"><strong>' + programLabel + '</strong> / ' + courseLabel + '</li>';
-                });
-                if (selectiveCount > 4) {
-                    coverageHtml += '<li class="small text-on-surface-variant">+' + (selectiveCount - 4) + ' more window(s)</li>';
-                }
-            }
-
-            var notifLine = s.notification
-                ? '<p class="small mb-0 mt-1" style="color:var(--clr-primary);"><span class="material-symbols-outlined align-middle" style="font-size:14px;vertical-align:-2px;">campaign</span> ' + $('<span>').text(s.notification).html() + '</p>'
-                : '';
-
-            var inviteBlock = '';
-            if (s.restricted && s.inviteToken) {
-                var inviteUrl = window.location.origin + window.location.pathname.replace(/\/[^/]+$/, '/') + 'index.html?invite=' + s.inviteToken;
-                inviteBlock = '<div class="mt-2 p-2 rounded-3" style="background:rgba(186,26,26,0.05);border:1px solid rgba(186,26,26,0.15);">' +
-                    '<div class="d-flex align-items-center justify-content-between gap-2 mb-1">' +
-                    '<span class="small fw-bold" style="color:var(--clr-error);"><span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">link</span> Shareable Invite Link</span>' +
-                    '<button class="btn btn-sm fw-bold btn-copy-invite d-flex align-items-center gap-1" data-url="' + inviteUrl + '" style="font-size:.7rem;padding:2px 8px;background:rgba(186,26,26,0.1);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);">' +
-                    '<span class="material-symbols-outlined" style="font-size:13px;">content_copy</span>Copy</button>' +
-                    '</div>' +
-                    '<div class="small text-truncate" style="color:var(--clr-on-surface-variant);font-family:monospace;font-size:.7rem;" title="' + inviteUrl + '">' + inviteUrl + '</div>' +
-                    '</div>';
-            }
-
-            $wrap.append(
-                '<div class="col-md-6"><div class="card p-3 rounded-3 h-100">' +
-                '<div class="d-flex justify-content-between align-items-start mb-2">' +
-                '<div><h6 class="fw-bold mb-1">Admission Year ' + s.session + '</h6>' +
-                (s.restricted ? '<span class="badge rounded-pill me-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.7rem;"><span class="material-symbols-outlined" style="font-size:11px;vertical-align:-1px;">lock</span> Restricted – Invite Only</span>' : '') +
-                '<p class="small text-on-surface-variant mb-0">Default Application: ' + ((s.defaultWindow && s.defaultWindow.appOpen) || '—') + ' to ' + ((s.defaultWindow && s.defaultWindow.appClose) || '—') + '</p>' +
-                '<p class="small text-on-surface-variant mb-0">Default Registration: ' + ((s.defaultWindow && s.defaultWindow.regOpen) || '—') + ' to ' + ((s.defaultWindow && s.defaultWindow.regClose) || '—') + '</p>' +
-                notifLine + inviteBlock + '</div>' +
-                '<span class="badge rounded-pill" style="' + statusColor + '">' + (s.status || 'draft').toUpperCase() + '</span>' +
+        $.each(overrides, function(i, ovr) {
+            var d = new Date(ovr.endDate + 'T00:00:00');
+            var isExpired = d < today;
+            var programLabel = ovr.program || 'All Programs';
+            var courseLabel = ovr.courseName || ovr.courseId || 'All Courses';
+            var endFmt = ovr.endDate ? (function(){ var p=ovr.endDate.split('-'); var dt=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2])); return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }()) : '—';
+            $list.append(
+                '<div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-2" style="background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);' + (isExpired ? 'opacity:.55;' : '') + '">' +
+                '<div class="flex-grow-1">' +
+                '<span class="fw-bold small d-block">' + programLabel + ' — ' + courseLabel + '</span>' +
+                '<span class="small text-on-surface-variant">Override closing date: <strong style="color:' + (isExpired ? 'var(--clr-error)' : 'var(--clr-primary)') + ';">' + endFmt + '</strong>' + (isExpired ? ' <span class="badge rounded-pill ms-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.65rem;">Expired</span>' : '') + '</span>' +
                 '</div>' +
-                '<div class="small fw-semibold mb-2">' + coverageLabel + '</div>' +
-                '<ul class="ps-3 mb-3">' + coverageHtml + '</ul>' +
-                '<div class="d-flex gap-2 justify-content-end">' +
-                '<button class="btn btn-sm btn-outline-primary fw-bold btn-edit-schedule" data-key="' + schedKey + '">Edit</button>' +
-                '<button class="btn btn-sm btn-outline-danger fw-bold btn-delete-schedule" data-key="' + schedKey + '">Delete</button>' +
-                '</div></div></div>'
+                '<button class="btn btn-sm btn-link text-danger p-1 btn-delete-override" data-key="' + schedKey + '" data-idx="' + i + '" title="Delete override"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>' +
+                '</div>'
             );
         });
     }
 
+    function renderInviteLinksList(inviteLinks, schedKey) {
+        var $list = $('#inviteLinksList').empty();
+        if (!inviteLinks || inviteLinks.length === 0) {
+            $list.html('<div class="text-center py-3 text-on-surface-variant small" style="border:1.5px dashed rgba(186,26,26,0.25);border-radius:8px;"><span class="material-symbols-outlined d-block mb-1" style="font-size:28px;opacity:.35;">link_off</span>No invite links generated yet.</div>');
+            return;
+        }
+        var baseUrl = window.location.origin + window.location.pathname.replace(/\/[^/]+$/, '/') + 'index.html?invite=';
+        var today = new Date(); today.setHours(0, 0, 0, 0);
+        $.each(inviteLinks, function(i, lnk) {
+            var fullUrl = baseUrl + lnk.token;
+            var createdFmt = lnk.createdAt ? new Date(lnk.createdAt).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '—';
+            var isExpired = lnk.validUntil ? new Date(lnk.validUntil + 'T00:00:00') < today : false;
+            var validUntilHtml = '';
+            if (lnk.validUntil) {
+                var vuFmt = (function(){ var p = lnk.validUntil.split('-'); return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2])).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}); }());
+                validUntilHtml = ' &middot; Valid until: <strong style="color:' + (isExpired ? 'var(--clr-error)' : 'var(--clr-primary)') + ';">' + vuFmt + '</strong>' +
+                    (isExpired ? ' <span class="badge rounded-pill ms-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.65rem;">Expired</span>' : '');
+            }
+            $list.append(
+                '<div class="d-flex align-items-start gap-3 p-3 rounded-3 mb-2" style="' + ((isExpired || lnk.used) ? 'opacity:.65;' : '') + 'background:rgba(186,26,26,0.04);border:1px solid rgba(186,26,26,0.15);">' +
+                '<div class="flex-grow-1 min-width-0">' +
+                (lnk.label ? '<span class="fw-bold small d-block">' + $('<span>').text(lnk.label).html() + '</span>' : '') +
+                '<code class="d-block text-truncate" style="font-size:.7rem;color:var(--clr-on-surface-variant);" title="' + fullUrl + '">' + fullUrl + '</code>' +
+                '<span class="small text-on-surface-variant">Generated: ' + createdFmt + validUntilHtml + (lnk.used ? ' &middot; <span style="color:var(--clr-error);">Used</span>' : '') + '</span>' +
+                '</div>' +
+                '<div class="d-flex flex-column gap-2 flex-shrink-0">' +
+                '<button class="btn btn-sm fw-bold btn-copy-invite d-flex align-items-center gap-1" data-url="' + fullUrl + '" style="font-size:.7rem;padding:4px 10px;background:rgba(186,26,26,0.1);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);"><span class="material-symbols-outlined" style="font-size:13px;">content_copy</span>Copy</button>' +
+                '<button class="btn btn-sm fw-bold btn-delete-invite d-flex align-items-center gap-1" data-key="' + schedKey + '" data-idx="' + i + '" style="font-size:.7rem;padding:4px 10px;background:rgba(186,26,26,0.05);color:var(--clr-error);border:1px solid rgba(186,26,26,0.15);"><span class="material-symbols-outlined" style="font-size:13px;">delete</span>Revoke</button>' +
+                '</div></div>'
+            );
+        });
+    }
+
+    function resetScheduleForm() {
+        scheduleUserEditing = false;
+        editingScheduleSession = null;
+        editingScheduleKey = null;
+        var year = getCurrentAdmissionYear();
+        $('#cfgYearBadge').text(year);
+        $('#cfgAppOpen').val('');
+        $('#cfgAppClose').val('');
+        $('#cfgAppFee').val('');
+        $('#cfgProspectusName').val('');
+    }
+
+    function populateScheduleForm(schedule, schedKey) {
+        editingScheduleSession = schedule.session || String(schedule.year || '');
+        editingScheduleKey = schedKey || null;
+        var year = schedule.year || parseInt(schedule.session, 10) || new Date().getFullYear();
+        $('#cfgYearBadge').text(year);
+        $('#cfgAppOpen').val(schedule.defaultWindow && schedule.defaultWindow.appOpen || '');
+        $('#cfgAppClose').val(schedule.defaultWindow && schedule.defaultWindow.appClose || '');
+        $('#cfgAppFee').val(schedule.appFee != null ? schedule.appFee : '');
+        $('#cfgProspectusName').val(schedule.prospectusName || '');
+    }
+
+    function renderScheduleCards() {
+        var $wrap = $('#scheduleCards').empty();
+        var sched = getCollegeSchedule();
+        if (!sched) {
+            $wrap.html('<div class="text-center py-4 text-on-surface-variant small">No session configured for this year yet. Fill in the form above and save.</div>');
+            return;
+        }
+        var year = sched.year || parseInt(sched.session, 10) || '—';
+        var schedKey = sched._key;
+        var notifText = loadNotification(COLLEGE_INFO.id, year);
+        var overrides = sched.overrides || [];
+        var inviteLinks = sched.inviteLinks || [];
+
+        var html = '<div class="border rounded-3 overflow-hidden">';
+
+        // ─── Session header ───
+        html += '<div class="p-4" style="background:var(--clr-surface-low);">' +
+            '<div class="d-flex justify-content-between align-items-start gap-3">' +
+            '<div>' +
+            '<h6 class="fw-bold mb-1 d-flex align-items-center gap-2">Admission Year ' + year + '</h6>' +
+            '<p class="small text-on-surface-variant mb-1">Application: ' + ((sched.defaultWindow && sched.defaultWindow.appOpen) || '—') + ' &rarr; ' + ((sched.defaultWindow && sched.defaultWindow.appClose) || '—') + '</p>' +
+            (sched.appFee ? '<p class="small text-on-surface-variant mb-0">Fee: \u20b9' + sched.appFee + '</p>' : '<p class="small text-on-surface-variant mb-0">Fee: Free</p>') +
+            (sched.prospectusName ? '<p class="small text-on-surface-variant mb-0 mt-1"><span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">description</span> ' + $('<span>').text(sched.prospectusName).html() + '</p>' : '') +
+            '</div>' +
+            '<div class="d-flex flex-column align-items-end gap-2">' +
+            '<span class="badge rounded-pill fw-bold" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">ACTIVE</span>' +
+            '<div class="d-flex gap-2">' +
+            '<button class="btn btn-sm btn-outline-primary fw-bold btn-edit-schedule d-flex align-items-center gap-1" data-key="' + schedKey + '"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">edit</span>Edit Session</button>' +
+            '<button class="btn btn-sm btn-outline-danger fw-bold btn-delete-schedule d-flex align-items-center gap-1" data-key="' + schedKey + '"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">delete</span>Delete</button>' +
+            '</div></div>' +
+            '</div></div>';
+
+        // ─── Important Notification sub-section ───
+        html += '<div class="p-4 border-top">' +
+            '<div class="d-flex justify-content-between align-items-center mb-1 gap-2">' +
+            '<h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-secondary);">campaign</span>Important Notification / Announcement</h6>' +
+            '<span class="small fw-semibold" id="notifSavedIndicator" style="display:none;color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">check_circle</span> Saved <span id="notifSavedAt"></span></span>' +
+            '</div>' +
+            '<p class="small text-on-surface-variant mb-2">This message appears on the public college listing. Update at any time independently of the session configuration.</p>' +
+            '<textarea class="form-control mb-2" id="cfgNotification" rows="3" placeholder="e.g., Verification of original documents starts from May 12. Bring all originals.">' + $('<span>').text(notifText).html() + '</textarea>' +
+            '<div class="d-flex justify-content-end">' +
+            '<button class="btn btn-outline-secondary btn-sm fw-bold d-flex align-items-center gap-2" id="btnSaveNotification"><span class="material-symbols-outlined" style="font-size:14px;">save</span>Update Notification</button>' +
+            '</div></div>';
+
+        // ─── Application Closing Date Overrides sub-section ───
+        html += '<div class="p-4 border-top">' +
+            '<div class="d-flex justify-content-between align-items-start mb-1 gap-2">' +
+            '<div><h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-tertiary);">date_range</span>Application Closing Date Overrides</h6>' +
+            '<p class="small text-on-surface-variant mt-1 mb-0">Extend the application closing date for specific programs or courses beyond the default.</p></div>' +
+            '<button class="btn btn-outline-primary btn-sm fw-bold flex-shrink-0 d-flex align-items-center gap-1" id="btnShowAddOverride"><span class="material-symbols-outlined" style="font-size:16px;">add</span>Add Override</button>' +
+            '</div>' +
+            '<div id="overrideAddForm" class="p-3 rounded-3 mt-3" style="display:none;background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">' +
+            '<div class="row g-2 align-items-end">' +
+            '<div class="col-md-3"><label class="form-label fw-bold small mb-1">Program</label>' +
+            '<select class="form-select form-select-sm" id="ovrProgram"><option value="">All Programs</option><option value="B.Com">B.Com</option><option value="B.A">B.A</option><option value="B.Sc">B.Sc</option></select></div>' +
+            '<div class="col-md-4"><label class="form-label fw-bold small mb-1">Course <span class="fw-normal text-on-surface-variant">(optional)</span></label>' +
+            '<select class="form-select form-select-sm" id="ovrCourse"><option value="">All Courses in Program</option></select></div>' +
+            '<div class="col-md-3"><label class="form-label fw-bold small mb-1">Override Closing Date *</label>' +
+            '<input type="date" class="form-control form-control-sm" id="ovrEndDate"></div>' +
+            '<div class="col-md-2 d-flex gap-2">' +
+            '<button class="btn btn-primary btn-sm fw-bold flex-grow-1" id="btnSaveOverride">Add</button>' +
+            '<button class="btn btn-surface btn-sm fw-bold" id="btnCancelOverride">\u00d7</button></div>' +
+            '</div><p class="small text-on-surface-variant mt-2 mb-0" id="ovrDateHint"></p>' +
+            '</div>' +
+            '<div id="overrideList" class="mt-3"></div>' +
+            '</div>';
+
+        // ─── Merit Lists summary sub-section ───
+        {
+            var allMl = JSON.parse(localStorage.getItem('emmis_ca_meritlists') || '[]');
+            var collegeMl = $.grep(allMl, function(ml) {
+                var mlYear = ml.year || parseInt(ml.session, 10) || 0;
+                return mlYear === year;
+            });
+            html += '<div class="p-4 border-top">';
+            html += '<div class="d-flex justify-content-between align-items-start mb-2 gap-2">' +
+                '<h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">format_list_numbered</span>Merit Lists — AY ' + year + '</h6>' +
+                '<a href="#" class="btn btn-sm btn-outline-primary fw-bold flex-shrink-0 d-flex align-items-center gap-1 btn-goto-section" data-section="section-ca-merit-manage"><span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span>Manage All</a>' +
+                '</div>';
+            if (collegeMl.length === 0) {
+                html += '<p class="small text-on-surface-variant mb-0">No merit lists uploaded for this session yet. <a href="#" class="fw-semibold btn-goto-section" data-section="section-ca-merit-upload">Upload one now</a>.</p>';
+            } else {
+                // Group by program
+                var mlGroups = {}, mlGroupOrder = [];
+                $.each(collegeMl, function(_, ml) {
+                    var prog = ml.program || 'Other';
+                    if (!mlGroups[prog]) { mlGroups[prog] = []; mlGroupOrder.push(prog); }
+                    mlGroups[prog].push(ml);
+                });
+                html += '<div class="d-flex flex-column gap-3">';
+                $.each(mlGroupOrder, function(_, prog) {
+                    html += '<div>' +
+                        '<div class="d-flex align-items-center gap-2 mb-2">' +
+                        '<span class="material-symbols-outlined" style="font-size:14px;color:var(--clr-primary);">school</span>' +
+                        '<span class="fw-bold text-uppercase" style="font-size:.7rem;letter-spacing:.06em;color:var(--clr-primary);">' + $('<span>').text(prog).html() + '</span>' +
+                        '</div>' +
+                        '<div class="d-flex flex-column gap-2">';
+                    $.each(mlGroups[prog], function(_, ml) {
+                        var total = (ml.entries || []).length;
+                        var published = ml.published;
+                        var admDates = (ml.admissionStart && ml.admissionEnd)
+                            ? (ml.admissionStart + ' – ' + ml.admissionEnd)
+                            : 'Dates not set';
+                        var pubBadge = published
+                            ? '<span class="badge rounded-pill" style="background:rgba(107,217,188,0.25);color:var(--clr-on-primary-container);font-size:.65rem;">Published</span>'
+                            : '<span class="badge rounded-pill" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.65rem;">Draft</span>';
+                        html += '<div class="d-flex justify-content-between align-items-center p-2 px-3 rounded-3" style="background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">' +
+                            '<div class="d-flex align-items-center gap-3 flex-grow-1 min-width-0">' +
+                            '<div class="flex-grow-1 min-width-0">' +
+                            '<span class="fw-semibold small d-block text-truncate">' + $('<span>').text(ml.name).html() + (ml.course ? ' <span class="fw-normal text-on-surface-variant">— ' + $('<span>').text(ml.course).html() + '</span>' : '') + '</span>' +
+                            '<span class="small text-on-surface-variant">Admission: ' + admDates + ' &nbsp;·&nbsp; ' + total + ' entries</span>' +
+                            '</div>' +
+                            pubBadge +
+                            '</div>' +
+                            '<button class="btn btn-sm fw-bold btn-toggle-ml-publish flex-shrink-0 ms-2" data-ml-id="' + ml.id + '" style="font-size:.7rem;padding:2px 10px;' + (published ? 'background:rgba(186,26,26,0.08);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);' : 'background:rgba(0,107,88,0.1);color:var(--clr-primary);border:1px solid rgba(0,107,88,0.2);') + '">' +
+                            '<span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">' + (published ? 'unpublished' : 'publish') + '</span>' +
+                            (published ? 'Unpublish' : 'Publish') + '</button>' +
+                            '</div>';
+                    });
+                    html += '</div></div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+
+        // ─── Counselling Sessions summary sub-section ───
+        {
+            var allCs = JSON.parse(localStorage.getItem('emmis_ca_counselling_sessions') || '[]');
+            var collegeCs = $.grep(allCs, function(cs) {
+                var csYear = cs.year || 0;
+                return csYear === year;
+            });
+            html += '<div class="p-4 border-top">';
+            html += '<div class="d-flex justify-content-between align-items-start mb-2 gap-2">' +
+                '<h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">record_voice_over</span>Counselling — AY ' + year + '</h6>' +
+                '<a href="#" class="btn btn-sm btn-outline-primary fw-bold flex-shrink-0 d-flex align-items-center gap-1 btn-goto-section" data-section="section-ca-counselling-manage"><span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span>Manage All</a>' +
+                '</div>';
+            if (collegeCs.length === 0) {
+                html += '<p class="small text-on-surface-variant mb-0">No counselling sessions for this year. <a href="#" class="fw-semibold btn-goto-section" data-section="section-ca-counselling-upload">Create one now</a>.</p>';
+            } else {
+                html += '<div class="d-flex flex-column gap-2">';
+                $.each(collegeCs, function(_, cs) {
+                    var total = (cs.entries || []).length;
+                    var published = cs.published;
+                    var counselDates = (cs.counsellingStart && cs.counsellingEnd)
+                        ? (cs.counsellingStart + ' – ' + cs.counsellingEnd)
+                        : 'Dates not set';
+                    var pubBadge = published
+                        ? '<span class="badge rounded-pill" style="background:rgba(107,217,188,0.25);color:var(--clr-on-primary-container);font-size:.65rem;">Published</span>'
+                        : '<span class="badge rounded-pill" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.65rem;">Draft</span>';
+                    html += '<div class="d-flex justify-content-between align-items-center p-2 px-3 rounded-3" style="background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">' +
+                        '<div class="d-flex align-items-center gap-3 flex-grow-1 min-width-0">' +
+                        '<div class="flex-grow-1 min-width-0">' +
+                        '<span class="fw-semibold small d-block text-truncate">' + $('<span>').text(cs.name).html() + '</span>' +
+                        '<span class="small text-on-surface-variant">Counselling: ' + counselDates + ' &nbsp;·&nbsp; ' + total + ' entries</span>' +
+                        '</div>' +
+                        pubBadge +
+                        '</div>' +
+                        '<button class="btn btn-sm fw-bold btn-toggle-cs-publish flex-shrink-0 ms-2" data-cs-id="' + cs.id + '" style="font-size:.7rem;padding:2px 10px;' + (published ? 'background:rgba(186,26,26,0.08);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);' : 'background:rgba(0,107,88,0.1);color:var(--clr-primary);border:1px solid rgba(0,107,88,0.2);') + '">' +
+                        '<span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">' + (published ? 'unpublished' : 'publish') + '</span>' +
+                        (published ? 'Unpublish' : 'Publish') + '</button>' +
+                        '</div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+
+        // ─── Invite Links sub-section ───
+        {
+            html += '<div class="p-4 border-top">' +
+                '<div class="d-flex justify-content-between align-items-start mb-1 gap-2">' +
+                '<div><h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-error);">link</span>Invite Links</h6>' +
+                '<p class="small text-on-surface-variant mt-1 mb-0">Generate individual shareable links for invited students. Each link expires on first use or its validity date.</p></div>' +
+                '<button class="btn btn-sm fw-bold flex-shrink-0 d-flex align-items-center gap-1" id="btnShowInviteForm" style="background:rgba(186,26,26,0.1);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);">' +
+                '<span class="material-symbols-outlined" style="font-size:16px;">add_link</span>Generate Link</button>' +
+                '</div>' +
+                '<div id="inviteAddForm" class="p-3 rounded-3 mt-3" style="display:none;background:rgba(186,26,26,0.04);border:1px solid rgba(186,26,26,0.15);">' +
+                '<div class="row g-2 align-items-end">' +
+                '<div class="col-md-5"><label class="form-label fw-bold small mb-1">Label / Student Name <span class="fw-normal text-on-surface-variant">(optional)</span></label>' +
+                '<input type="text" class="form-control form-control-sm" id="inviteLinkLabel" placeholder="e.g., Tenzin Bhutia"></div>' +
+                '<div class="col-md-3"><label class="form-label fw-bold small mb-1">Valid Until <span class="fw-normal text-on-surface-variant">(optional)</span></label>' +
+                '<input type="date" class="form-control form-control-sm" id="inviteLinkValidUntil"></div>' +
+                '<div class="col-md-4 d-flex gap-2 align-items-end">' +
+                '<button class="btn btn-sm fw-bold flex-grow-1" id="btnGenerateInvite" style="background:var(--clr-error);color:#fff;">Generate</button>' +
+                '<button class="btn btn-surface btn-sm fw-bold" id="btnCancelInvite">\u00d7</button>' +
+                '</div></div></div>' +
+                '<div id="inviteLinksList" class="mt-3"></div>' +
+                '</div>';
+        }
+
+        html += '</div>';
+        $wrap.html(html);
+
+        // Populate sub-lists
+        renderOverrideList(overrides, schedKey);
+        renderInviteLinksList(inviteLinks, schedKey);
+    }
+
+    function updateScheduleFormState() {
+        var sched = getCollegeSchedule();
+        var locked = !!sched && !scheduleUserEditing;
+        $('#cfgAppOpen, #cfgAppClose, #cfgAppFee, #btnPickProspectus, #btnClearProspectus').prop('disabled', locked);
+        $('#btnSaveScheduleConfig').prop('disabled', locked);
+        if (locked) {
+            $('#scheduleExistsNotice').show();
+        } else {
+            $('#scheduleExistsNotice').hide();
+        }
+    }
+
     function renderAdmissionScheduleSection() {
-        if (!editingScheduleKey) {
+        scheduleUserEditing = false;
+        var year = getCurrentAdmissionYear();
+        $('#cfgYearBadge').text(year);
+        // Update topbar badge
+        $('#activeAdmYearBadge').text('AY ' + year).css('display', '');
+        var sched = getCollegeSchedule();
+        if (sched && !editingScheduleKey) {
+            populateScheduleForm(sched, sched._key);
+        } else if (!sched && !editingScheduleKey) {
             resetScheduleForm();
         }
         renderScheduleCards();
+        updateScheduleFormState();
+    }
+
+    function renderPrevSchedulesSection() {
+        var currentYear = new Date().getFullYear();
+        var $wrap = $('#prevSchedulesList').empty();
+
+        // Collect all schedules for this college from past years
+        var prevSchedules = [];
+        $.each(ADMISSION_SCHEDULES, function(k, s) {
+            if (!s || s.collegeId !== COLLEGE_INFO.id) return;
+            var yr = s.year || parseInt(s.session, 10) || 0;
+            if (yr < currentYear) prevSchedules.push({ key: k, sched: s, year: yr });
+        });
+        prevSchedules.sort(function(a, b) { return b.year - a.year; });
+
+        if (!prevSchedules.length) {
+            $wrap.html(
+                '<div class="text-center py-5">' +
+                '<span class="material-symbols-outlined d-block mb-2" style="font-size:40px;color:var(--clr-outline);">history</span>' +
+                '<p class="text-on-surface-variant mb-0">No previous year schedules found.</p>' +
+                '</div>'
+            );
+            return;
+        }
+
+        $.each(prevSchedules, function(_, item) {
+            var s = item.sched;
+            var year = item.year;
+            var notif = loadNotification(COLLEGE_INFO.id, year);
+            var overrides = s.overrides || [];
+            var inviteLinks = s.inviteLinks || [];
+
+            // Count merit lists and counselling sessions for this year
+            var mlCount = $.grep(MERIT_LISTS, function(ml) {
+                return (ml.collegeId === COLLEGE_INFO.id) && ((ml.year || parseInt(ml.session, 10) || 0) === year);
+            }).length;
+            var csCount = $.grep(COUNSELLING_SESSIONS, function(cs) {
+                return (cs.collegeId === COLLEGE_INFO.id) && ((cs.year || 0) === year);
+            }).length;
+
+            var appOpen  = (s.defaultWindow && s.defaultWindow.appOpen)  || '—';
+            var appClose = (s.defaultWindow && s.defaultWindow.appClose) || '—';
+
+            var html =
+                '<div class="card mb-4 rounded-3 overflow-hidden">' +
+                // Header
+                '<div class="p-4" style="background:var(--clr-surface-low);">' +
+                '<div class="d-flex flex-wrap justify-content-between align-items-start gap-3">' +
+                '<div>' +
+                '<h5 class="fw-bold mb-1 d-flex align-items-center gap-2">' +
+                '<span class="material-symbols-outlined" style="font-size:20px;color:var(--clr-primary);">history_edu</span>' +
+                'Admission Year ' + year +
+                '</h5>' +
+                '<p class="small text-on-surface-variant mb-0">Application: ' + appOpen + ' &rarr; ' + appClose + '</p>' +
+                (s.appFee ? '<p class="small text-on-surface-variant mb-0">Fee: ₹' + s.appFee + '</p>' : '<p class="small text-on-surface-variant mb-0">Fee: Free</p>') +
+                (s.prospectusName ? '<p class="small text-on-surface-variant mb-0 mt-1"><span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">description</span> ' + $('<span>').text(s.prospectusName).html() + '</p>' : '') +
+                '</div>' +
+                '<span class="badge rounded-pill fw-bold" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">PAST</span>' +
+                '</div>' +
+                '</div>' +
+                // Stats row
+                '<div class="p-4 border-top">' +
+                '<div class="row g-3">' +
+                '<div class="col-6 col-md-3">' +
+                '<div class="p-3 rounded-3 text-center" style="background:var(--clr-surface-low);">' +
+                '<span class="d-block fw-bold fs-5">' + mlCount + '</span>' +
+                '<span class="small text-on-surface-variant">Merit Lists</span>' +
+                '</div></div>' +
+                '<div class="col-6 col-md-3">' +
+                '<div class="p-3 rounded-3 text-center" style="background:var(--clr-surface-low);">' +
+                '<span class="d-block fw-bold fs-5">' + csCount + '</span>' +
+                '<span class="small text-on-surface-variant">Counselling Sessions</span>' +
+                '</div></div>' +
+                '<div class="col-6 col-md-3">' +
+                '<div class="p-3 rounded-3 text-center" style="background:var(--clr-surface-low);">' +
+                '<span class="d-block fw-bold fs-5">' + overrides.length + '</span>' +
+                '<span class="small text-on-surface-variant">Course Overrides</span>' +
+                '</div></div>' +
+                '<div class="col-6 col-md-3">' +
+                '<div class="p-3 rounded-3 text-center" style="background:var(--clr-surface-low);">' +
+                '<span class="d-block fw-bold fs-5">' + inviteLinks.length + '</span>' +
+                '<span class="small text-on-surface-variant">Invite Links</span>' +
+                '</div></div>' +
+                '</div>' +
+                '</div>';
+
+            // Notification (if any)
+            if (notif) {
+                html +=
+                    '<div class="p-4 border-top">' +
+                    '<p class="small fw-bold d-flex align-items-center gap-1 mb-1" style="color:var(--clr-secondary);"><span class="material-symbols-outlined" style="font-size:15px;">campaign</span>Notification</p>' +
+                    '<p class="small text-on-surface-variant mb-0">' + $('<span>').text(notif).html() + '</p>' +
+                    '</div>';
+            }
+
+            // Course overrides (if any)
+            if (overrides.length) {
+                html += '<div class="p-4 border-top"><p class="small fw-bold mb-2">Course-wise Closing Date Overrides</p><div class="d-flex flex-column gap-1">';
+                $.each(overrides, function(_, ovr) {
+                    var label = (ovr.program ? ovr.program + ' ' : '') + (ovr.courseName || ovr.courseId ? '— ' + (ovr.courseName || ovr.courseId) : '');
+                    html += '<span class="small text-on-surface-variant"><span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">date_range</span> ' +
+                        $('<span>').text(label || 'All Courses').html() + ' — Closed: <strong>' + (ovr.endDate || '—') + '</strong></span>';
+                });
+                html += '</div></div>';
+            }
+
+            html += '</div>'; // end card
+            $wrap.append(html);
+        });
     }
 
     // ============================================================
@@ -1036,11 +1308,38 @@
         $('#regRemarksSeat').val(reg.remarksSeat || '');
         $('#regRemarksFee').val(reg.remarksFee || '');
 
-        // Seat allocation tab
+        // Seat allocation tab — build optgroups by student preference
         var $courseSelect = $('#regAllocCourse').empty();
-        $.each(COURSES, function(_, c) {
-            $courseSelect.append('<option value="' + c.id + '"' + (c.id === (reg.allocatedCourse || student.course) ? ' selected' : '') + '>' + c.name + '</option>');
+        var prefCourseIds = [];
+        var prefGroups = [];
+        // Map preference strings to course IDs
+        $.each([student.pref1, student.pref2, student.pref3], function(i, prefName) {
+            if (!prefName) return;
+            var matchId = null;
+            $.each(COURSES, function(_, c) {
+                if (c.name === prefName || c.name.toLowerCase().indexOf(prefName.toLowerCase()) >= 0) {
+                    matchId = c.id; return false;
+                }
+            });
+            if (matchId && $.inArray(matchId, prefCourseIds) < 0) {
+                prefGroups.push({ label: 'Preference ' + (i + 1), courseId: matchId });
+                prefCourseIds.push(matchId);
+            }
         });
+        $.each(prefGroups, function(_, pref) {
+            var $grp = $('<optgroup>').attr('label', pref.label + ' — ' + (getCourseName(pref.courseId) || pref.courseId));
+            $grp.append($('<option>').val(pref.courseId).text(getCourseName(pref.courseId) || pref.courseId));
+            $courseSelect.append($grp);
+        });
+        var otherCourses = $.grep(COURSES, function(c) { return $.inArray(c.id, prefCourseIds) < 0; });
+        if (otherCourses.length) {
+            var $otherGrp = $('<optgroup>').attr('label', 'Other Courses');
+            $.each(otherCourses, function(_, c) { $otherGrp.append($('<option>').val(c.id).text(c.name)); });
+            $courseSelect.append($otherGrp);
+        }
+        // Pre-select allocated course or first pref
+        var preselect = reg.allocatedCourse || (prefCourseIds.length ? prefCourseIds[0] : (COURSES[0] && COURSES[0].id));
+        if (preselect) $courseSelect.val(preselect);
         $('#regRollNo').val(reg.rollNo || generateRollNo());
         $('#regSection').val(reg.section || 'A');
         populateElectives(reg.allocatedCourse || student.course, reg.electives, reg.moocsCourseName);
@@ -1184,7 +1483,10 @@
         var filterProgram = $('#mlFilterProgram').val() || 'all';
 
         var visible = $.grep(MERIT_LISTS, function(ml) {
-            if (filterSession !== 'all' && ml.session !== filterSession) return false;
+            if (filterSession !== 'all') {
+                var mlYear = String(ml.year || ml.session || '');
+                if (mlYear !== filterSession && ml.session !== filterSession) return false;
+            }
             if (filterProgram !== 'all') {
                 if ((ml.program || '') !== filterProgram) return false;
             }
@@ -1198,7 +1500,28 @@
             $container.html('<div class="col-12 text-center py-5 text-on-surface-variant"><p class="fs-5 fw-semibold mb-2">No Merit Lists Found</p><p>' + (MERIT_LISTS.length === 0 ? 'Upload your first merit list to get started.' : 'No lists match the selected filters.') + '</p></div>');
             return;
         }
+
+        // Group by program
+        var groups = {}; // { programLabel: [ml, ...] }
+        var groupOrder = [];
         $.each(visible, function(_, ml) {
+            var prog = ml.program || 'Other';
+            if (!groups[prog]) { groups[prog] = []; groupOrder.push(prog); }
+            groups[prog].push(ml);
+        });
+
+        $.each(groupOrder, function(_, prog) {
+            // Group header
+            $container.append(
+                '<div class="col-12 mt-2 mb-1">' +
+                '<div class="d-flex align-items-center gap-2">' +
+                '<span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-primary);">school</span>' +
+                '<span class="fw-bold text-uppercase" style="font-size:.75rem;letter-spacing:.06em;color:var(--clr-primary);">' + $('<span>').text(prog).html() + '</span>' +
+                '<span class="badge rounded-pill ms-1" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);font-size:.65rem;">' + groups[prog].length + '</span>' +
+                '</div><hr class="mt-1 mb-0" style="border-color:var(--clr-outline-variant);"></div>'
+            );
+
+            $.each(groups[prog], function(_, ml) {
             var total = ml.entries.length;
             var matched = 0, regCount = 0;
             $.each(ml.entries, function(__, entry) {
@@ -1206,22 +1529,28 @@
                 if (REGISTRATIONS[entry.appNo] && REGISTRATIONS[entry.appNo].feeCollected) regCount++;
             });
             var unmatched = total - matched;
-            // Collect unique programs in the list
-            var programs = {};
-            $.each(ml.entries, function(__, e) { programs[e.program] = true; });
-            var progLabel = ml.course ? (ml.program + ' — ' + ml.course) : (ml.program || Object.keys(programs).join(', '));
+            var progLabel = ml.course ? (ml.program + ' — ' + ml.course) : (ml.program || '');
+            var yearLabel = ml.year || ml.session || '—';
+            var admDates = (ml.admissionStart && ml.admissionEnd) ? ('Admission: ' + ml.admissionStart + ' – ' + ml.admissionEnd) : '';
+            var publishedBadge = ml.published ? '<span class="badge rounded-pill px-2 py-1" style="background:rgba(107,217,188,0.25);color:var(--clr-on-primary-container);font-size:.7rem;">Published</span>' :
+                '<span class="badge rounded-pill px-2 py-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.7rem;">Draft</span>';
 
             $container.append(
                 '<div class="col-md-6"><div class="merit-card" data-ml-id="' + ml.id + '">' +
                 '<div class="d-flex justify-content-between align-items-start mb-2">' +
                 '<div>' +
-                '<h5 class="fw-bold mb-1">' + ml.name + '</h5>' +
+                '<h5 class="fw-bold mb-1">' + $('<span>').text(ml.name).html() + '</h5>' +
                 '<p class="small text-on-surface-variant mb-1">' + progLabel + '</p>' +
-                '<p class="small text-on-surface-variant mb-0">' + ml.date + '</p>' +
+                '<p class="small text-on-surface-variant mb-0">Date: ' + ml.date + '</p>' +
+                (admDates ? '<p class="small text-on-surface-variant mb-0">' + admDates + '</p>' : '') +
                 '</div>' +
                 '<div class="d-flex flex-column align-items-end gap-1">' +
                 '<span class="merit-badge" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">' + total + ' Entries</span>' +
-                '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);font-size:.7rem;">' + ml.session + '</span>' +
+                '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);font-size:.7rem;">AY ' + yearLabel + '</span>' +
+                publishedBadge +
+                '<button class="btn btn-sm fw-bold btn-toggle-ml-publish d-flex align-items-center gap-1 mt-1" data-ml-id="' + ml.id + '" style="font-size:.7rem;padding:2px 10px;' + (ml.published ? 'background:rgba(186,26,26,0.08);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);' : 'background:rgba(0,107,88,0.1);color:var(--clr-primary);border:1px solid rgba(0,107,88,0.2);') + '">' +
+                '<span class="material-symbols-outlined" style="font-size:13px;">' + (ml.published ? 'unpublished' : 'publish') + '</span>' +
+                (ml.published ? 'Unpublish' : 'Publish') + '</button>' +
                 '</div>' +
                 '</div>' +
                 '<div class="d-flex gap-3 flex-wrap">' +
@@ -1230,7 +1559,8 @@
                 '<span class="status-pill pending">📋 Registered: ' + regCount + '</span>' +
                 '</div></div></div>'
             );
-        });
+            }); // end groups[prog]
+        }); // end groupOrder
     }
 
     var currentMlEntries = [];
@@ -1299,9 +1629,19 @@
         $('#mlDetailName').text(ml.name);
         $('#mlDetailDate').text(ml.date);
         $('#mlDetailTotal').text(ml.entries.length);
-        $('#mlDetailSession').text(ml.session || '—');
+        $('#mlDetailSession').text(ml.year ? ('AY ' + ml.year) : (ml.session || '—'));
         $('#mlDetailProgram').text(ml.course ? (ml.program + ' — ' + ml.course) : (ml.program || '—'));
         $('#btnDeleteMeritList').data('ml-id', mlId);
+
+        // Set publish toggle button state
+        var $pub = $('#btnToggleMlPublish').data('ml-id', mlId);
+        if (ml.published) {
+            $pub.html('<span class="material-symbols-outlined" style="font-size:16px;">unpublished</span>Unpublish')
+                .css({ background: 'rgba(186,26,26,0.08)', color: 'var(--clr-error)', border: '1px solid rgba(186,26,26,0.2)' });
+        } else {
+            $pub.html('<span class="material-symbols-outlined" style="font-size:16px;">publish</span>Publish')
+                .css({ background: 'rgba(0,107,88,0.1)', color: 'var(--clr-primary)', border: '1px solid rgba(0,107,88,0.2)' });
+        }
 
         // Reset filters
         $('#mlDetailSearch').val('');
@@ -1322,6 +1662,172 @@
 
         renderMlDetailTable();
         showSection('section-ca-merit-detail');
+    }
+
+    // ============================================================
+    // 9b. COUNSELLING SESSIONS DASHBOARD & DETAIL
+    // ============================================================
+
+    function renderCounsellingDashboard() {
+        var filterYear = $('#csFilterSession').val() || 'all';
+
+        // Filter to current college
+        var visible = $.grep(COUNSELLING_SESSIONS, function(cs) {
+            if (COLLEGE_INFO && cs.collegeId && cs.collegeId !== COLLEGE_INFO.id) return false;
+            if (filterYear !== 'all') {
+                var csYear = cs.year || 0;
+                if (String(csYear) !== String(filterYear)) return false;
+            }
+            return true;
+        });
+
+        var $container = $('#counsellingCards').empty();
+        $('#csManageCount').text(visible.length + ' session' + (visible.length !== 1 ? 's' : ''));
+
+        if (visible.length === 0) {
+            $container.append(
+                '<div class="col-12 text-center py-5">' +
+                '<span class="material-symbols-outlined d-block mb-2" style="font-size:48px;color:var(--clr-outline-variant);">groups</span>' +
+                '<p class="text-on-surface-variant fw-semibold mb-1">No counselling sessions found.</p>' +
+                '<a href="#" class="btn btn-primary btn-sm fw-bold btn-goto-section" data-section="section-ca-counselling-upload">Create First Session</a>' +
+                '</div>'
+            );
+            return;
+        }
+
+        $.each(visible, function(_, cs) {
+            var total   = (cs.entries || []).length;
+            var matched = 0, unmatched = 0, regCount = 0;
+            $.each(cs.entries || [], function(_, entry) {
+                var s = getStudentByApp(entry.appNo);
+                if (s) matched++; else unmatched++;
+                if (REGISTRATIONS[entry.appNo] && REGISTRATIONS[entry.appNo].feeCollected) regCount++;
+            });
+            var yearLabel = cs.year ? cs.year + '–' + (cs.year + 1) : '—';
+            var startFmt = cs.counsellingStart ? formatYmdToDisplay(cs.counsellingStart) : 'TBA';
+            var endFmt   = cs.counsellingEnd   ? formatYmdToDisplay(cs.counsellingEnd)   : 'TBA';
+            var counselDates = startFmt + ' – ' + endFmt;
+
+            var publishedBadge = cs.published
+                ? '<span class="badge rounded-pill" style="background:rgba(107,217,188,0.25);color:var(--clr-on-primary-container);font-size:.7rem;">Published</span>'
+                : '<span class="badge rounded-pill" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.7rem;">Draft</span>';
+
+            $container.append(
+                '<div class="col-12 col-md-6 col-xl-4">' +
+                '<div class="card p-4 rounded-3 h-100 cursor-pointer cs-manage-card" data-cs-id="' + cs.id + '" style="cursor:pointer;">' +
+                '<div class="d-flex justify-content-between align-items-start mb-3">' +
+                '<div class="flex-grow-1 me-2">' +
+                '<h6 class="fw-bold mb-1">' + $('<span>').text(cs.name).html() + '</h6>' +
+                '<p class="small text-on-surface-variant mb-0">Counselling: ' + counselDates + '</p>' +
+                '</div>' +
+                '<div class="d-flex flex-column align-items-end gap-1">' +
+                '<span class="merit-badge" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">' + total + ' Entries</span>' +
+                '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);font-size:.7rem;">AY ' + yearLabel + '</span>' +
+                publishedBadge +
+                '<button class="btn btn-sm fw-bold btn-toggle-cs-publish d-flex align-items-center gap-1 mt-1" data-cs-id="' + cs.id + '" style="font-size:.7rem;padding:2px 10px;' + (cs.published ? 'background:rgba(186,26,26,0.08);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);' : 'background:rgba(0,107,88,0.1);color:var(--clr-primary);border:1px solid rgba(0,107,88,0.2);') + '">' +
+                '<span class="material-symbols-outlined" style="font-size:13px;">' + (cs.published ? 'unpublished' : 'publish') + '</span>' +
+                (cs.published ? 'Unpublish' : 'Publish') + '</button>' +
+                '</div></div>' +
+                '<div class="d-flex gap-3 flex-wrap">' +
+                '<span class="status-pill admitted">✓ Matched: ' + matched + '</span>' +
+                (unmatched > 0 ? '<span class="status-pill not-appeared">✗ Not Found: ' + unmatched + '</span>' : '') +
+                '<span class="status-pill pending">📋 Registered: ' + regCount + '</span>' +
+                '</div></div></div>'
+            );
+        });
+    }
+
+    var currentCsEntries = [];
+
+    function renderCsDetailTable() {
+        var q      = ($('#csDetailSearch').val() || '').toLowerCase().trim();
+        var linked = $('#csDetailFilterLinked').val() || 'all';
+
+        var $tbody = $('#csDetailBody').empty();
+        var shown = 0;
+
+        $.each(currentCsEntries, function(rank, entry) {
+            var s = getStudentByApp(entry.appNo);
+            var isMatched = !!s;
+            var isReg = !!(REGISTRATIONS[entry.appNo] && REGISTRATIONS[entry.appNo].feeCollected);
+
+            if (linked === 'linked'     && !isMatched)  return;
+            if (linked === 'notfound'   && isMatched)   return;
+            if (linked === 'registered' && !isReg)      return;
+            if (q) {
+                var name = s ? s.name.toLowerCase() : '';
+                if (entry.appNo.toLowerCase().indexOf(q) < 0 && name.indexOf(q) < 0) return;
+            }
+
+            shown++;
+            var linkedBadge = isMatched
+                ? '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">Matched</span>'
+                : '<span class="badge rounded-pill px-2 py-1" style="background:rgba(186,26,26,0.1);color:var(--clr-error);">Not Found</span>';
+            var regBadge = isReg
+                ? '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-tertiary-container);color:var(--clr-on-tertiary-container);">Registered</span>'
+                : (isMatched ? '<span class="text-on-surface-variant small">—</span>' : '');
+
+            $tbody.append(
+                '<tr' + (!isMatched ? ' style="opacity:0.6;"' : '') + '>' +
+                '<td class="cell-number">' + shown + '</td>' +
+                '<td style="font-family:monospace;" class="fw-semibold">' + $('<span>').text(entry.appNo).html() + '</td>' +
+                '<td>' + (s ? $('<span>').text(s.name).html() : '<span class="text-on-surface-variant">—</span>') + '</td>' +
+                '<td class="cell-number">' + (s && s.marks ? s.marks + '%' : '—') + '</td>' +
+                '<td>' + (s ? (s.program || '—') : '—') + '</td>' +
+                '<td>' + (s ? (s.course || s.appliedCourse || '—') : '—') + '</td>' +
+                '<td>' + linkedBadge + '</td>' +
+                '<td>' + regBadge + '</td>' +
+                '</tr>'
+            );
+        });
+
+        $('#csDetailCount').text(shown + ' of ' + currentCsEntries.length);
+        $('#csDetailEmpty').toggle(shown === 0);
+    }
+
+    function openCounsellingDetail(csId) {
+        var cs = null;
+        $.each(COUNSELLING_SESSIONS, function(_, c) { if (c.id === csId) cs = c; });
+        if (!cs) return;
+
+        currentCsEntries = cs.entries || [];
+
+        $('#csDetailName').text(cs.name);
+        $('#csDetailYear').text(cs.year ? ('AY ' + cs.year) : '—');
+        var startFmt = cs.counsellingStart ? formatYmdToDisplay(cs.counsellingStart) : 'TBA';
+        var endFmt   = cs.counsellingEnd   ? formatYmdToDisplay(cs.counsellingEnd)   : 'TBA';
+        $('#csDetailDates').text(startFmt + ' – ' + endFmt);
+        $('#csDetailTotal').text(currentCsEntries.length);
+        $('#btnDeleteCounselling').data('cs-id', csId);
+
+        // Publish toggle button state
+        var $pub = $('#btnToggleCsPublish').data('cs-id', csId);
+        if (cs.published) {
+            $pub.html('<span class="material-symbols-outlined" style="font-size:16px;">unpublished</span>Unpublish')
+                .css({ background: 'rgba(186,26,26,0.08)', color: 'var(--clr-error)', border: '1px solid rgba(186,26,26,0.2)' });
+        } else {
+            $pub.html('<span class="material-symbols-outlined" style="font-size:16px;">publish</span>Publish')
+                .css({ background: 'rgba(0,107,88,0.1)', color: 'var(--clr-primary)', border: '1px solid rgba(0,107,88,0.2)' });
+        }
+
+        // Reset filters
+        $('#csDetailSearch').val('');
+        $('#csDetailFilterLinked').val('all');
+
+        // Summary stats
+        var matched = 0, unmatched = 0, regCount = 0;
+        $.each(currentCsEntries, function(_, entry) {
+            var s = getStudentByApp(entry.appNo);
+            if (s) matched++; else unmatched++;
+            if (REGISTRATIONS[entry.appNo] && REGISTRATIONS[entry.appNo].feeCollected) regCount++;
+        });
+        $('#csSummaryTotal').text(currentCsEntries.length);
+        $('#csSummaryMatched').text(matched);
+        $('#csSummaryUnmatched').text(unmatched);
+        $('#csSummaryRegistered').text(regCount);
+
+        renderCsDetailTable();
+        showSection('section-ca-counselling-detail');
     }
 
     // ============================================================
@@ -1679,15 +2185,13 @@
         $('#expEstimateCount').text(count + ' record' + (count !== 1 ? 's' : ''));
     }
 
-    function exportAppsCSVFiltered() {
-        var data = applyExportFilters(STUDENTS);
-        if (!data.length) { showToast('No records match the selected filters.', 'warning'); return; }
-
-        // Collect all unique subject names
+    // Builds a SheetJS worksheet from an array of student objects.
+    // Subject columns are scoped to the students in this set.
+    function buildExportSheet(students) {
         var subjectNames = [];
         var subjectIndex = {};
-        $.each(data, function(i, s) {
-            $.each(s.subjects || [], function(j, sub) {
+        $.each(students, function(_, s) {
+            $.each(s.subjects || [], function(_, sub) {
                 if (!subjectIndex.hasOwnProperty(sub.name)) {
                     subjectIndex[sub.name] = subjectNames.length;
                     subjectNames.push(sub.name);
@@ -1697,13 +2201,12 @@
 
         var header = [
             '#', 'Session', 'App No', 'Roll No', 'Name', 'Date of Birth', 'Gender',
-            'Community', 'COI No.', 'PWD',
-            'Mobile', 'Email',
+            'Community', 'COI No.', 'PWD', 'Mobile', 'Email',
             'Father Name', 'Father Contact', 'Mother Name',
             'District', 'State', 'Pincode', 'Permanent Address',
             'Board', 'Stream', 'Aggregate %'
         ];
-        $.each(subjectNames, function(i, name) {
+        $.each(subjectNames, function(_, name) {
             header.push(name + ' (Marks)');
             header.push(name + ' (Max)');
         });
@@ -1713,22 +2216,21 @@
             'Merit Lists', 'Admission Status', 'Recommendation'
         ]);
 
+        var statusLabelMap = {
+            'applied': 'Applied', 'merit-listed': 'Merit Listed',
+            'verified': 'Verified', 'registered': 'Seat Allotted', 'completed': 'Fee Collected'
+        };
+
         var rows = [header];
-        $.each(data, function(idx, s) {
+        $.each(students, function(idx, s) {
             var subMarks = {}, subTotal = {};
-            $.each(s.subjects || [], function(j, sub) { subMarks[sub.name] = sub.marks; subTotal[sub.name] = sub.total; });
+            $.each(s.subjects || [], function(_, sub) { subMarks[sub.name] = sub.marks; subTotal[sub.name] = sub.total; });
 
             var mls = getMeritListsForApp(s.appNo);
             var mlText = mls.length ? $.map(mls, function(m) { return m.name; }).join(' | ') : '';
-
-            var statusLabelMap = {
-                'applied': 'Applied', 'merit-listed': 'Merit Listed',
-                'verified': 'Verified', 'registered': 'Seat Allotted', 'completed': 'Fee Collected'
-            };
-            var appStatus = getStudentAppStatus(s.appNo);
-            var statusLabel = statusLabelMap[appStatus] || 'Applied';
-
+            var statusLabel = statusLabelMap[getStudentAppStatus(s.appNo)] || 'Applied';
             var fee = s.appFee || {};
+
             var row = [
                 idx + 1, getStudentSession(s), s.appNo, s.rollNo || '', s.name, s.dob || '',
                 s.gender, s.community, s.coiNumber || '', s.pwd || '',
@@ -1737,7 +2239,7 @@
                 s.district || '', s.state || '', s.pincode || '', s.permanentAddress || '',
                 s.board, s.stream || '', s.marks
             ];
-            $.each(subjectNames, function(i, name) {
+            $.each(subjectNames, function(_, name) {
                 row.push(subMarks.hasOwnProperty(name) ? subMarks[name] : '');
                 row.push(subTotal.hasOwnProperty(name) ? subTotal[name] : '');
             });
@@ -1750,21 +2252,52 @@
             rows.push(row);
         });
 
+        return XLSX.utils.aoa_to_sheet(rows);
+    }
+
+    function exportAppsCSVFiltered() {
+        var data = applyExportFilters(STUDENTS);
+        if (!data.length) { showToast('No records match the selected filters.', 'warning'); return; }
+
         var f = getExportFilters();
+        // Multi-sheet when no specific course is pinned (All Programs or All Courses)
+        var useMultiSheet = (f.course === 'all');
+
+        var wb = XLSX.utils.book_new();
+
+        if (useMultiSheet) {
+            // Group students by course
+            var groups = {};
+            var groupOrder = [];
+            $.each(data, function(_, s) {
+                var key = s.course || '__unknown__';
+                if (!groups[key]) { groups[key] = []; groupOrder.push(key); }
+                groups[key].push(s);
+            });
+
+            // If more than one course, add an "All" summary sheet first
+            if (groupOrder.length > 1) {
+                XLSX.utils.book_append_sheet(wb, buildExportSheet(data), 'All');
+            }
+
+            // One sheet per course
+            $.each(groupOrder, function(_, courseId) {
+                var courseName = getCourseName(courseId) || courseId;
+                // Excel sheet names: max 31 chars, no special chars
+                var sheetName = courseName.replace(/[:\\\/?*\[\]]/g, '').substring(0, 31);
+                XLSX.utils.book_append_sheet(wb, buildExportSheet(groups[courseId]), sheetName);
+            });
+        } else {
+            XLSX.utils.book_append_sheet(wb, buildExportSheet(data), 'Applications');
+        }
+
         var nameParts = ['applications'];
         if (f.program !== 'all') nameParts.push(f.program);
         if (f.course !== 'all') nameParts.push(getCourseName(f.course));
         if (f.year !== 'all') nameParts.push(f.year);
-        var filename = nameParts.join('_').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '') + '_' + new Date().toISOString().slice(0, 10) + '.csv';
+        var filename = nameParts.join('_').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '') + '_' + new Date().toISOString().slice(0, 10) + '.xlsx';
 
-        var csv = rows.map(function(r) {
-            return r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
-        }).join('\r\n');
-
-        var a = document.createElement('a');
-        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-        a.download = filename;
-        a.click();
+        XLSX.writeFile(wb, filename);
     }
 
     // ============================================================
@@ -1799,55 +2332,9 @@
             showSection('section-ca-merit-upload');
         });
 
-        // Admission schedule: add selective row
-        $(document).on('click', '#btnAddSelectiveWindow', function () {
-            $('#cfgSelectiveBody .selective-empty-state').remove();
-            $('#cfgSelectiveBody').append(getSelectiveRowHtml());
-        });
+        // (Legacy selective window handlers removed — replaced by Override Windows system)
 
-        // Admission schedule: remove selective row
-        $(document).on('click', '.btn-remove-selective-row', function () {
-            $(this).closest('.selective-window-card').remove();
-            if ($('#cfgSelectiveBody .selective-window-card').length === 0) {
-                $('#cfgSelectiveBody').html(SELECTIVE_EMPTY_HTML);
-            }
-        });
-
-        // Admission schedule: when program changes, refresh multi-select course options
-        $(document).on('change', '.selective-program', function () {
-            var catalog = getProgramCatalog();
-            var program = $(this).val();
-            var $card = $(this).closest('.selective-window-card');
-            var $course = $card.find('.selective-course');
-            $course.empty();
-            if (program && catalog[program]) {
-                $.each(catalog[program], function(_, c) {
-                    $course.append('<option value="' + c.id + '">' + c.name + '</option>');
-                });
-                $course.prop('disabled', false);
-                $card.find('.selective-scope-wrap .text-on-surface-variant').remove();
-            } else {
-                $course.prop('disabled', true);
-            }
-        });
-
-        // Admission schedule: toggle All Programs & Courses switch
-        $(document).on('change', '.selective-apply-all', function () {
-            var $card   = $(this).closest('.selective-window-card');
-            var checked = $(this).is(':checked');
-            var $wrap   = $card.find('.selective-scope-wrap');
-            if (checked) {
-                $wrap.css({ opacity: '0.45', 'pointer-events': 'none' });
-                $card.find('.selective-program, .selective-course').prop('disabled', true);
-            } else {
-                $wrap.css({ opacity: '', 'pointer-events': '' });
-                $card.find('.selective-program').prop('disabled', false);
-                // Only re-enable course select if a program is already chosen
-                if ($card.find('.selective-program').val()) {
-                    $card.find('.selective-course').prop('disabled', false);
-                }
-            }
-        });
+        // Admission schedule: cascade program → course for selective program change (legacy selective rows removed)
 
         // Admission schedule: reset form
         $(document).on('click', '#btnResetScheduleConfig', function () {
@@ -1879,51 +2366,50 @@
 
         // Admission schedule: save config
         $(document).on('click', '#btnSaveScheduleConfig', function () {
-            var session = ($('#cfgSession').val() || '').trim();
-            if (!session) {
-                showToast('Admission Year is required', 'warning');
-                return;
-            }
-
+            var year = new Date().getFullYear();
+            var schedKey = String(COLLEGE_INFO.id) + '_' + year;
+            var existing = ADMISSION_SCHEDULES[schedKey] || {};
             var cfg = {
-                session: session,
                 collegeId: COLLEGE_INFO.id,
+                year: year,
                 status: 'active',
-                notification: ($('#cfgNotification').val() || '').trim(),
-                restricted: $('#cfgRestricted').is(':checked'),
                 appFee: parseFloat($('#cfgAppFee').val()) || 0,
                 prospectusName: ($('#cfgProspectusName').val() || '').trim(),
                 defaultWindow: {
                     appOpen: $('#cfgAppOpen').val() || '',
-                    appClose: $('#cfgAppClose').val() || '',
-                    regOpen: $('#cfgRegOpen').val() || '',
-                    regClose: $('#cfgRegClose').val() || ''
+                    appClose: $('#cfgAppClose').val() || ''
                 },
-                selectiveWindows: readSelectiveRows(),
+                overrides: existing.overrides || [],
+                inviteLinks: existing.inviteLinks || [],
                 updatedAt: new Date().toISOString()
             };
-
-            // For edits: reuse the existing key. For new schedules: generate a unique key.
-            var schedKey = editingScheduleKey || (COLLEGE_INFO.id + '_' + Date.now());
-            // Preserve existing inviteToken if already generated
-            var existing = ADMISSION_SCHEDULES[schedKey];
-            if (cfg.restricted) {
-                cfg.inviteToken = (existing && existing.inviteToken) || generateInviteToken();
-            } else {
-                cfg.inviteToken = '';
-            }
             ADMISSION_SCHEDULES[schedKey] = cfg;
             saveAdmissionSchedules();
+            scheduleUserEditing = false;
+            editingScheduleKey = schedKey;
             renderScheduleCards();
-            resetScheduleForm();
-            showToast('Admission schedule saved successfully');
+            updateScheduleFormState();
+            showToast('Session configuration saved');
+        });
+
+        // Save notification independently
+        $(document).on('click', '#btnSaveNotification', function () {
+            var year = new Date().getFullYear();
+            var text = ($('#cfgNotification').val() || '').trim();
+            saveNotification(COLLEGE_INFO.id, year, text);
+            var timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            $('#notifSavedAt').text(timeStr);
+            $('#notifSavedIndicator').show();
+            showToast('Notification updated');
         });
 
         // Admission schedule: edit
         $(document).on('click', '.btn-edit-schedule', function () {
             var key = $(this).data('key');
             if (!ADMISSION_SCHEDULES[key]) return;
+            scheduleUserEditing = true;
             populateScheduleForm(ADMISSION_SCHEDULES[key], key);
+            updateScheduleFormState();
             $('html, body').scrollTop(0);
         });
 
@@ -1931,13 +2417,151 @@
         $(document).on('click', '.btn-delete-schedule', function () {
             var key = $(this).data('key');
             if (!ADMISSION_SCHEDULES[key]) return;
-            var session = ADMISSION_SCHEDULES[key].session;
-            if (!confirm('Delete schedule for Admission Year ' + session + '?')) return;
+            var yr = ADMISSION_SCHEDULES[key].year || ADMISSION_SCHEDULES[key].session;
+            if (!confirm('Delete schedule for Admission Year ' + yr + '?')) return;
             delete ADMISSION_SCHEDULES[key];
-            if (editingScheduleKey === key) resetScheduleForm();
+            if (editingScheduleKey === key) { editingScheduleKey = null; }
             saveAdmissionSchedules();
-            renderScheduleCards();
+            renderAdmissionScheduleSection();
             showToast('Session schedule deleted', 'warning');
+        });
+
+        // ── Override windows ──
+
+        // Show/hide override form
+        $(document).on('click', '#btnShowAddOverride', function () {
+            var $form = $('#overrideAddForm');
+            $form.toggle();
+            if ($form.is(':visible')) {
+                // Pre-fill date hint
+                var sched = getCollegeSchedule();
+                var minDate = sched && sched.defaultWindow && sched.defaultWindow.appClose ? sched.defaultWindow.appClose : '';
+                if (minDate) {
+                    $('#ovrEndDate').attr('min', minDate);
+                    var activeDate = getActiveOverrideEndDate(sched ? sched.overrides : []);
+                    if (activeDate) {
+                        $('#ovrEndDate').val(activeDate);
+                        $('#ovrDateHint').text('Active overrides exist — new override end date must match: ' + activeDate + '.');
+                        $('#ovrEndDate').prop('readonly', true);
+                    } else {
+                        $('#ovrEndDate').val('').prop('readonly', false);
+                        $('#ovrDateHint').text('Override end date must be on or after default closing date (' + minDate + ').');
+                    }
+                }
+            }
+        });
+        $(document).on('click', '#btnCancelOverride', function () {
+            $('#overrideAddForm').hide();
+        });
+
+        // Cascade program → course in override form
+        $(document).on('change', '#ovrProgram', function () {
+            var program = $(this).val();
+            var $course = $('#ovrCourse').empty().append('<option value="">All Courses in Program</option>');
+            if (program) {
+                $.each(COURSES, function(_, c) {
+                    if (c.name.indexOf(program) >= 0 || (program === 'B.Com' && c.id === 'bcom') ||
+                        (program === 'B.A' && (c.id === 'ba-polsci' || c.id === 'ba-eng')) ||
+                        (program === 'B.Sc' && c.id === 'bsc-phy')) {
+                        $course.append('<option value="' + c.id + '">' + c.name + '</option>');
+                    }
+                });
+            }
+        });
+
+        // Save override
+        $(document).on('click', '#btnSaveOverride', function () {
+            var schedKey = editingScheduleKey;
+            if (!schedKey) { showToast('Save the session configuration first before adding overrides.', 'warning'); return; }
+            var sched = ADMISSION_SCHEDULES[schedKey];
+            if (!sched) return;
+
+            var program = $('#ovrProgram').val();
+            var courseId = $('#ovrCourse').val();
+            var endDate = $('#ovrEndDate').val();
+            if (!endDate) { showToast('Override closing date is required.', 'warning'); return; }
+
+            var minDate = sched.defaultWindow && sched.defaultWindow.appClose;
+            if (minDate && endDate < minDate) {
+                showToast('Override end date cannot be before the default closing date (' + minDate + ').', 'warning'); return;
+            }
+
+            var activeDate = getActiveOverrideEndDate(sched.overrides || []);
+            if (activeDate && endDate !== activeDate) {
+                showToast('Active overrides exist. New override end date must match: ' + activeDate + '.', 'warning'); return;
+            }
+
+            var courseName = courseId ? (getCourseName(courseId) || courseId) : '';
+            var newOvr = {
+                id: 'OVR-' + Date.now(),
+                program: program || '',
+                courseId: courseId || '',
+                courseName: courseName,
+                endDate: endDate,
+                createdAt: new Date().toISOString()
+            };
+
+            sched.overrides = sched.overrides || [];
+            sched.overrides.push(newOvr);
+            sched.updatedAt = new Date().toISOString();
+            saveAdmissionSchedules();
+            renderOverrideList(sched.overrides, schedKey);
+            renderScheduleCards();
+            $('#overrideAddForm').hide();
+            showToast('Override window added');
+        });
+
+        // Delete override
+        $(document).on('click', '.btn-delete-override', function () {
+            var key = $(this).data('key');
+            var idx = parseInt($(this).data('idx'), 10);
+            var sched = ADMISSION_SCHEDULES[key];
+            if (!sched || !sched.overrides) return;
+            sched.overrides.splice(idx, 1);
+            sched.updatedAt = new Date().toISOString();
+            saveAdmissionSchedules();
+            renderOverrideList(sched.overrides, key);
+            renderScheduleCards();
+            showToast('Override removed', 'warning');
+        });
+
+        // ── Invite links ──
+
+        $(document).on('click', '#btnShowInviteForm', function () {
+            $('#inviteAddForm').toggle();
+            if ($('#inviteAddForm').is(':visible')) $('#inviteLinkLabel').focus();
+        });
+        $(document).on('click', '#btnCancelInvite', function () {
+            $('#inviteAddForm').hide();
+        });
+
+        $(document).on('click', '#btnGenerateInvite', function () {
+            var schedKey = editingScheduleKey;
+            if (!schedKey) { showToast('Save the session configuration first.', 'warning'); return; }
+            var sched = ADMISSION_SCHEDULES[schedKey];
+            if (!sched) return;
+            var label = ($('#inviteLinkLabel').val() || '').trim();
+            var validUntil = ($('#inviteLinkValidUntil').val() || '').trim();
+            var lnk = { token: generateInviteToken(), label: label, validUntil: validUntil, createdAt: new Date().toISOString(), used: false };
+            sched.inviteLinks = sched.inviteLinks || [];
+            sched.inviteLinks.push(lnk);
+            saveAdmissionSchedules();
+            renderInviteLinksList(sched.inviteLinks, schedKey);
+            $('#inviteLinkLabel').val('');
+            $('#inviteLinkValidUntil').val('');
+            $('#inviteAddForm').hide();
+            showToast('Invite link generated');
+        });
+
+        $(document).on('click', '.btn-delete-invite', function () {
+            var key = $(this).data('key');
+            var idx = parseInt($(this).data('idx'), 10);
+            var sched = ADMISSION_SCHEDULES[key];
+            if (!sched || !sched.inviteLinks) return;
+            sched.inviteLinks.splice(idx, 1);
+            saveAdmissionSchedules();
+            renderInviteLinksList(sched.inviteLinks, key);
+            showToast('Invite link revoked', 'warning');
         });
 
         // Copy invite link
@@ -2180,6 +2804,13 @@
             showSection('section-ca-merit-manage');
         });
 
+        // Goto-section shortcut links (used inside Configured Session merit list summary)
+        $(document).on('click', '.btn-goto-section', function (e) {
+            e.preventDefault();
+            var target = $(this).data('section');
+            if (target) showSection(target);
+        });
+
         // Delete merit list
         $(document).on('click', '#btnDeleteMeritList', function () {
             var mlId = $(this).data('ml-id');
@@ -2188,6 +2819,42 @@
             saveMeritLists();
             showToast('Merit list deleted', 'warning');
             showSection('section-ca-merit-manage');
+        });
+
+        // Publish / Unpublish from detail page
+        $(document).on('click', '#btnToggleMlPublish', function () {
+            var mlId = $(this).data('ml-id');
+            var ml = null;
+            $.each(MERIT_LISTS, function(_, m) { if (m.id === mlId) { ml = m; return false; } });
+            if (!ml) return;
+            ml.published = !ml.published;
+            saveMeritLists();
+            // Refresh button state
+            var $pub = $(this);
+            if (ml.published) {
+                $pub.html('<span class="material-symbols-outlined" style="font-size:16px;">unpublished</span>Unpublish')
+                    .css({ background: 'rgba(186,26,26,0.08)', color: 'var(--clr-error)', border: '1px solid rgba(186,26,26,0.2)' });
+                showToast('Merit list published');
+            } else {
+                $pub.html('<span class="material-symbols-outlined" style="font-size:16px;">publish</span>Publish')
+                    .css({ background: 'rgba(0,107,88,0.1)', color: 'var(--clr-primary)', border: '1px solid rgba(0,107,88,0.2)' });
+                showToast('Merit list unpublished', 'warning');
+            }
+        });
+
+        // Publish / Unpublish from manage cards or Configured Session (stop propagation so card click doesn't fire)
+        $(document).on('click', '.btn-toggle-ml-publish', function (e) {
+            e.stopPropagation();
+            var mlId = $(this).data('ml-id');
+            var ml = null;
+            $.each(MERIT_LISTS, function(_, m) { if (m.id === mlId) { ml = m; return false; } });
+            if (!ml) return;
+            ml.published = !ml.published;
+            saveMeritLists();
+            // Refresh whichever views are visible
+            renderMeritListDashboard();
+            renderScheduleCards();
+            showToast(ml.published ? 'Merit list published' : 'Merit list unpublished', ml.published ? 'success' : 'warning');
         });
 
         // Cascade: program → course for merit upload
@@ -2247,99 +2914,263 @@
         }
 
         // File upload handler
-        $(document).on('change', '#mlFileInput', function (e) {
-            var file = e.target.files[0];
-            if (!file) return;
-            if (file.size > 5 * 1024 * 1024) { showToast('File exceeds 5 MB limit', 'warning'); return; }
-
-            // Update drop zone UI
-            $('#mlDropIcon').text('description');
-            $('#mlDropLabel').text(file.name);
-            $('#mlDropHint').text((file.size / 1024).toFixed(1) + ' KB');
-
-            var reader = new FileReader();
-            reader.onload = function (evt) {
-                try {
-                    var wb = XLSX.read(evt.target.result, { type: 'array' });
-                    var ws = wb.Sheets[wb.SheetNames[0]];
-                    var data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-                    // Skip header row if first cell looks like a header
-                    var firstCell = String(data[0] && data[0][0] || '').toLowerCase();
-                    if (firstCell.indexOf('application') >= 0 || firstCell.indexOf('app') >= 0 || firstCell === 'sl' || firstCell === '#' || firstCell === 'sno') {
-                        data.shift();
-                    }
-                    processUploadedRows(data);
-                } catch (err) {
-                    showToast('Could not read file. Check format.', 'warning');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        });
-
-        // Drag & drop
-        $(document).on('dragover', '#mlDropZone', function(e) { e.preventDefault(); $(this).css('border-color', 'var(--clr-primary)'); });
-        $(document).on('dragleave', '#mlDropZone', function() { $(this).css('border-color', ''); });
-        $(document).on('drop', '#mlDropZone', function(e) {
-            e.preventDefault();
-            $(this).css('border-color', '');
-            var files = e.originalEvent.dataTransfer.files;
-            if (files.length) { $('#mlFileInput')[0].files = files; $('#mlFileInput').trigger('change'); }
-        });
-
-        // Download template
-        $(document).on('click', '#btnDownloadTemplate', function(e) {
-            e.preventDefault();
-            var wsData = [
-                ['Application ID'],
-                ['SK-2026-1003'],
-                ['SK-2026-1001'],
-                ['SK-2026-1007']
-            ];
-            var ws = XLSX.utils.aoa_to_sheet(wsData);
-            ws['!cols'] = [{ wch: 20 }];
-            var wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Merit List');
-            XLSX.writeFile(wb, 'merit_list_template.xlsx');
-        });
-
-        // Manual validate (fallback, hidden by default)
-        $(document).on('click', '#btnValidateMerit', function () {
-            if (pendingEntries.length === 0) { showToast('Please upload a file first', 'warning'); return; }
-        });
-
-        // Create merit list (after validation)
-        $(document).on('click', '#btnUploadMerit', function () {
-            var name = $('#mlUploadName').val().trim();
-            var session = $('#mlUploadSession').val() || '2026-27';
-            var date = $('#mlUploadDate').val();
+        // Parse & Preview pasted application IDs
+        $(document).on('click', '#btnPreviewMerit', function () {
+            var raw = $('#mlPasteIds').val() || '';
+            if (!raw.trim()) { showToast('Please paste some application IDs first.', 'warning'); return; }
             var program = $('#mlUploadProgram').val() || '';
-            var course = $('#mlUploadCourse').val() || '';
-            if (!name) { showToast('Please enter a merit list name', 'warning'); return; }
-            if (!date) { showToast('Please select a date', 'warning'); return; }
-            if (!program) { showToast('Please select a program', 'warning'); return; }
-            if (!course) { showToast('Please select a course', 'warning'); return; }
-            if (pendingEntries.length === 0) { showToast('No entries to upload', 'warning'); return; }
+            var course  = $('#mlUploadCourse').val() || '';
+            if (!program) { showToast('Please select a program first.', 'warning'); return; }
+            if (!course)  { showToast('Please select a course first.', 'warning'); return; }
+
+            // Parse: split by newlines and/or commas, trim, deduplicate
+            var ids = [];
+            var seen = {};
+            $.each(raw.split(/[\n,]+/), function(_, part) {
+                var id = part.trim();
+                if (id && !seen[id]) { seen[id] = true; ids.push(id); }
+            });
+
+            // Match against STUDENTS
+            var matched = 0, unmatched = 0;
+            pendingEntries = [];
+            var $tbody = $('#mlPreviewBody').empty();
+            $.each(ids, function(i, id) {
+                var student = null;
+                $.each(STUDENTS, function(_, s) {
+                    if (s.appNo === id) { student = s; return false; }
+                });
+                if (student) {
+                    matched++;
+                    pendingEntries.push({ appNo: id });
+                    $tbody.append('<tr><td>' + (i + 1) + '</td><td><code>' + id + '</code></td><td>' + $('<span>').text(student.name).html() + '</td><td>' + (student.marks || '—') + '</td><td><span class="badge rounded-pill" style="background:rgba(107,217,188,0.2);color:var(--clr-on-primary-container);">Matched</span></td></tr>');
+                } else {
+                    unmatched++;
+                    $tbody.append('<tr><td>' + (i + 1) + '</td><td><code>' + id + '</code></td><td class="text-on-surface-variant">Not found</td><td>—</td><td><span class="badge rounded-pill" style="background:rgba(186,26,26,0.1);color:var(--clr-error);">Not Found</span></td></tr>');
+                }
+            });
+
+            $('#mlPreviewMatchCount').text(matched + ' matched');
+            $('#mlPreviewUnmatchCount').text(unmatched);
+            $('#mlPreviewUnmatchBadge').toggle(unmatched > 0);
+            $('#mlPreviewArea').show();
+            if (matched > 0) $('#btnUploadMerit').show();
+            else $('#btnUploadMerit').hide();
+        });
+
+        // Save merit list
+        $(document).on('click', '#btnUploadMerit', function () {
+            var name       = ($('#mlUploadName').val() || '').trim();
+            var date       = $('#mlUploadDate').val();
+            var admStart   = $('#mlAdmStart').val();
+            var admEnd     = $('#mlAdmEnd').val();
+            var published  = $('#mlPublished').is(':checked');
+            var program    = $('#mlUploadProgram').val() || '';
+            var course     = $('#mlUploadCourse').val() || '';
+            var year       = new Date().getFullYear();
+
+            if (!name)     { showToast('Please enter a merit list name.', 'warning'); return; }
+            if (!date)     { showToast('Please select a publication date.', 'warning'); return; }
+            if (!admStart) { showToast('Please enter admission start date.', 'warning'); return; }
+            if (!admEnd)   { showToast('Please enter admission end date.', 'warning'); return; }
+            if (!program)  { showToast('Please select a program.', 'warning'); return; }
+            if (!course)   { showToast('Please select a course.', 'warning'); return; }
+            if (pendingEntries.length === 0) { showToast('No entries to save. Parse & Preview first.', 'warning'); return; }
 
             var newId = 'ML-' + (MERIT_LISTS.length + 1).toString().padStart(3, '0');
-            MERIT_LISTS.push({ id: newId, name: name, date: date, session: session, program: program, course: course, entries: pendingEntries });
+            MERIT_LISTS.push({
+                id: newId, name: name, date: date,
+                admissionStart: admStart, admissionEnd: admEnd,
+                year: year, published: published,
+                program: program, course: course,
+                entries: pendingEntries
+            });
             saveMeritLists();
 
             // Reset form
             $('#mlUploadName').val('');
-            $('#mlUploadSession').val('2026-27');
             $('#mlUploadDate').val('');
+            $('#mlAdmStart').val('');
+            $('#mlAdmEnd').val('');
+            $('#mlPublished').prop('checked', false);
             $('#mlUploadProgram').val('');
             $('#mlUploadCourse').prop('disabled', true).html('<option value="">— Select Program First —</option>');
-            $('#mlFileInput').val('');
-            $('#mlDropIcon').text('cloud_upload');
-            $('#mlDropLabel').text('Click to upload or drag & drop');
-            $('#mlDropHint').text('.xlsx, .xls, .csv — Max 5 MB');
+            $('#mlPasteIds').val('');
             $('#mlPreviewArea').hide();
             $('#btnUploadMerit').hide();
             pendingEntries = [];
 
-            showToast('Merit list created successfully!');
+            showToast('Merit list saved successfully!');
             showSection('section-ca-merit-manage');
+        });
+
+        // Cancel merit upload
+        $(document).on('click', '#btnCancelMeritUpload', function () {
+            showSection('section-ca-merit-manage');
+        });
+
+        // ── Counselling Section Events ────────────────────────────
+
+        // Section nav: show manage when entering it
+        $(document).on('click', '.sidebar-nav-item[data-section="section-ca-counselling-manage"]', function () {
+            renderCounsellingDashboard();
+        });
+
+        // Filter change
+        $(document).on('change', '#csFilterSession', function () { renderCounsellingDashboard(); });
+
+        // Counselling card click → detail
+        $(document).on('click', '.cs-manage-card', function (e) {
+            if ($(e.target).closest('.btn-toggle-cs-publish').length) return;
+            var csId = $(this).data('cs-id');
+            openCounsellingDetail(csId);
+        });
+
+        // Preview counselling IDs
+        var pendingCsEntries = [];
+        $(document).on('click', '#btnPreviewCounselling', function () {
+            var raw = $('#csPasteIds').val() || '';
+            if (!raw.trim()) { showToast('Please paste some application IDs first.', 'warning'); return; }
+
+            var ids = [];
+            var seen = {};
+            $.each(raw.split(/[\n,]+/), function(_, part) {
+                var id = part.trim();
+                if (id && !seen[id]) { seen[id] = true; ids.push(id); }
+            });
+
+            var matched = 0, unmatched = 0;
+            pendingCsEntries = [];
+            var $tbody = $('#csPreviewBody').empty();
+            $.each(ids, function(i, id) {
+                var student = null;
+                $.each(STUDENTS, function(_, s) { if (s.appNo === id) { student = s; return false; } });
+                if (student) {
+                    matched++;
+                    pendingCsEntries.push({ appNo: id });
+                    $tbody.append('<tr><td>' + (i + 1) + '</td><td><code>' + $('<span>').text(id).html() + '</code></td><td>' + $('<span>').text(student.name).html() + '</td><td>' + (student.marks || '—') + '</td><td><span class="badge rounded-pill" style="background:rgba(107,217,188,0.2);color:var(--clr-on-primary-container);">Matched</span></td></tr>');
+                } else {
+                    unmatched++;
+                    pendingCsEntries.push({ appNo: id });
+                    $tbody.append('<tr style="opacity:0.6;"><td>' + (i + 1) + '</td><td><code>' + $('<span>').text(id).html() + '</code></td><td class="text-on-surface-variant">Not found</td><td>—</td><td><span class="badge rounded-pill" style="background:rgba(186,26,26,0.1);color:var(--clr-error);">Not Found</span></td></tr>');
+                }
+            });
+
+            $('#csPreviewMatchCount').text(matched + ' matched');
+            $('#csPreviewUnmatchCount').text(unmatched);
+            $('#csPreviewUnmatchBadge').toggle(unmatched > 0);
+            $('#csPreviewArea').show();
+            if (matched > 0) $('#btnSaveCounselling').show();
+            else $('#btnSaveCounselling').hide();
+        });
+
+        // Save counselling session
+        $(document).on('click', '#btnSaveCounselling', function () {
+            var name            = ($('#csUploadName').val() || '').trim();
+            var date            = $('#csUploadDate').val();
+            var counselStart    = $('#csCounsellingStart').val();
+            var counselEnd      = $('#csCounsellingEnd').val();
+            var published       = $('#csPublished').is(':checked');
+            var year            = new Date().getFullYear();
+
+            if (!name)         { showToast('Please enter a session name.', 'warning'); return; }
+            if (!date)         { showToast('Please select a publication date.', 'warning'); return; }
+            if (!counselStart) { showToast('Please enter counselling start date.', 'warning'); return; }
+            if (!counselEnd)   { showToast('Please enter counselling end date.', 'warning'); return; }
+            if (pendingCsEntries.length === 0) { showToast('No entries to save. Preview first.', 'warning'); return; }
+
+            var newId = 'CS-' + (COUNSELLING_SESSIONS.length + 1).toString().padStart(3, '0');
+            COUNSELLING_SESSIONS.push({
+                id: newId,
+                name: name,
+                date: date,
+                counsellingStart: counselStart,
+                counsellingEnd: counselEnd,
+                year: year,
+                published: published,
+                collegeId: COLLEGE_INFO ? COLLEGE_INFO.id : null,
+                entries: pendingCsEntries.slice()
+            });
+            saveCounsellingSessions();
+
+            // Reset form
+            $('#csUploadName').val('');
+            $('#csUploadDate').val('');
+            $('#csCounsellingStart').val('');
+            $('#csCounsellingEnd').val('');
+            $('#csPublished').prop('checked', false);
+            $('#csPasteIds').val('');
+            $('#csPreviewArea').hide();
+            $('#btnSaveCounselling').hide();
+            pendingCsEntries = [];
+
+            showToast('Counselling session saved successfully!');
+            renderCounsellingDashboard();
+            showSection('section-ca-counselling-manage');
+        });
+
+        // Cancel counselling upload
+        $(document).on('click', '#btnCancelCounselling', function () {
+            showSection('section-ca-counselling-manage');
+        });
+
+        // Back to counselling manage from detail
+        $(document).on('click', '#btnBackToCounselling', function () {
+            showSection('section-ca-counselling-manage');
+        });
+
+        // Delete counselling session
+        $(document).on('click', '#btnDeleteCounselling', function () {
+            var csId = $(this).data('cs-id');
+            if (!confirm('Delete this counselling session?')) return;
+            COUNSELLING_SESSIONS = $.grep(COUNSELLING_SESSIONS, function(cs) { return cs.id !== csId; });
+            saveCounsellingSessions();
+            showToast('Counselling session deleted.', 'warning');
+            renderCounsellingDashboard();
+            showSection('section-ca-counselling-manage');
+        });
+
+        // Publish / Unpublish from detail page
+        $(document).on('click', '#btnToggleCsPublish', function () {
+            var csId = $(this).data('cs-id');
+            var cs = null;
+            $.each(COUNSELLING_SESSIONS, function(_, c) { if (c.id === csId) { cs = c; return false; } });
+            if (!cs) return;
+            cs.published = !cs.published;
+            saveCounsellingSessions();
+            var $pub = $(this);
+            if (cs.published) {
+                $pub.html('<span class="material-symbols-outlined" style="font-size:16px;">unpublished</span>Unpublish')
+                    .css({ background: 'rgba(186,26,26,0.08)', color: 'var(--clr-error)', border: '1px solid rgba(186,26,26,0.2)' });
+                showToast('Counselling session published');
+            } else {
+                $pub.html('<span class="material-symbols-outlined" style="font-size:16px;">publish</span>Publish')
+                    .css({ background: 'rgba(0,107,88,0.1)', color: 'var(--clr-primary)', border: '1px solid rgba(0,107,88,0.2)' });
+                showToast('Counselling session unpublished', 'warning');
+            }
+        });
+
+        // Publish / Unpublish from manage cards
+        $(document).on('click', '.btn-toggle-cs-publish', function (e) {
+            e.stopPropagation();
+            var csId = $(this).data('cs-id');
+            var cs = null;
+            $.each(COUNSELLING_SESSIONS, function(_, c) { if (c.id === csId) { cs = c; return false; } });
+            if (!cs) return;
+            cs.published = !cs.published;
+            saveCounsellingSessions();
+            renderCounsellingDashboard();
+            showToast(cs.published ? 'Counselling session published' : 'Counselling session unpublished', cs.published ? 'success' : 'warning');
+        });
+
+        // Detail search / filter
+        $(document).on('input', '#csDetailSearch', function () { renderCsDetailTable(); });
+        $(document).on('change', '#csDetailFilterLinked', function () { renderCsDetailTable(); });
+
+        // Set year display on counselling upload section entry
+        $(document).on('click', '.sidebar-nav-item[data-section="section-ca-counselling-upload"]', function () {
+            var year = new Date().getFullYear();
+            $('#csActiveYearDisplay').text(year);
         });
 
         // Sign out
@@ -2366,10 +3197,16 @@
         COLLEGE_INFO.district = college.district;
         COLLEGE_INFO.session  = '2026-27';
 
+        var admYear = getCurrentAdmissionYear();
+
         // Update UI text across the portal
         $('#adminCollegeName').text(college.name + ' — ' + college.code);
         $('#dashboardCollegeName').text(college.name);
         $('#dashboardSession').text(COLLEGE_INFO.session);
+        // Active year badge in topbar
+        $('#activeAdmYearBadge').text('AY ' + admYear).css('display', '');
+        // Reflect in merit upload section
+        $('#mlActiveYearDisplay').text(admYear);
         // Show / hide switcher button
         $('#btnSwitchCollege').show();
     }
@@ -2428,6 +3265,7 @@
         loadRegistrations();
         loadRecommendations();
         loadMeritLists();
+        loadCounsellingSessions();
         loadAdmissionSchedules();
         initRegistrationSearch();
         initAllApplications();

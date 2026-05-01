@@ -350,15 +350,27 @@
         var directCollegeId = urlParams.get('college') ? parseInt(urlParams.get('college'), 10) : null;
 
         if (inviteToken) {
-            // Find the schedule that owns this token
-            var tokenSched = null, tokenCollegeId = null;
+            // Find the schedule that owns this token (search inviteLinks[] array)
+            var tokenSched = null, tokenCollegeId = null, tokenSchedKey = null, tokenLinkIdx = -1, tokenInvalid = false;
             var schedules = JSON.parse(localStorage.getItem('emmis_ca_admission_schedules') || '{}');
-            $.each(schedules, function (_, sched) {
-                if (sched.inviteToken === inviteToken) {
-                    tokenSched = sched;
-                    tokenCollegeId = sched.collegeId;
-                    return false;
-                }
+            var today = new Date(); today.setHours(0, 0, 0, 0);
+            $.each(schedules, function (key, sched) {
+                var links = sched.inviteLinks || [];
+                $.each(links, function (idx, lnk) {
+                    if (lnk.token === inviteToken) {
+                        var expired = lnk.validUntil ? new Date(lnk.validUntil + 'T00:00:00') < today : false;
+                        if (!lnk.used && !expired) {
+                            tokenSched = sched;
+                            tokenCollegeId = sched.collegeId;
+                            tokenSchedKey = key;
+                            tokenLinkIdx = idx;
+                        } else {
+                            tokenInvalid = true; // found but used/expired
+                        }
+                        return false; // break inner
+                    }
+                });
+                if (tokenSched || tokenInvalid) return false; // break outer
             });
             if (tokenSched && tokenCollegeId) {
                 localStorage.setItem('emmis_he_selected_college', tokenCollegeId);
@@ -366,7 +378,7 @@
                 window.location.href = isLoggedIn() ? 'application.html' : 'login.html';
                 return;
             }
-            // Invalid token — show error and fall through to normal listing
+            // Invalid, used, or expired token — show error and fall through to normal listing
             $('#inviteTokenError').css('display', 'flex');
         } else if (directCollegeId) {
             // Non-restricted direct link (no invite token needed)
@@ -434,56 +446,82 @@
                 openDate: college.openDate,
                 closeDate: college.closeDate,
                 meritListDate: college.meritListDate,
-                admissionReg: college.admissionReg,
                 status: college.status,
-                notification: ''
+                notification: '',
+                overrides: [],
+                meritAdmissions: [],
+                counsellingSessions: []
             };
             if (!schedule) return out;
 
-            out.notification = schedule.notification || '';
+            // Notification stored separately (new schema)
+            var year = schedule.year || parseInt(schedule.session, 10) || new Date().getFullYear();
+            var notifRaw = localStorage.getItem('emmis_ca_notification_' + schedule.collegeId + '_' + year);
+            if (notifRaw) { try { out.notification = JSON.parse(notifRaw).text || ''; } catch(e) {} }
+            if (!out.notification) out.notification = schedule.notification || '';
 
             var def = schedule.defaultWindow || {};
             if (def.appOpen) out.openDate = formatYmdToDisplay(def.appOpen);
             if (def.appClose) out.closeDate = formatYmdToDisplay(def.appClose);
-            if (def.meritDate) out.meritListDate = formatYmdToDisplay(def.meritDate);
-            if (def.regOpen || def.regClose) {
-                out.admissionReg = (formatYmdToDisplay(def.regOpen || '') || 'TBA') + ' – ' + (formatYmdToDisplay(def.regClose || '') || 'TBA');
-            }
 
-            var program = normalizeProgram(college.stream);
-            $.each(schedule.selectiveWindows || [], function (_, w) {
-                if (!w.applyToAll) {
-                    if ((w.program || '') !== '' && (w.program || '') !== program) return;
-                    var wCourseIds = w.courseIds || (w.courseId ? [w.courseId] : []);
-                    if (wCourseIds.length > 0) {
-                        var hasMatch = false;
-                        $.each(wCourseIds, function (_, cid) { if (cardSupportsCourseId(college, cid)) hasMatch = true; });
-                        if (!hasMatch) return;
+            // Override windows (new schema)
+            var today = new Date(); today.setHours(0,0,0,0);
+            $.each(schedule.overrides || [], function(_, ovr) {
+                if (!ovr.endDate) return;
+                var d = new Date(ovr.endDate + 'T00:00:00');
+                if (d >= today) {
+                    out.overrides.push(ovr);
+                    // If this override is relevant to the college's stream/courses, update closeDate
+                    var oProgram = (ovr.program || '').toLowerCase();
+                    var collegeProgram = normalizeProgram(college.stream).toLowerCase();
+                    var matches = !oProgram || oProgram === collegeProgram || collegeProgram.indexOf(oProgram) >= 0;
+                    if (matches && ovr.endDate > (def.appClose || '')) {
+                        out.closeDate = formatYmdToDisplay(ovr.endDate);
                     }
-                }
-                if (w.appOpen) out.openDate = formatYmdToDisplay(w.appOpen);
-                if (w.appClose) out.closeDate = formatYmdToDisplay(w.appClose);
-                if (w.meritDate) out.meritListDate = formatYmdToDisplay(w.meritDate);
-                if (w.regOpen || w.regClose) {
-                    out.admissionReg = (formatYmdToDisplay(w.regOpen || '') || 'TBA') + ' – ' + (formatYmdToDisplay(w.regClose || '') || 'TBA');
                 }
             });
 
-            var now = new Date();
-            var closeDate = parseYmd((schedule.defaultWindow && schedule.defaultWindow.appClose) || '');
-            var openDate = parseYmd((schedule.defaultWindow && schedule.defaultWindow.appOpen) || '');
-            $.each(schedule.selectiveWindows || [], function (_, w2) {
-                if (!w2.applyToAll) {
-                    if ((w2.program || '') !== '' && (w2.program || '') !== program) return;
-                    var w2CourseIds = w2.courseIds || (w2.courseId ? [w2.courseId] : []);
-                    if (w2CourseIds.length > 0) {
-                        var hasMatch2 = false;
-                        $.each(w2CourseIds, function (_, cid) { if (cardSupportsCourseId(college, cid)) hasMatch2 = true; });
-                        if (!hasMatch2) return;
+            // Merit list admission notifications (from merit list storage)
+            try {
+                var allMerit = JSON.parse(localStorage.getItem('emmis_ca_meritlists') || '[]');
+                $.each(allMerit, function(_, ml) {
+                    if (!ml.published) return;
+                    var mlYear = ml.year || parseInt(ml.session, 10) || 0;
+                    if (mlYear && mlYear !== year) return;
+                    if (ml.admissionStart && ml.admissionEnd) {
+                        var admEnd = new Date(ml.admissionEnd + 'T00:00:00');
+                        if (admEnd >= today) {
+                            out.meritAdmissions.push({ name: ml.name, start: ml.admissionStart, end: ml.admissionEnd, course: ml.course || '' });
+                        }
                     }
+                });
+            } catch(e) {}
+
+            // Counselling session notifications
+            try {
+                var allCs = JSON.parse(localStorage.getItem('emmis_ca_counselling_sessions') || '[]');
+                $.each(allCs, function(_, cs) {
+                    if (!cs.published) return;
+                    var csYear = cs.year || 0;
+                    if (csYear && csYear !== year) return;
+                    if (cs.counsellingStart && cs.counsellingEnd) {
+                        var csEnd = new Date(cs.counsellingEnd + 'T00:00:00');
+                        if (csEnd >= today) {
+                            out.counsellingSessions.push({ name: cs.name, start: cs.counsellingStart, end: cs.counsellingEnd });
+                        }
+                    }
+                });
+            } catch(e) {}
+
+            var now = new Date();
+            var closeDate = parseYmd(def.appClose || '');
+            var openDate = parseYmd(def.appOpen || '');
+            // Apply active overrides to status computation
+            $.each(schedule.overrides || [], function(_, ovr2) {
+                if (ovr2.endDate && ovr2.endDate > (def.appClose || '')) {
+                    var ofd = new Date(ovr2.endDate + 'T00:00:00');
+                    if (ofd > (closeDate || new Date(0))) closeDate = ofd;
                 }
-                if (w2.appOpen) openDate = parseYmd(w2.appOpen);
-                if (w2.appClose) closeDate = parseYmd(w2.appClose);
             });
             if (openDate && now < openDate) {
                 out.status = 'upcoming';
@@ -599,13 +637,48 @@
 
             var imgHtml = c.image ? '<div class="ratio ratio-16x9"><img src="' + c.image + '" class="w-100 h-100" style="object-fit:cover;" alt="' + c.name + '"></div>' : '';
 
-            // Registration dates row — show only when a registration start is configured
+            // Registration dates / merit admission block
             var meritRowHtml = '';
-            if (sv.admissionReg && sv.admissionReg !== 'TBA – TBA') {
-                meritRowHtml = '<div class="d-flex justify-content-between align-items-center p-3 rounded-3 bg-surface-low">' +
-                    '<div><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; color:var(--clr-on-tertiary-fixed-var);">Reg. / Admission</span>' +
-                    '<span class="fw-bold small" style="color:var(--clr-on-tertiary-fixed);">' + sv.admissionReg + '</span></div>' +
-                    '</div>';
+            // Merit list admission notifications — only shown when a published merit list has active admission dates
+            if (sv.meritAdmissions && sv.meritAdmissions.length) {
+                $.each(sv.meritAdmissions, function(_, ma) {
+                    var startFmt = ma.start ? formatYmdToDisplay(ma.start) : 'TBA';
+                    var endFmt   = ma.end   ? formatYmdToDisplay(ma.end)   : 'TBA';
+                    meritRowHtml +=
+                        '<div class="p-3 rounded-3" style="background:rgba(107,217,188,0.1);border:1px solid rgba(107,217,188,0.3);">' +
+                        '<span class="d-block text-uppercase fw-bold mb-1" style="font-size:.6rem; color:var(--clr-on-primary-container);">📋 ' + $('<span>').text(ma.name || 'Merit List').html() + (ma.course ? ' — ' + $('<span>').text(ma.course).html() : '') + '</span>' +
+                        '<span class="small fw-bold" style="color:var(--clr-on-primary-container);">Admission: ' + startFmt + ' – ' + endFmt + '</span>' +
+                        '</div>';
+                });
+            }
+
+            // Counselling session notifications
+            var counsellingHtml = '';
+            if (sv.counsellingSessions && sv.counsellingSessions.length) {
+                $.each(sv.counsellingSessions, function(_, cs) {
+                    var startFmt = cs.start ? formatYmdToDisplay(cs.start) : 'TBA';
+                    var endFmt   = cs.end   ? formatYmdToDisplay(cs.end)   : 'TBA';
+                    counsellingHtml +=
+                        '<div class="p-3 rounded-3" style="background:rgba(100,150,255,0.08);border:1px solid rgba(100,150,255,0.25);">' +
+                        '<span class="d-block text-uppercase fw-bold mb-1" style="font-size:.6rem;color:var(--clr-on-secondary-container);">🎙️ ' + $('<span>').text(cs.name || 'Counselling').html() + '</span>' +
+                        '<span class="small fw-bold" style="color:var(--clr-on-secondary-container);">Counselling: ' + startFmt + ' – ' + endFmt + '</span>' +
+                        '</div>';
+                });
+            }
+
+            // Override windows notification
+            var overrideHtml = '';            if (sv.overrides && sv.overrides.length) {
+                $.each(sv.overrides, function(_, ovr) {
+                    var label = (ovr.program ? ovr.program + ' ' : '') + (ovr.courseName || ovr.courseId ? '— ' + (ovr.courseName || ovr.courseId) : '');
+                    var endFmt = ovr.endDate ? formatYmdToDisplay(ovr.endDate) : '—';
+                    overrideHtml +=
+                        '<div class="p-2 rounded-3 mb-1" style="background:rgba(186,26,26,0.06);border:1px solid rgba(186,26,26,0.15);">' +
+                        '<span class="small" style="color:var(--clr-on-tertiary-fixed-var);">' +
+                        '<span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">date_range</span> ' +
+                        (label ? $('<span>').text(label).html() + ' — ' : 'All Courses — ') +
+                        'Applications extended to <strong style="color:var(--clr-error);">' + endFmt + '</strong>' +
+                        '</span></div>';
+                });
             }
 
             // Notification block — shown only when schedule has a notification set
@@ -643,6 +716,8 @@
                 '<div class="text-end"><span class="d-block text-uppercase fw-medium" style="font-size:.625rem; letter-spacing:.05em; ' + dateLabelColor + '">Closing Date</span><span class="fw-bold small" style="' + dateValueColor + '">' + (sv.closeDate || c.closeDate) + '</span></div>' +
                 '</div>' +
                 meritRowHtml +
+                counsellingHtml +
+                overrideHtml +
                 notifHtml +
                 '</div>' +
                 '<div class="mt-auto d-grid gap-2">' +
@@ -806,22 +881,15 @@
     }
 
     function initApplication() {
-        // If user arrived via an invite link, stamp the application as a recommendation
+        // If user arrived via an invite link, tag the application with the token.
+        // The link is NOT marked as used yet — that happens only on final submission.
         var pendingInvite = localStorage.getItem('emmis_he_invite_pending');
         if (pendingInvite) {
             localStorage.removeItem('emmis_he_invite_pending');
             var inviteApp = getOrCreateApplication();
-            inviteApp.isRecommendation = true;
-            inviteApp.inviteToken = pendingInvite;
+            inviteApp.isRecommendation = true;   // flag so admin registration shows recommendation banner
+            inviteApp.inviteToken = pendingInvite;   // tag so submission handler can use it
             saveApplication(inviteApp);
-            // Write to shared recommendations store so admin can see it
-            var recs = JSON.parse(localStorage.getItem('emmis_ca_recommendations') || '[]');
-            var alreadyStored = false;
-            $.each(recs, function(_, r) { if (r.appNo === inviteApp.applicationId) { alreadyStored = true; return false; } });
-            if (!alreadyStored) {
-                recs.push({ appNo: inviteApp.applicationId, inviteToken: pendingInvite, appliedAt: new Date().toISOString() });
-                localStorage.setItem('emmis_ca_recommendations', JSON.stringify(recs));
-            }
         }
         // If user came via "Apply Now", save the selected college to app data
         var pendingCollege = localStorage.getItem('emmis_he_selected_college');
@@ -1025,6 +1093,34 @@
             var app = getOrCreateApplication();
             app.status = 'submitted';
             saveApplication(app);
+
+            // If this application was started via an invite link, mark it as used now
+            // (on submission, not on arrival) and register it in the recommendations store.
+            var inviteToken = app.inviteToken || null;
+            if (inviteToken) {
+                // Mark the invite link as used in the admission schedule
+                var allScheds = JSON.parse(localStorage.getItem('emmis_ca_admission_schedules') || '{}');
+                $.each(allScheds, function(key, sched) {
+                    var links = sched.inviteLinks || [];
+                    $.each(links, function(idx, lnk) {
+                        if (lnk.token === inviteToken) {
+                            lnk.used = true;
+                            allScheds[key].inviteLinks[idx] = lnk;
+                            localStorage.setItem('emmis_ca_admission_schedules', JSON.stringify(allScheds));
+                            return false;
+                        }
+                    });
+                });
+                // Write to the shared recommendations store so the admin can see it
+                var recs = JSON.parse(localStorage.getItem('emmis_ca_recommendations') || '[]');
+                var alreadyStored = false;
+                $.each(recs, function(_, r) { if (r.appNo === app.applicationId) { alreadyStored = true; return false; } });
+                if (!alreadyStored) {
+                    recs.push({ appNo: app.applicationId, inviteToken: inviteToken, appliedAt: new Date().toISOString() });
+                    localStorage.setItem('emmis_ca_recommendations', JSON.stringify(recs));
+                }
+            }
+
             $('#submitConfirmModal').modal('hide');
             showSection('section-step7');
         });
