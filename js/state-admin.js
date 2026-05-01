@@ -199,14 +199,11 @@
         var data = filterData();
         var $tbody = $('#admReportBody').empty();
         $.each(data, function (_, d) {
-            var fillPct = d.seats > 0 ? Math.round((d.registered / d.seats) * 100) : 0;
             $tbody.append(
                 '<tr><td class="fw-semibold">' + getCollegeName(d.college) + '</td>' +
                 '<td>' + d.course + '</td>' +
                 '<td class="cell-number">' + d.seats + '</td>' +
                 '<td class="cell-number">' + d.registered + '</td>' +
-                '<td class="cell-number">' + (d.seats - d.registered) + '</td>' +
-                '<td><span class="small fw-bold d-flex align-items-center gap-2"><div class="cell-bar-track flex-grow-1" style="max-width:80px;"><div class="cell-bar-fill" style="width:' + fillPct + '%;background:' + (fillPct >= 80 ? 'var(--clr-primary)' : fillPct >= 50 ? 'var(--clr-tertiary)' : 'var(--clr-error)') + ';"></div></div>' + fillPct + '%</span></td>' +
                 '<td>' + d.male + ' / ' + d.female + '</td>' +
                 '<td class="small">' + d.st + ' / ' + d.sc + ' / ' + d.obc + ' / ' + d.gen + '</td></tr>'
             );

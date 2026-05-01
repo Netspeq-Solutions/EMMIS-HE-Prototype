@@ -21,6 +21,7 @@
     </div>
     <div class="d-flex align-items-center gap-3">
         <span class="text-white small fw-semibold d-none d-md-inline" id="adminCollegeName"></span>
+        <span class="badge rounded-pill fw-bold d-none d-md-inline" id="activeAdmYearBadge" style="background:rgba(255,255,255,0.18);color:#fff;font-size:.72rem;letter-spacing:.03em;display:none!important;"></span>
         <button class="btn btn-sm text-white d-none d-md-inline-flex align-items-center gap-1" id="btnSwitchCollege" style="background:rgba(255,255,255,0.1);" title="Switch College"><span class="material-symbols-outlined" style="font-size:16px;">swap_horiz</span>Switch College</button>
         <button class="btn btn-sm text-white fw-bold btn-admin-signout" style="background:rgba(255,255,255,0.1);">Sign Out</button>
         <div class="rounded-circle overflow-hidden border border-2" style="width:36px;height:36px;border-color:rgba(255,255,255,0.2)!important;">
@@ -33,15 +34,10 @@
 
 <!-- ===== SIDEBAR ===== -->
 <aside class="sidebar-admin d-none d-md-flex">
-    <div class="px-3 pt-3 pb-2">
-        <div class="d-flex align-items-center gap-2 mb-1">
-            <span class="material-symbols-outlined filled" style="color:var(--clr-primary);font-variation-settings:'FILL' 1;">school</span>
-            <span class="fw-bold small" style="color:#0f4a2a;">Session 2026-27</span>
-        </div>
-    </div>
     <span class="sidebar-section-label">Overview</span>
     <a href="#" class="sidebar-nav-item active" data-section="section-ca-dashboard"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
     <a href="#" class="sidebar-nav-item" data-section="section-ca-admission-schedule"><span class="material-symbols-outlined">calendar_month</span>Admission Schedule</a>
+    <a href="#" class="sidebar-nav-item sidebar-sub-item" data-section="section-ca-prev-schedules"><span class="material-symbols-outlined">history</span>Previous Years</a>
     <span class="sidebar-section-label">Applications</span>
     <a href="#" class="sidebar-nav-item" data-section="section-ca-all-applications"><span class="material-symbols-outlined">folder_open</span>All Applications</a>
     <span class="sidebar-section-label">Registration</span>
@@ -49,6 +45,9 @@
     <span class="sidebar-section-label">Merit Lists</span>
     <a href="#" class="sidebar-nav-item" data-section="section-ca-merit-upload"><span class="material-symbols-outlined">upload_file</span>Upload New</a>
     <a href="#" class="sidebar-nav-item" data-section="section-ca-merit-manage"><span class="material-symbols-outlined">format_list_numbered</span>Manage Lists</a>
+    <span class="sidebar-section-label">Counselling</span>
+    <a href="#" class="sidebar-nav-item" data-section="section-ca-counselling-upload"><span class="material-symbols-outlined">record_voice_over</span>Create New</a>
+    <a href="#" class="sidebar-nav-item" data-section="section-ca-counselling-manage"><span class="material-symbols-outlined">groups</span>Manage</a>
     <div class="mt-auto p-3">
         <div class="p-3 rounded-3" style="background:rgba(0,107,88,0.05);">
             <p class="small mb-1 fw-bold" style="color:var(--clr-primary);">Need Help?</p>
@@ -169,59 +168,34 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
             <div>
                 <h2 class="fs-3 fw-bold tracking-tight mb-1">Admission Schedule Configuration</h2>
-                <p class="text-on-surface-variant mb-0">Configure session-wise application and admission windows, including multiple selective windows by program and course.</p>
+                <p class="text-on-surface-variant mb-0">Configure the application window, closing date overrides, and notifications for the current admission year.</p>
             </div>
+            <span class="badge rounded-pill px-3 py-2 fw-bold fs-6 d-flex align-items-center gap-2" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">
+                <span class="material-symbols-outlined" style="font-size:16px;">calendar_month</span>
+                Admission Year: <span id="cfgYearBadge">—</span>
+            </span>
         </div>
 
+        <!-- ─── Session Configuration Card ─── -->
         <div class="card p-4 rounded-3 mb-4">
             <h5 class="fw-bold d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="color:var(--clr-primary);">tune</span>Session Configuration</h5>
             <div class="row g-3 mb-3">
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small">Session *</label>
-                    <input type="text" class="form-control" id="cfgSession" placeholder="e.g., 2026-27">
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label fw-bold small">Application Opening Date</label>
                     <input type="date" class="form-control" id="cfgAppOpen">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label fw-bold small">Application Closing Date</label>
                     <input type="date" class="form-control" id="cfgAppClose">
+                    <div class="form-text">The default closing date for all programs.</div>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small">Admission/Registration Start</label>
-                    <input type="date" class="form-control" id="cfgRegOpen">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold small">Admission/Registration End</label>
-                    <input type="date" class="form-control" id="cfgRegClose">
-                </div>
-                <div class="col-12">
-                    <label class="form-label fw-bold small">Important Notification / Announcement</label>
-                    <textarea class="form-control" id="cfgNotification" rows="2" placeholder="e.g., Verification of original documents starts from May 12. Bring all originals."></textarea>
-                    <div class="form-text">This message will be displayed on the public college listing card. Leave blank to hide the notification block.</div>
-                </div>
-                <!-- Restricted Access -->
-                <div class="col-12">
-                    <div class="p-3 rounded-3" style="background:rgba(186,26,26,0.05);border:1px solid rgba(186,26,26,0.15);">
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="cfgRestricted" role="switch">
-                            <label class="form-check-label fw-bold small" for="cfgRestricted">
-                                <span class="material-symbols-outlined align-middle" style="font-size:15px;vertical-align:-2px;">lock</span>
-                                Restricted Access (Invitation / Recommendation Only)
-                            </label>
-                        </div>
-                        <p class="small text-on-surface-variant mb-0" style="padding-left:2.4rem;">When enabled, the college will <strong>not appear</strong> on the public listing. A unique shareable invite link will be generated automatically when you save — share it only with recommended/invited students.</p>
-                    </div>
-                </div>
-                <!-- Application Fee -->
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label fw-bold small">Application Fee (₹)</label>
                     <input type="number" class="form-control" id="cfgAppFee" min="0" placeholder="e.g., 200">
-                    <div class="form-text">Amount students pay to submit an application. Set 0 for free.</div>
+                    <div class="form-text">Set 0 for free. Applies to this admission year.</div>
                 </div>
                 <!-- Prospectus -->
-                <div class="col-md-9">
+                <div class="col-12">
                     <label class="form-label fw-bold small">Prospectus / Information Brochure</label>
                     <div class="input-group">
                         <input type="file" class="form-control" id="cfgProspectusFile" accept=".pdf,.doc,.docx" style="display:none;">
@@ -229,27 +203,44 @@
                         <button class="btn btn-outline-secondary fw-bold" type="button" id="btnPickProspectus"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">upload_file</span> Upload</button>
                         <button class="btn btn-outline-secondary fw-bold" type="button" id="btnClearProspectus" title="Remove"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">close</span></button>
                     </div>
-                    <div class="form-text">PDF or Word document. Will be made available to students as a downloadable link.</div>
+                    <div class="form-text">PDF or Word document. Made available to students as a downloadable link.</div>
                 </div>
             </div>
-
-            <div class="d-flex justify-content-between align-items-center mb-2 mt-3">
-                <h6 class="fw-bold mb-0 d-flex align-items-center gap-2"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-secondary);">segment</span>Selective Program/Course Windows</h6>
-                <button class="btn btn-outline-primary btn-sm fw-bold d-flex align-items-center gap-1" id="btnAddSelectiveWindow"><span class="material-symbols-outlined" style="font-size:16px;">add</span>Add Window</button>
+            <div id="scheduleExistsNotice" class="alert d-flex align-items-center gap-2 rounded-3 py-2 mb-2" style="display:none;background:rgba(0,107,88,0.07);border:1px solid rgba(0,107,88,0.2);color:var(--clr-primary);font-size:.85rem;">
+                <span class="material-symbols-outlined" style="font-size:18px;">info</span>
+                A session is already configured for this year. Click <strong>Edit Session</strong> in the card below to modify it.
             </div>
-
-            <div id="cfgSelectiveBody" class="selective-windows-container mb-3"></div>
-
-            <div class="d-flex justify-content-end gap-2">
+            <div class="d-flex justify-content-end gap-2 pt-2 border-top">
                 <button class="btn btn-surface fw-bold px-4" id="btnResetScheduleConfig">Reset</button>
-                <button class="btn btn-primary fw-bold px-4 d-flex align-items-center gap-2" id="btnSaveScheduleConfig"><span class="material-symbols-outlined" style="font-size:18px;">save</span>Save Session Schedule</button>
+                <button class="btn btn-primary fw-bold px-4 d-flex align-items-center gap-2" id="btnSaveScheduleConfig"><span class="material-symbols-outlined" style="font-size:18px;">save</span>Save Session</button>
             </div>
         </div>
 
+        <!-- ─── Configured Session (notification, overrides & invite links rendered inside) ─── -->
         <div class="card p-4 rounded-3">
-            <h5 class="fw-bold d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="color:var(--clr-primary);">event_note</span>Configured Sessions</h5>
-            <div class="row g-3" id="scheduleCards"></div>
+            <h5 class="fw-bold d-flex align-items-center gap-2 mb-3"><span class="material-symbols-outlined" style="color:var(--clr-primary);">event_note</span>Configured Session</h5>
+            <div id="scheduleCards">
+                <div class="text-center py-4 text-on-surface-variant small">No session configured for this year yet. Fill in the form above and save.</div>
+            </div>
         </div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════════╗ -->
+<!-- ║   SECTION: PREVIOUS YEAR SCHEDULES    ║ -->
+<!-- ╚═══════════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-prev-schedules" style="display:none;">
+    <div class="container-fluid" style="max-width:1200px;">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+            <div>
+                <h2 class="fs-3 fw-bold tracking-tight mb-1">Previous Year Schedules</h2>
+                <p class="text-on-surface-variant mb-0">Read-only view of admission sessions from past years.</p>
+            </div>
+            <a href="#" class="btn btn-outline-primary fw-bold px-4 d-flex align-items-center gap-2 btn-goto-section" data-section="section-ca-admission-schedule">
+                <span class="material-symbols-outlined" style="font-size:18px;">calendar_month</span>Current Year
+            </a>
+        </div>
+        <div id="prevSchedulesList"></div>
     </div>
 </section>
 
@@ -532,7 +523,17 @@
                     <div class="col-md-3"><label class="form-label">Section / Batch</label><select class="form-select" id="regSection"><option value="A">Section A</option><option value="B">Section B</option><option value="C">Section C</option></select></div>
                 </div>
                 <h6 class="fw-bold d-flex align-items-center gap-2 mb-3 pt-3 border-top"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-secondary);">library_books</span>Subject / Elective Selection</h6>
-                <div class="row g-2 mb-4" id="regElectives"></div>
+                <div class="row g-2 mb-3" id="regElectives"></div>
+                <!-- MOOCS course name — shown dynamically when MOOCS is checked -->
+                <div id="moocsNameWrap" class="mb-4" style="display:none;">
+                    <label class="form-label small fw-semibold" style="color:var(--clr-primary);">MOOCS Course Name</label>
+                    <input type="text" class="form-control" id="regMoocsName" placeholder="Enter the name of the MOOCS course">
+                </div>
+                <!-- Minor Subject -->
+                <h6 class="fw-bold d-flex align-items-center gap-2 mb-2 pt-2 border-top" style="font-size:.88rem;"><span class="material-symbols-outlined" style="font-size:17px;color:var(--clr-secondary);">subject</span>Minor Subject</h6>
+                <div class="mb-4">
+                    <input type="text" class="form-control" id="regMinorSubject" placeholder="Enter minor subject (if applicable, leave blank otherwise)">
+                </div>
                 <!-- Seat Allocation Remarks -->
                 <h6 class="fw-bold d-flex align-items-center gap-2 mb-2 pt-3 border-top" style="font-size:.85rem;"><span class="material-symbols-outlined" style="font-size:16px;color:var(--clr-secondary);">comment</span>Remarks / Notes</h6>
                 <textarea class="form-control mb-3" id="regRemarksSeat" rows="2" placeholder="Add any notes about seat allocation (optional)…" style="font-size:.875rem;"></textarea>
@@ -608,49 +609,74 @@
 <section class="ca-section px-3 px-md-4 py-4" id="section-ca-merit-upload" style="display:none;">
     <div class="container-fluid" style="max-width:900px;">
         <h2 class="fs-3 fw-bold tracking-tight mb-1">Upload Merit List</h2>
-        <p class="text-on-surface-variant mb-4">Upload an Excel or CSV file with your offline-prepared merit list.</p>
+        <p class="text-on-surface-variant mb-4">Paste application IDs to create a merit list linked to the active admission year.</p>
         <div class="card p-4 p-md-5 rounded-3">
             <div class="row g-3 mb-4">
-                <div class="col-md-5"><label class="form-label fw-bold small">Merit List Name *</label><input type="text" class="form-control" id="mlUploadName" placeholder="e.g., First Merit List"></div>
+                <div class="col-md-5">
+                    <label class="form-label fw-bold small">Merit List Name *</label>
+                    <input type="text" class="form-control" id="mlUploadName" placeholder="e.g., First Merit List">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Admission Year</label>
+                    <div class="form-control bg-surface-low text-on-surface-variant fw-semibold" id="mlActiveYearDisplay" style="cursor:default;">—</div>
+                    <div class="form-text">Auto-set to active admission year.</div>
+                </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-bold small">Academic Session *</label>
-                    <select class="form-select" id="mlUploadSession">
-                        <option value="2022-23">2022-23</option>
-                        <option value="2023-24">2023-24</option>
-                        <option value="2024-25">2024-25</option>
-                        <option value="2025-26">2025-26</option>
-                        <option value="2026-27" selected>2026-27</option>
-                        <option value="2027-28">2027-28</option>
-                    </select>
+                    <label class="form-label fw-bold small">Date of Publication *</label>
+                    <input type="date" class="form-control" id="mlUploadDate">
                 </div>
-                <div class="col-md-3"><label class="form-label fw-bold small">Date Published *</label><input type="date" class="form-control" id="mlUploadDate"></div>
-                <div class="col-md-6">
-                    <label class="form-label fw-bold small">Program <span class="text-on-surface-variant fw-normal">(optional — leave blank for combined list)</span></label>
-                    <select class="form-select" id="mlUploadProgram">
-                        <option value="">All Programs (Combined)</option>
-                        <option value="B.Com (Hons)">B.Com (Hons)</option>
-                        <option value="B.A. Political Science">B.A. Political Science</option>
-                        <option value="B.Sc. Physics">B.Sc. Physics</option>
-                        <option value="B.A. English (Hons)">B.A. English (Hons)</option>
-                    </select>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small">Admission Start Date *</label>
+                    <input type="date" class="form-control" id="mlAdmStart">
+                    <div class="form-text">When admission/registration opens for this list.</div>
                 </div>
-                <div class="col-md-6 d-flex align-items-end">
-                    <div class="p-3 rounded-3 w-100" style="background:var(--clr-primary-container);">
-                        <p class="small mb-0" style="color:var(--clr-on-primary-container);"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-3px;">info</span> Select a specific program to create a program-wise merit list, or choose <strong>All Programs</strong> for a combined session list.</p>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small">Admission End Date *</label>
+                    <input type="date" class="form-control" id="mlAdmEnd">
+                    <div class="form-text">Last day to complete registration/fee.</div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check form-switch ms-1">
+                        <input class="form-check-input" type="checkbox" id="mlPublished" role="switch">
+                        <label class="form-check-label fw-bold small" for="mlPublished">Publish Immediately</label>
+                        <div class="form-text mt-0">Show on public listing now.</div>
                     </div>
                 </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold small d-flex align-items-center gap-2">Upload File (Excel / CSV) *</label>
-                <p class="small text-on-surface-variant mb-2">File must have columns: <strong>Application ID</strong>, <strong>Program</strong>, <strong>Course</strong> &nbsp;·&nbsp; <a href="#" id="btnDownloadTemplate" class="fw-bold text-decoration-none" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">download</span> Download Template</a></p>
-                <div class="upload-zone position-relative d-flex flex-column align-items-center justify-content-center gap-2 py-5" id="mlDropZone">
-                    <span class="material-symbols-outlined fs-1 text-outline" id="mlDropIcon">cloud_upload</span>
-                    <p class="fw-semibold mb-1" id="mlDropLabel">Click to upload or drag &amp; drop</p>
-                    <p class="small mb-0" style="color:var(--clr-secondary);" id="mlDropHint">.xlsx, .xls, .csv — Max 5 MB</p>
-                    <input type="file" id="mlFileInput" accept=".xlsx,.xls,.csv" class="position-absolute top-0 start-0 w-100 h-100" style="opacity:0;cursor:pointer;">
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small">Program *</label>
+                    <select class="form-select" id="mlUploadProgram">
+                        <option value="">— Select Program —</option>
+                        <option value="B.Com">B.Com</option>
+                        <option value="B.A">B.A</option>
+                        <option value="B.Sc">B.Sc</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small">Course *</label>
+                    <select class="form-select" id="mlUploadCourse" disabled>
+                        <option value="">— Select Program First —</option>
+                    </select>
                 </div>
             </div>
-            <!-- Preview area (hidden until Validate) -->
+
+            <!-- Application ID paste area -->
+            <div class="mb-3">
+                <label class="form-label fw-bold small d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">content_paste</span>
+                    Paste Application IDs *
+                </label>
+                <p class="small text-on-surface-variant mb-2">Enter one Application ID per line, or separate them with commas. e.g. <code>SK-2026-1001</code></p>
+                <textarea class="form-control font-monospace" id="mlPasteIds" rows="8"
+                    placeholder="SK-2026-1001&#10;SK-2026-1005&#10;SK-2026-1009&#10;..."
+                    style="font-size:.82rem;line-height:1.7;"></textarea>
+                <div class="d-flex justify-content-end mt-2">
+                    <button class="btn btn-outline-primary btn-sm fw-bold d-flex align-items-center gap-1" id="btnPreviewMerit">
+                        <span class="material-symbols-outlined" style="font-size:16px;">fact_check</span>Preview
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview area -->
             <div id="mlPreviewArea" style="display:none;" class="mb-4">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <h6 class="fw-bold small mb-0 d-flex align-items-center gap-2"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">fact_check</span>Preview</h6>
@@ -659,15 +685,15 @@
                 </div>
                 <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
                     <table class="data-table">
-                        <thead><tr><th>#</th><th>Application ID</th><th>Student Name</th><th>Marks</th><th>Program</th><th>Course</th><th>Status</th></tr></thead>
+                        <thead><tr><th>#</th><th>Application ID</th><th>Student Name</th><th>Marks</th><th>Status</th></tr></thead>
                         <tbody id="mlPreviewBody"></tbody>
                     </table>
                 </div>
             </div>
+
             <div class="d-flex justify-content-end gap-3">
-                <button class="btn btn-surface px-4 py-2 fw-bold" onclick="window.EMMIS_CA && EMMIS_CA.showSection('section-ca-merit-manage')">Cancel</button>
-                <button class="btn btn-outline-primary px-4 py-2 fw-bold d-flex align-items-center gap-2" id="btnValidateMerit" style="display:none;"><span class="material-symbols-outlined" style="font-size:18px;">fact_check</span>Validate</button>
-                <button class="btn btn-primary px-5 py-2 fw-bold d-flex align-items-center gap-2" id="btnUploadMerit" style="display:none;"><span class="material-symbols-outlined" style="font-size:18px;">check</span>Create Merit List</button>
+                <button class="btn btn-surface px-4 py-2 fw-bold" id="btnCancelMeritUpload">Cancel</button>
+                <button class="btn btn-primary px-5 py-2 fw-bold d-flex align-items-center gap-2" id="btnUploadMerit" style="display:none;"><span class="material-symbols-outlined" style="font-size:18px;">save</span>Save Merit List</button>
             </div>
         </div>
     </div>
@@ -700,12 +726,11 @@
                 </div>
                 <div>
                     <label class="form-label fw-bold small mb-1">Program</label>
-                    <select class="form-select form-select-sm" id="mlFilterProgram" style="min-width:210px;">
+                    <select class="form-select form-select-sm" id="mlFilterProgram" style="min-width:160px;">
                         <option value="all">All Programs</option>
-                        <option value="B.Com (Hons)">B.Com (Hons)</option>
-                        <option value="B.A. Political Science">B.A. Political Science</option>
-                        <option value="B.Sc. Physics">B.Sc. Physics</option>
-                        <option value="B.A. English (Hons)">B.A. English (Hons)</option>
+                        <option value="B.Com">B.Com</option>
+                        <option value="B.A">B.A</option>
+                        <option value="B.Sc">B.Sc</option>
                     </select>
                 </div>
                 <p class="small fw-semibold mb-0 text-on-surface-variant" id="mlManageCount"></p>
@@ -728,6 +753,7 @@
                 <p class="text-on-surface-variant mb-0">Session: <span id="mlDetailSession" class="fw-semibold" style="color:var(--clr-primary);">—</span> &nbsp;·&nbsp; Program: <span id="mlDetailProgram" class="fw-semibold">—</span> &nbsp;·&nbsp; Published: <span id="mlDetailDate">—</span> &nbsp;·&nbsp; <span id="mlDetailTotal">0</span> entries</p>
             </div>
             <button class="btn btn-error btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-1" id="btnDeleteMeritList" data-ml-id=""><span class="material-symbols-outlined" style="font-size:16px;">delete</span>Delete List</button>
+            <button class="btn btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-1" id="btnToggleMlPublish" data-ml-id=""><span class="material-symbols-outlined" style="font-size:16px;">publish</span>Publish</button>
         </div>
         <!-- Summary Cards -->
         <div class="row g-3 mb-4">
@@ -810,7 +836,7 @@
                 <h2 class="fs-3 fw-bold tracking-tight mb-1">All Applications</h2>
                 <p class="text-on-surface-variant mb-0">Search and manage applications across all sessions. Click <strong>View →</strong> on any row to open the registration workflow.</p>
             </div>
-            <button class="btn btn-outline-primary fw-bold px-4 py-2 d-flex align-items-center gap-2" id="btnExportApps">
+            <button class="btn btn-outline-primary fw-bold px-4 py-2 d-flex align-items-center gap-2" id="btnExportApps" data-bs-toggle="modal" data-bs-target="#exportAppsModal">
                 <span class="material-symbols-outlined" style="font-size:18px;">download</span>Export CSV
             </button>
         </div>
@@ -819,12 +845,13 @@
         <div class="card p-3 p-md-4 rounded-3 mb-4">
             <div class="row g-3 align-items-end">
                 <div class="col-6 col-md-2">
-                    <label class="form-label fw-bold small mb-1">Session</label>
+                    <label class="form-label fw-bold small mb-1">Admission Year</label>
                     <select class="form-select form-select-sm" id="filterSession">
-                        <option value="all">All Sessions</option>
-                        <option value="2026-27">2026-27</option>
-                        <option value="2025-26">2025-26</option>
-                        <option value="2024-25">2024-25</option>
+                        <option value="all">All Years</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-2">
@@ -966,6 +993,208 @@
 
 </div><!-- end admin-main -->
 
+<!-- ╔═══════════════════════════════════════╗ -->
+<!-- ║   SECTION: COUNSELLING UPLOAD         ║ -->
+<!-- ╚═══════════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-counselling-upload" style="display:none;">
+    <div class="container-fluid" style="max-width:900px;">
+        <h2 class="fs-3 fw-bold tracking-tight mb-1">Create Counselling Session</h2>
+        <p class="text-on-surface-variant mb-4">Paste application IDs of candidates not selected in merit list to invite them for counselling.</p>
+        <div class="card p-4 p-md-5 rounded-3">
+            <div class="row g-3 mb-4">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold small">Session Name *</label>
+                    <input type="text" class="form-control" id="csUploadName" placeholder="e.g., First Counselling Round">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Admission Year</label>
+                    <div class="form-control bg-surface-low text-on-surface-variant fw-semibold" id="csActiveYearDisplay" style="cursor:default;">—</div>
+                    <div class="form-text">Auto-set to active admission year.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small">Date of Publication *</label>
+                    <input type="date" class="form-control" id="csUploadDate">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small">Counselling Start Date *</label>
+                    <input type="date" class="form-control" id="csCounsellingStart">
+                    <div class="form-text">When counselling begins.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold small">Counselling End Date *</label>
+                    <input type="date" class="form-control" id="csCounsellingEnd">
+                    <div class="form-text">Last day of counselling.</div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <div class="form-check form-switch ms-1">
+                        <input class="form-check-input" type="checkbox" id="csPublished" role="switch">
+                        <label class="form-check-label fw-bold small" for="csPublished">Publish Immediately</label>
+                        <div class="form-text mt-0">Show on public listing now.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Application ID paste area -->
+            <div class="mb-3">
+                <label class="form-label fw-bold small d-flex align-items-center gap-2">
+                    <span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">content_paste</span>
+                    Paste Application IDs *
+                </label>
+                <p class="small text-on-surface-variant mb-2">Enter one Application ID per line, or separate them with commas. e.g. <code>SK-2026-1001</code></p>
+                <textarea class="form-control font-monospace" id="csPasteIds" rows="8"
+                    placeholder="SK-2026-1001&#10;SK-2026-1005&#10;SK-2026-1009&#10;..."
+                    style="font-size:.82rem;line-height:1.7;"></textarea>
+                <div class="d-flex justify-content-end mt-2">
+                    <button class="btn btn-outline-primary btn-sm fw-bold d-flex align-items-center gap-1" id="btnPreviewCounselling">
+                        <span class="material-symbols-outlined" style="font-size:16px;">fact_check</span>Preview
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview area -->
+            <div id="csPreviewArea" style="display:none;" class="mb-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <h6 class="fw-bold small mb-0 d-flex align-items-center gap-2"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">fact_check</span>Preview</h6>
+                    <span class="badge rounded-pill px-2 py-1" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);" id="csPreviewMatchCount">0 matched</span>
+                    <span class="badge rounded-pill px-2 py-1" id="csPreviewUnmatchBadge" style="background:rgba(186,26,26,0.1);color:var(--clr-error);display:none;"><span id="csPreviewUnmatchCount">0</span> not found</span>
+                </div>
+                <div class="table-responsive" style="max-height:300px;overflow-y:auto;">
+                    <table class="data-table">
+                        <thead><tr><th>#</th><th>Application ID</th><th>Student Name</th><th>Marks</th><th>Status</th></tr></thead>
+                        <tbody id="csPreviewBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3">
+                <button class="btn btn-surface px-4 py-2 fw-bold" id="btnCancelCounselling">Cancel</button>
+                <button class="btn btn-primary px-5 py-2 fw-bold d-flex align-items-center gap-2" id="btnSaveCounselling" style="display:none;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">save</span>Save Session
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════════╗ -->
+<!-- ║   SECTION: COUNSELLING MANAGE         ║ -->
+<!-- ╚═══════════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-counselling-manage" style="display:none;">
+    <div class="container-fluid" style="max-width:1200px;">
+        <div class="mb-4">
+            <h2 class="fs-3 fw-bold tracking-tight mb-1">Counselling Sessions</h2>
+            <p class="text-on-surface-variant mb-0">Manage counselling rounds for candidates not selected in merit lists.</p>
+        </div>
+        <div class="card p-3 rounded-3 mb-4">
+            <div class="d-flex flex-wrap gap-3 align-items-end">
+                <div>
+                    <label class="form-label fw-bold small mb-1">Session Year</label>
+                    <select class="form-select form-select-sm" id="csFilterSession" style="min-width:130px;">
+                        <option value="all">All Sessions</option>
+                        <option value="2022">2022-23</option>
+                        <option value="2023">2023-24</option>
+                        <option value="2024">2024-25</option>
+                        <option value="2025">2025-26</option>
+                        <option value="2026">2026-27</option>
+                        <option value="2027">2027-28</option>
+                    </select>
+                </div>
+                <p class="small fw-semibold mb-0 text-on-surface-variant" id="csManageCount"></p>
+                <div class="ms-auto">
+                    <button class="btn btn-primary btn-sm fw-bold d-flex align-items-center gap-1 btn-goto-section" data-section="section-ca-counselling-upload">
+                        <span class="material-symbols-outlined" style="font-size:16px;">add</span>Create New
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row g-4" id="counsellingCards"></div>
+    </div>
+</section>
+
+<!-- ╔═══════════════════════════════════════╗ -->
+<!-- ║   SECTION: COUNSELLING DETAIL         ║ -->
+<!-- ╚═══════════════════════════════════════╝ -->
+<section class="ca-section px-3 px-md-4 py-4" id="section-ca-counselling-detail" style="display:none;">
+    <div class="container-fluid" style="max-width:1300px;">
+        <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 mb-3 p-0" id="btnBackToCounselling" style="color:var(--clr-primary);">
+            <span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>Back to Counselling
+        </button>
+        <div class="d-flex flex-wrap justify-content-between align-items-start mb-4 gap-3">
+            <div>
+                <h2 class="fs-3 fw-bold tracking-tight mb-1" id="csDetailName">—</h2>
+                <p class="text-on-surface-variant mb-0">Year: <span id="csDetailYear" class="fw-semibold" style="color:var(--clr-primary);">—</span> &nbsp;·&nbsp; Dates: <span id="csDetailDates">—</span> &nbsp;·&nbsp; <span id="csDetailTotal">0</span> entries</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-error btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-1" id="btnDeleteCounselling" data-cs-id="">
+                    <span class="material-symbols-outlined" style="font-size:16px;">delete</span>Delete
+                </button>
+                <button class="btn btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-1" id="btnToggleCsPublish" data-cs-id="">
+                    <span class="material-symbols-outlined" style="font-size:16px;">publish</span>Publish
+                </button>
+            </div>
+        </div>
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card p-3 rounded-3 text-center">
+                    <p class="fs-4 fw-bold mb-0" id="csSummaryTotal">0</p>
+                    <p class="small text-on-surface-variant mb-0">Total Entries</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3 rounded-3 text-center">
+                    <p class="fs-4 fw-bold mb-0" id="csSummaryMatched" style="color:var(--clr-primary);">0</p>
+                    <p class="small text-on-surface-variant mb-0">Matched</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3 rounded-3 text-center">
+                    <p class="fs-4 fw-bold mb-0" id="csSummaryUnmatched" style="color:var(--clr-error);">0</p>
+                    <p class="small text-on-surface-variant mb-0">Not Found</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card p-3 rounded-3 text-center">
+                    <p class="fs-4 fw-bold mb-0" id="csSummaryRegistered" style="color:var(--clr-tertiary);">0</p>
+                    <p class="small text-on-surface-variant mb-0">Registered</p>
+                </div>
+            </div>
+        </div>
+        <!-- Entries Table -->
+        <div class="card p-4 rounded-3">
+            <div class="d-flex flex-wrap gap-3 align-items-end mb-3">
+                <div class="flex-grow-1" style="min-width:200px;max-width:340px;">
+                    <div class="input-group">
+                        <span class="input-group-text bg-surface-low border-end-0"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px;">search</span></span>
+                        <input type="text" class="form-control border-start-0 bg-surface-low" id="csDetailSearch" placeholder="Search name or App No…" style="border-color:var(--clr-outline-variant);font-size:.875rem;" autocomplete="off">
+                    </div>
+                </div>
+                <div>
+                    <select class="form-select form-select-sm" id="csDetailFilterLinked" style="min-width:140px;">
+                        <option value="all">All Status</option>
+                        <option value="linked">Matched Only</option>
+                        <option value="notfound">Not Found Only</option>
+                        <option value="registered">Registered</option>
+                    </select>
+                </div>
+                <p class="small fw-semibold mb-0 text-on-surface-variant" id="csDetailCount"></p>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>#</th><th>Application ID</th><th>Student Name</th><th>Marks</th><th>Program</th><th>Course</th><th>Matched</th><th>Registration</th></tr>
+                    </thead>
+                    <tbody id="csDetailBody"></tbody>
+                </table>
+            </div>
+            <div id="csDetailEmpty" class="text-center py-4" style="display:none;">
+                <p class="text-on-surface-variant small mb-0">No entries match the current filters.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -983,6 +1212,119 @@
         adjustLayout();
     });
 </script>
+
+<!-- Export CSV Modal -->
+<div class="modal fade" id="exportAppsModal" tabindex="-1" aria-labelledby="exportAppsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px;height:44px;background:var(--clr-primary-container);">
+                        <span class="material-symbols-outlined" style="color:var(--clr-primary);font-size:22px;">download</span>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="exportAppsModalLabel">Export Applications</h5>
+                        <p class="small mb-0" style="color:var(--clr-on-surface-variant);">Choose filters then download as Excel. All-course exports create one sheet per course.</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pt-3 pb-2">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label fw-bold small mb-1">Program</label>
+                        <select class="form-select form-select-sm" id="expFilterProgram">
+                            <option value="all">All Programs</option>
+                            <option value="B.Com">B.Com</option>
+                            <option value="B.A">B.A</option>
+                            <option value="B.Sc">B.Sc</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold small mb-1">Course</label>
+                        <select class="form-select form-select-sm" id="expFilterCourse" disabled>
+                            <option value="all">&mdash; All Courses &mdash;</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold small mb-1">Admission Year</label>
+                        <select class="form-select form-select-sm" id="expFilterYear">
+                            <option value="all">All Years</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold small mb-1">Status</label>
+                        <select class="form-select form-select-sm" id="expFilterStatus">
+                            <option value="all">All Statuses</option>
+                            <option value="applied">Applied</option>
+                            <option value="merit-listed">Merit Listed</option>
+                            <option value="verified">Verified</option>
+                            <option value="registered">Seat Allotted</option>
+                            <option value="completed">Fee Collected</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold small mb-1">Gender</label>
+                        <select class="form-select form-select-sm" id="expFilterGender">
+                            <option value="all">All Genders</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold small mb-1">Community</label>
+                        <select class="form-select form-select-sm" id="expFilterCommunity">
+                            <option value="all">All Categories</option>
+                            <option value="ST">ST</option>
+                            <option value="SC">SC</option>
+                            <option value="OBC">OBC</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold small mb-1">District</label>
+                        <select class="form-select form-select-sm" id="expFilterDistrict">
+                            <option value="all">All Districts</option>
+                            <option value="Gangtok">Gangtok</option>
+                            <option value="Pakyong">Pakyong</option>
+                            <option value="Mangan">Mangan</option>
+                            <option value="Gyalshing">Gyalshing</option>
+                            <option value="Namchi">Namchi</option>
+                            <option value="Soreng">Soreng</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold small mb-1">Board</label>
+                        <select class="form-select form-select-sm" id="expFilterBoard">
+                            <option value="all">All Boards</option>
+                            <option value="CBSE">CBSE</option>
+                            <option value="ICSE">ICSE</option>
+                            <option value="Sikkim Board">Sikkim Board</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3 px-1">
+                    <div class="p-3 rounded-3" style="background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">
+                        <p class="small mb-0 d-flex align-items-center gap-2" style="color:var(--clr-on-surface-variant);">
+                            <span class="material-symbols-outlined" style="font-size:16px;">info</span>
+                            Estimated records: <strong id="expEstimateCount">—</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pt-2 pb-4 gap-2">
+                <button type="button" class="btn btn-surface fw-bold px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary fw-bold px-5 d-flex align-items-center gap-2" id="btnConfirmExportApps">
+                    <span class="material-symbols-outlined" style="font-size:18px;">download</span>Download Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Unregister Confirmation Modal -->
 <div class="modal fade" id="unregisterModal" tabindex="-1" aria-labelledby="unregisterModalLabel" aria-hidden="true">
