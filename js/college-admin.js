@@ -1603,6 +1603,7 @@
     }
 
     var currentMlEntries = [];
+    var currentMl = null;
 
     function renderMlDetailTable() {
         var q       = ($('#mlDetailSearch').val() || '').toLowerCase().trim();
@@ -1640,9 +1641,14 @@
                 '<td class="cell-number">' + shown + '</td>' +
                 '<td class="fw-semibold" style="font-family:monospace;color:var(--clr-primary);">' + entry.appNo + '</td>' +
                 '<td class="fw-semibold">' + (s ? s.name : '—') + '</td>' +
-                '<td class="cell-number">' + (s ? s.marks + '%' : '—') + '</td>' +
-                '<td>' + entry.program + '</td>' +
-                '<td>' + entry.course + '</td>' +
+                (function() {
+                    if (!s) return '<td class="cell-number">—</td>';
+                    var obt = 0, tot = 0;
+                    $.each(s.subjects || [], function(_, sub) { obt += sub.marks; tot += sub.total; });
+                    return '<td class="cell-number">' + obt + ' / ' + tot + '</td>';
+                })() +
+                '<td>' + (currentMl ? (currentMl.program || '—') : '—') + '</td>' +
+                '<td>' + (currentMl ? (currentMl.course || '—') : '—') + '</td>' +
                 '<td>' + linkedBadge + '</td>' +
                 '<td>' + regBadge + '</td></tr>'
             );
@@ -1664,6 +1670,7 @@
         if (!ml) return;
 
         currentMlEntries = ml.entries;
+        currentMl = ml;
 
         $('#mlDetailName').text(ml.name);
         $('#mlDetailDate').text(ml.date);
@@ -1808,14 +1815,19 @@
                 ? '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-tertiary-container);color:var(--clr-on-tertiary-container);">Registered</span>'
                 : (isMatched ? '<span class="text-on-surface-variant small">—</span>' : '');
 
+            var marksCell = (function() {
+                if (!s) return '—';
+                var obt = 0, tot = 0;
+                $.each(s.subjects || [], function(_, sub) { obt += sub.marks; tot += sub.total; });
+                return obt + ' / ' + tot;
+            })();
+
             $tbody.append(
                 '<tr' + (!isMatched ? ' style="opacity:0.6;"' : '') + '>' +
                 '<td class="cell-number">' + shown + '</td>' +
                 '<td style="font-family:monospace;" class="fw-semibold">' + $('<span>').text(entry.appNo).html() + '</td>' +
                 '<td>' + (s ? $('<span>').text(s.name).html() : '<span class="text-on-surface-variant">—</span>') + '</td>' +
-                '<td class="cell-number">' + (s && s.marks ? s.marks + '%' : '—') + '</td>' +
-                '<td>' + (s ? (s.program || '—') : '—') + '</td>' +
-                '<td>' + (s ? (s.course || s.appliedCourse || '—') : '—') + '</td>' +
+                '<td class="cell-number">' + marksCell + '</td>' +
                 '<td>' + linkedBadge + '</td>' +
                 '<td>' + regBadge + '</td>' +
                 '</tr>'
@@ -1834,7 +1846,7 @@
         currentCsEntries = cs.entries || [];
 
         $('#csDetailName').text(cs.name);
-        $('#csDetailYear').text(cs.year ? ('AY ' + cs.year) : '—');
+        $('#csDetailYear').text(cs.year || '—');
         var startFmt = cs.counsellingStart ? formatYmdToDisplay(cs.counsellingStart) : 'TBA';
         var endFmt   = cs.counsellingEnd   ? formatYmdToDisplay(cs.counsellingEnd)   : 'TBA';
         $('#csDetailDates').text(startFmt + ' – ' + endFmt);
@@ -1996,9 +2008,22 @@
                 '<br><span class="text-on-surface-variant" style="font-size:.68rem;">' + subjectCount + ' subject' + (subjectCount !== 1 ? 's' : '') + '</span>' +
                 (marksUpdated ? ' <span title="Marks updated by admin" style="color:var(--clr-tertiary);font-size:.7rem;cursor:help;">✎</span>' : '');
 
-            // Program vs Course split
+            // Program vs Course — show allotted if seat is allotted, else show preferences
             var programLabel = courseToProgramLabel(getCourseName(s.course));
-            var courseLabel  = getCourseName(s.course);
+            var prefCourseCell;
+            if (appStatus === 'registered' || appStatus === 'completed') {
+                // Seat allotted — show pref1 as the allotted course with indicator
+                var allottedCourse = s.pref1 || getCourseName(s.course);
+                prefCourseCell = '<span class="badge rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1" style="background:rgba(63,102,90,0.15);color:var(--clr-secondary);font-size:.72rem;font-weight:600;">' +
+                    '<span class="material-symbols-outlined" style="font-size:12px;">check_circle</span>' + allottedCourse + '</span>';
+            } else {
+                // Not yet allotted — show all preferences
+                var prefParts = [];
+                if (s.pref1) prefParts.push('<span class="d-block" style="font-size:.72rem;"><span class="text-on-surface-variant me-1" style="font-size:.65rem;">P1</span>' + s.pref1 + '</span>');
+                if (s.pref2) prefParts.push('<span class="d-block" style="font-size:.72rem;color:var(--clr-on-surface-variant);"><span class="text-on-surface-variant me-1" style="font-size:.65rem;">P2</span>' + s.pref2 + '</span>');
+                if (s.pref3) prefParts.push('<span class="d-block" style="font-size:.72rem;color:var(--clr-on-surface-variant);"><span class="text-on-surface-variant me-1" style="font-size:.65rem;">P3</span>' + s.pref3 + '</span>');
+                prefCourseCell = prefParts.length ? prefParts.join('') : '<span class="text-on-surface-variant" style="font-size:.75rem;">—</span>';
+            }
 
             $tbody.append(
                 '<tr>' +
@@ -2012,7 +2037,7 @@
                     '<span class="badge rounded-pill ms-0 mt-1 d-inline-block" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);font-size:.6rem;" title="Admission Schedule ID: ' + COLLEGE_INFO.id + '_' + getStudentSession(s) + '">AY ' + getStudentSession(s) + '</span>' +
                 '</td>' +
                 '<td class="small fw-semibold">' + programLabel + '</td>' +
-                '<td class="small">' + courseLabel + '</td>' +
+                '<td class="small">' + prefCourseCell + '</td>' +
                 '<td class="cell-number" style="font-size:.8rem;">' + marksCell + '</td>' +
                 '<td class="small">' + s.gender + '</td>' +
                 '<td class="small">' + s.community + '</td>' +
