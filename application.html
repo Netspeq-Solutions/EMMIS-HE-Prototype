@@ -75,6 +75,18 @@
 </div>
 </div>
 
+<!-- ===== LIVE NOTICES TICKER ===== -->
+<div id="noticeTicker" style="display:none; background:var(--clr-primary); overflow:hidden; border-bottom:2px solid rgba(255,255,255,0.1);">
+    <div class="d-flex align-items-stretch" style="height:42px;">
+        <div class="d-flex align-items-center gap-2 flex-shrink-0 px-3" style="background:rgba(0,0,0,0.18); font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#fff; white-space:nowrap; border-right:1px solid rgba(255,255,255,0.18);">
+            <span class="material-symbols-outlined" style="font-size:16px;">campaign</span>Live Notices
+        </div>
+        <div style="overflow:hidden; flex:1; display:flex; align-items:center; position:relative;">
+            <div id="tickerTrack" style="display:inline-block; white-space:nowrap; animation:ticker-slide 50s linear infinite; color:#fff; font-size:.8rem; padding-left:2rem;"></div>
+        </div>
+    </div>
+</div>
+
 <!-- Progress Stepper (shown on steps 1-6) -->
 <div class="px-3 px-md-4 py-3" id="stepperBar" style="display:none;">
     <div class="mx-auto stepper" style="max-width:700px;">
@@ -618,6 +630,41 @@
         </div>
     </div>
 </div></div></div>
+
+<!-- ===== PUBLIC LIST MODAL ===== -->
+<div class="modal fade" id="publicListModal" tabindex="-1" aria-labelledby="publicListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--clr-primary);color:#fff;">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="publicListModalLabel">
+                    <span class="material-symbols-outlined" id="publicListModalIcon" style="font-size:22px;">format_list_numbered</span>
+                    <span id="publicListModalTitle">Student List</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="publicListInstructions" class="p-4" style="background:rgba(0,107,88,0.06);border-bottom:1px solid rgba(0,107,88,0.15);"></div>
+                <div class="p-4">
+                    <p class="fw-semibold mb-2 small text-on-surface-variant" id="publicListSubtitle"></p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle" id="publicListTable">
+                            <thead style="background:var(--clr-surface-variant);">
+                                <tr>
+                                    <th class="fw-bold small">#</th>
+                                    <th class="fw-bold small">Application No.</th>
+                                    <th class="fw-bold small">Name</th>
+                                    <th class="fw-bold small">Course / Program</th>
+                                </tr>
+                            </thead>
+                            <tbody id="publicListBody"></tbody>
+                        </table>
+                    </div>
+                    <p class="small text-on-surface-variant mt-3 mb-0" id="publicListFootnote"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

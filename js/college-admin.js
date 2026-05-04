@@ -505,7 +505,7 @@
         if (sectionId === 'section-ca-prev-schedules') renderPrevSchedulesSection();
         if (sectionId === 'section-ca-merit-manage') renderMeritListDashboard();
         if (sectionId === 'section-ca-counselling-manage') renderCounsellingDashboard();
-        if (sectionId === 'section-ca-counselling-upload') { var _csYear = new Date().getFullYear(); $('#csActiveYearDisplay').text(_csYear); }
+        if (sectionId === 'section-ca-counselling-upload') { $('#csActiveYearDisplay').text(getCurrentAdmissionYear()); }
         if (sectionId === 'section-ca-register-search') renderRegisteredList();
         if (sectionId === 'section-ca-all-applications') renderAllApplications();
     }
@@ -793,7 +793,9 @@
             var allMl = JSON.parse(localStorage.getItem('emmis_ca_meritlists') || '[]');
             var collegeMl = $.grep(allMl, function(ml) {
                 var mlYear = ml.year || parseInt(ml.session, 10) || 0;
-                return mlYear === year;
+                if (mlYear !== year) return false;
+                if (COLLEGE_INFO.id && ml.collegeId && String(ml.collegeId) !== String(COLLEGE_INFO.id)) return false;
+                return true;
             });
             html += '<div class="p-4 border-top">';
             html += '<div class="d-flex justify-content-between align-items-start mb-2 gap-2">' +
@@ -852,7 +854,9 @@
             var allCs = JSON.parse(localStorage.getItem('emmis_ca_counselling_sessions') || '[]');
             var collegeCs = $.grep(allCs, function(cs) {
                 var csYear = cs.year || 0;
-                return csYear === year;
+                if (csYear !== year) return false;
+                if (COLLEGE_INFO.id && cs.collegeId && String(cs.collegeId) !== String(COLLEGE_INFO.id)) return false;
+                return true;
             });
             html += '<div class="p-4 border-top">';
             html += '<div class="d-flex justify-content-between align-items-start mb-2 gap-2">' +
@@ -1478,14 +1482,49 @@
     // 9. MERIT LIST MANAGEMENT
     // ============================================================
 
+    function populateYearDropdowns() {
+        // Collect all years from ML and CS for this college
+        var years = {};
+        $.each(MERIT_LISTS, function(_, ml) {
+            if (COLLEGE_INFO.id && ml.collegeId && String(ml.collegeId) !== String(COLLEGE_INFO.id)) return;
+            var y = parseInt(ml.year, 10) || 0;
+            if (y) years[y] = true;
+        });
+        $.each(COUNSELLING_SESSIONS, function(_, cs) {
+            if (COLLEGE_INFO.id && cs.collegeId && String(cs.collegeId) !== String(COLLEGE_INFO.id)) return;
+            var y = parseInt(cs.year, 10) || 0;
+            if (y) years[y] = true;
+        });
+        // Also add current admission year
+        var curYear = getCurrentAdmissionYear();
+        if (curYear) years[curYear] = true;
+
+        var sortedYears = Object.keys(years).map(Number).sort(function(a,b){ return b-a; });
+
+        var buildOpts = function(curVal) {
+            var opts = '<option value="all">All Years</option>';
+            $.each(sortedYears, function(_, y) {
+                opts += '<option value="' + y + '"' + (String(curVal) === String(y) ? ' selected' : '') + '>' + y + '</option>';
+            });
+            return opts;
+        };
+
+        var mlPrev = $('#mlFilterYear').val();
+        var csPrev = $('#csFilterYear').val();
+        $('#mlFilterYear').html(buildOpts(mlPrev));
+        $('#csFilterYear').html(buildOpts(csPrev));
+    }
+
     function renderMeritListDashboard() {
-        var filterSession = $('#mlFilterSession').val() || 'all';
+        populateYearDropdowns();
+        var filterYear = $('#mlFilterYear').val() || 'all';
         var filterProgram = $('#mlFilterProgram').val() || 'all';
 
         var visible = $.grep(MERIT_LISTS, function(ml) {
-            if (filterSession !== 'all') {
-                var mlYear = String(ml.year || ml.session || '');
-                if (mlYear !== filterSession && ml.session !== filterSession) return false;
+            // Filter by college (allow null/undefined collegeId for backward compat)
+            if (COLLEGE_INFO.id && ml.collegeId != null && String(ml.collegeId) !== String(COLLEGE_INFO.id)) return false;
+            if (filterYear !== 'all') {
+                if (String(parseInt(ml.year, 10) || 0) !== String(filterYear)) return false;
             }
             if (filterProgram !== 'all') {
                 if ((ml.program || '') !== filterProgram) return false;
@@ -1669,11 +1708,13 @@
     // ============================================================
 
     function renderCounsellingDashboard() {
-        var filterYear = $('#csFilterSession').val() || 'all';
+        populateYearDropdowns();
+        var filterYear = $('#csFilterYear').val() || 'all';
 
         // Filter to current college
         var visible = $.grep(COUNSELLING_SESSIONS, function(cs) {
-            if (COLLEGE_INFO && cs.collegeId && cs.collegeId !== COLLEGE_INFO.id) return false;
+            // Allow null/undefined collegeId for backward compat
+            if (COLLEGE_INFO.id && cs.collegeId != null && String(cs.collegeId) !== String(COLLEGE_INFO.id)) return false;
             if (filterYear !== 'all') {
                 var csYear = cs.year || 0;
                 if (String(csYear) !== String(filterYear)) return false;
@@ -2304,6 +2345,15 @@
     // 11. TOAST
     // ============================================================
 
+    function formatYmdToDisplay(ymd) {
+        if (!ymd) return '';
+        var parts = ymd.split('-');
+        if (parts.length !== 3) return ymd;
+        var dt = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        if (isNaN(dt.getTime())) return ymd;
+        return dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    }
+
     function showToast(msg, type) {
         type = type || 'success';
         var bg = type === 'success' ? 'bg-success' : type === 'warning' ? 'bg-warning text-dark' : 'bg-danger';
@@ -2790,7 +2840,7 @@
         $(document).on('change', '#mlDetailFilterProgram, #mlDetailFilterLinked', function () { renderMlDetailTable(); });
 
         // Merit list manage filters
-        $(document).on('change', '#mlFilterSession, #mlFilterProgram', function () {
+        $(document).on('change', '#mlFilterYear, #mlFilterProgram', function () {
             renderMeritListDashboard();
         });
 
@@ -2887,7 +2937,7 @@
                 var isMatched = !!s;
                 if (isMatched) matched++; else unmatched++;
 
-                pendingEntries.push({ appNo: appNo });
+                pendingEntries.push({ appNo: appNo, name: s ? s.name : '', marks: s ? s.marks : '' });
 
                 var statusBadge = isMatched
                     ? '<span class="badge rounded-pill px-2 py-1" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">Matched</span>'
@@ -2942,7 +2992,7 @@
                 });
                 if (student) {
                     matched++;
-                    pendingEntries.push({ appNo: id });
+                    pendingEntries.push({ appNo: id, name: student.name, marks: student.marks || '' });
                     $tbody.append('<tr><td>' + (i + 1) + '</td><td><code>' + id + '</code></td><td>' + $('<span>').text(student.name).html() + '</td><td>' + (student.marks || '—') + '</td><td><span class="badge rounded-pill" style="background:rgba(107,217,188,0.2);color:var(--clr-on-primary-container);">Matched</span></td></tr>');
                 } else {
                     unmatched++;
@@ -2967,7 +3017,7 @@
             var published  = $('#mlPublished').is(':checked');
             var program    = $('#mlUploadProgram').val() || '';
             var course     = $('#mlUploadCourse').val() || '';
-            var year       = new Date().getFullYear();
+            var year       = getCurrentAdmissionYear();
 
             if (!name)     { showToast('Please enter a merit list name.', 'warning'); return; }
             if (!date)     { showToast('Please select a publication date.', 'warning'); return; }
@@ -2983,6 +3033,7 @@
                 admissionStart: admStart, admissionEnd: admEnd,
                 year: year, published: published,
                 program: program, course: course,
+                collegeId: COLLEGE_INFO.id,
                 entries: pendingEntries
             });
             saveMeritLists();
@@ -2992,7 +3043,7 @@
             $('#mlUploadDate').val('');
             $('#mlAdmStart').val('');
             $('#mlAdmEnd').val('');
-            $('#mlPublished').prop('checked', false);
+            $('#mlPublished').prop('checked', true);
             $('#mlUploadProgram').val('');
             $('#mlUploadCourse').prop('disabled', true).html('<option value="">— Select Program First —</option>');
             $('#mlPasteIds').val('');
@@ -3017,7 +3068,7 @@
         });
 
         // Filter change
-        $(document).on('change', '#csFilterSession', function () { renderCounsellingDashboard(); });
+        $(document).on('change', '#csFilterYear', function () { renderCounsellingDashboard(); });
 
         // Counselling card click → detail
         $(document).on('click', '.cs-manage-card', function (e) {
@@ -3047,11 +3098,11 @@
                 $.each(STUDENTS, function(_, s) { if (s.appNo === id) { student = s; return false; } });
                 if (student) {
                     matched++;
-                    pendingCsEntries.push({ appNo: id });
+                    pendingCsEntries.push({ appNo: id, name: student.name, marks: student.marks || '' });
                     $tbody.append('<tr><td>' + (i + 1) + '</td><td><code>' + $('<span>').text(id).html() + '</code></td><td>' + $('<span>').text(student.name).html() + '</td><td>' + (student.marks || '—') + '</td><td><span class="badge rounded-pill" style="background:rgba(107,217,188,0.2);color:var(--clr-on-primary-container);">Matched</span></td></tr>');
                 } else {
                     unmatched++;
-                    pendingCsEntries.push({ appNo: id });
+                    pendingCsEntries.push({ appNo: id, name: '' });
                     $tbody.append('<tr style="opacity:0.6;"><td>' + (i + 1) + '</td><td><code>' + $('<span>').text(id).html() + '</code></td><td class="text-on-surface-variant">Not found</td><td>—</td><td><span class="badge rounded-pill" style="background:rgba(186,26,26,0.1);color:var(--clr-error);">Not Found</span></td></tr>');
                 }
             });
@@ -3071,7 +3122,7 @@
             var counselStart    = $('#csCounsellingStart').val();
             var counselEnd      = $('#csCounsellingEnd').val();
             var published       = $('#csPublished').is(':checked');
-            var year            = new Date().getFullYear();
+            var year            = getCurrentAdmissionYear();
 
             if (!name)         { showToast('Please enter a session name.', 'warning'); return; }
             if (!date)         { showToast('Please select a publication date.', 'warning'); return; }
@@ -3098,7 +3149,7 @@
             $('#csUploadDate').val('');
             $('#csCounsellingStart').val('');
             $('#csCounsellingEnd').val('');
-            $('#csPublished').prop('checked', false);
+            $('#csPublished').prop('checked', true);
             $('#csPasteIds').val('');
             $('#csPreviewArea').hide();
             $('#btnSaveCounselling').hide();
@@ -3160,6 +3211,7 @@
             cs.published = !cs.published;
             saveCounsellingSessions();
             renderCounsellingDashboard();
+            renderScheduleCards();
             showToast(cs.published ? 'Counselling session published' : 'Counselling session unpublished', cs.published ? 'success' : 'warning');
         });
 
@@ -3169,8 +3221,7 @@
 
         // Set year display on counselling upload section entry
         $(document).on('click', '.sidebar-nav-item[data-section="section-ca-counselling-upload"]', function () {
-            var year = new Date().getFullYear();
-            $('#csActiveYearDisplay').text(year);
+            $('#csActiveYearDisplay').text(getCurrentAdmissionYear());
         });
 
         // Sign out

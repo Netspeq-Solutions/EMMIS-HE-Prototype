@@ -637,7 +637,7 @@
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
                     <div class="form-check form-switch ms-1">
-                        <input class="form-check-input" type="checkbox" id="mlPublished" role="switch">
+                        <input class="form-check-input" type="checkbox" id="mlPublished" role="switch" checked>
                         <label class="form-check-label fw-bold small" for="mlPublished">Publish Immediately</label>
                         <div class="form-text mt-0">Show on public listing now.</div>
                     </div>
@@ -713,15 +713,9 @@
         <div class="card p-3 rounded-3 mb-4">
             <div class="d-flex flex-wrap gap-3 align-items-end">
                 <div>
-                    <label class="form-label fw-bold small mb-1">Session</label>
-                    <select class="form-select form-select-sm" id="mlFilterSession" style="min-width:130px;">
-                        <option value="all">All Sessions</option>
-                        <option value="2022-23">2022-23</option>
-                        <option value="2023-24">2023-24</option>
-                        <option value="2024-25">2024-25</option>
-                        <option value="2025-26">2025-26</option>
-                        <option value="2026-27">2026-27</option>
-                        <option value="2027-28">2027-28</option>
+                    <label class="form-label fw-bold small mb-1">Admission Year</label>
+                    <select class="form-select form-select-sm" id="mlFilterYear" style="min-width:150px;">
+                        <option value="all">All Years</option>
                     </select>
                 </div>
                 <div>
@@ -1027,7 +1021,7 @@
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
                     <div class="form-check form-switch ms-1">
-                        <input class="form-check-input" type="checkbox" id="csPublished" role="switch">
+                        <input class="form-check-input" type="checkbox" id="csPublished" role="switch" checked>
                         <label class="form-check-label fw-bold small" for="csPublished">Publish Immediately</label>
                         <div class="form-text mt-0">Show on public listing now.</div>
                     </div>
@@ -1088,15 +1082,9 @@
         <div class="card p-3 rounded-3 mb-4">
             <div class="d-flex flex-wrap gap-3 align-items-end">
                 <div>
-                    <label class="form-label fw-bold small mb-1">Session Year</label>
-                    <select class="form-select form-select-sm" id="csFilterSession" style="min-width:130px;">
-                        <option value="all">All Sessions</option>
-                        <option value="2022">2022-23</option>
-                        <option value="2023">2023-24</option>
-                        <option value="2024">2024-25</option>
-                        <option value="2025">2025-26</option>
-                        <option value="2026">2026-27</option>
-                        <option value="2027">2027-28</option>
+                    <label class="form-label fw-bold small mb-1">Admission Year</label>
+                    <select class="form-select form-select-sm" id="csFilterYear" style="min-width:150px;">
+                        <option value="all">All Years</option>
                     </select>
                 </div>
                 <p class="small fw-semibold mb-0 text-on-surface-variant" id="csManageCount"></p>

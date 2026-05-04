@@ -340,7 +340,20 @@
     }
 
     // ============================================================
-    // 5. COLLEGE LISTING (index.html)
+    // 5. SHARED DATE HELPER (used by listing & buildNoticeTicker)
+    // ============================================================
+
+    function formatYmdToDisplay(ymd) {
+        if (!ymd) return '';
+        var parts = ymd.split('-');
+        if (parts.length !== 3) return ymd;
+        var dt = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        if (isNaN(dt.getTime())) return ymd;
+        return dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    }
+
+    // ============================================================
+    // 6. COLLEGE LISTING (index.html)
     // ============================================================
 
     function initCollegeListing() {
@@ -393,15 +406,6 @@
         // Track how many are currently visible (all rendered dynamically from COLLEGES array)
         var visibleCount = 0;
         var pageSize = 4;
-
-        function formatYmdToDisplay(ymd) {
-            if (!ymd) return '';
-            var parts = ymd.split('-');
-            if (parts.length !== 3) return ymd;
-            var dt = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-            if (isNaN(dt.getTime())) return ymd;
-            return dt.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-        }
 
         function parseYmd(ymd) {
             if (!ymd) return null;
@@ -765,6 +769,18 @@
         filterColleges();
         buildNoticeTicker();
 
+        // Rebuild ticker instantly when college-admin publishes/unpublishes in another tab
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'emmis_ca_meritlists' || e.key === 'emmis_ca_counselling_sessions') {
+                buildNoticeTicker();
+            }
+        });
+
+        // Also refresh when tab regains focus (same-tab fallback)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) buildNoticeTicker();
+        });
+
         // Load More click
         $(document).on('click', '#btnLoadMore', function () {
             var nextBatch = listedSchedules.slice(visibleCount, visibleCount + pageSize);
@@ -842,7 +858,7 @@
                     '<strong>' + $('<span>').text(ml.name || 'Merit List').html() + '</strong>' +
                     (collegeName ? ' &mdash; ' + $('<span>').text(collegeName).html() : '') +
                     dateStr +
-                    '&ensp;<a href="#" class="ticker-view-link" data-college-id="' + (ml.collegeId || '') + '">View &rarr;</a>' +
+                    '&ensp;<a href="#" class="ticker-view-link" data-type="merit" data-id="' + $('<span>').text(ml.id || '').html() + '" data-college-id="' + (ml.collegeId || '') + '">View &rarr;</a>' +
                     '</span>'
                 );
             });
@@ -865,7 +881,7 @@
                     '<strong>' + $('<span>').text(cs.name || 'Counselling').html() + '</strong>' +
                     (collegeName ? ' &mdash; ' + $('<span>').text(collegeName).html() : '') +
                     dateStr +
-                    '&ensp;<a href="#" class="ticker-view-link" data-college-id="' + (cs.collegeId || '') + '">View &rarr;</a>' +
+                    '&ensp;<a href="#" class="ticker-view-link" data-type="counselling" data-id="' + $('<span>').text(cs.id || '').html() + '" data-college-id="' + (cs.collegeId || '') + '">View &rarr;</a>' +
                     '</span>'
                 );
             });
@@ -881,10 +897,80 @@
 
         $(document).off('click.ticker').on('click.ticker', '.ticker-view-link', function(e) {
             e.preventDefault();
-            var cid = parseInt($(this).data('college-id'), 10);
-            var $target = cid ? $('[data-college-id="' + cid + '"]').first() : $('#collegeGrid');
-            if ($target && $target.length) {
-                $('html,body').animate({ scrollTop: $target.offset().top - 100 }, 400);
+            var type = $(this).data('type');
+            var id   = $(this).data('id');
+            var cid  = parseInt($(this).data('college-id'), 10);
+
+            var collegeName = '';
+            $.each(COLLEGES, function(_, c) { if (c.id === cid) { collegeName = c.name; return false; } });
+
+            if (type === 'merit') {
+                var allMerit = [];
+                try { allMerit = JSON.parse(localStorage.getItem('emmis_ca_meritlists') || '[]'); } catch(e) {}
+                var ml = null;
+                $.each(allMerit, function(_, m) { if (String(m.id) === String(id)) { ml = m; return false; } });
+                if (!ml) return;
+
+                var admStart = ml.admissionStart ? formatYmdToDisplay(ml.admissionStart) : 'TBA';
+                var admEnd   = ml.admissionEnd   ? formatYmdToDisplay(ml.admissionEnd)   : 'TBA';
+                var instrHtml =
+                    '<div class="d-flex align-items-start gap-3">' +
+                    '<span class="material-symbols-outlined mt-1" style="font-size:28px;color:var(--clr-primary);">assignment_turned_in</span>' +
+                    '<div><h6 class="fw-bold mb-1">Instructions for Merit-Listed Students</h6>' +
+                    '<p class="mb-1 small">You have been selected in the merit list for <strong>' + $('<span>').text(ml.program || '').html() + (ml.course ? ' — ' + $('<span>').text(ml.course).html() : '') + '</strong>.</p>' +
+                    '<p class="mb-1 small">&#x1F4C5;&ensp;Visit <strong>' + $('<span>').text(collegeName || 'the college').html() + '</strong> between <strong>' + admStart + '</strong> and <strong>' + admEnd + '</strong> to complete admission formalities.</p>' +
+                    '<p class="mb-0 small text-on-surface-variant">Bring all original documents, mark sheets, certificate of identity, and fee payment receipt for verification.</p>' +
+                    '</div></div>';
+
+                var tbody = '';
+                $.each(ml.entries || [], function(i, entry) {
+                    tbody += '<tr><td class="text-on-surface-variant">' + (i+1) + '</td>' +
+                        '<td><code class="small">' + $('<span>').text(entry.appNo || '').html() + '</code></td>' +
+                        '<td>' + $('<span>').text(entry.name || '—').html() + '</td>' +
+                        '<td class="small text-on-surface-variant">' + $('<span>').text(entry.course || ml.course || ml.program || '—').html() + '</td></tr>';
+                });
+
+                $('#publicListModalIcon').text('format_list_numbered');
+                $('#publicListModalTitle').text(ml.name || 'Merit List');
+                $('#publicListSubtitle').text((ml.entries || []).length + ' student(s) selected — ' + (collegeName || '') + (ml.year ? ' · AY ' + ml.year + '–' + (ml.year+1) : ''));
+                $('#publicListInstructions').html(instrHtml);
+                $('#publicListBody').html(tbody || '<tr><td colspan="4" class="text-center text-on-surface-variant py-3">No entries</td></tr>');
+                $('#publicListFootnote').text('This list is published by ' + (collegeName || 'the college') + '. Contact the college for any discrepancies.');
+                new bootstrap.Modal(document.getElementById('publicListModal')).show();
+
+            } else if (type === 'counselling') {
+                var allCs = [];
+                try { allCs = JSON.parse(localStorage.getItem('emmis_ca_counselling_sessions') || '[]'); } catch(e) {}
+                var cs = null;
+                $.each(allCs, function(_, c) { if (String(c.id) === String(id)) { cs = c; return false; } });
+                if (!cs) return;
+
+                var csStart = cs.counsellingStart ? formatYmdToDisplay(cs.counsellingStart) : 'TBA';
+                var csEnd   = cs.counsellingEnd   ? formatYmdToDisplay(cs.counsellingEnd)   : 'TBA';
+                var instrHtml =
+                    '<div class="d-flex align-items-start gap-3">' +
+                    '<span class="material-symbols-outlined mt-1" style="font-size:28px;color:var(--clr-primary);">record_voice_over</span>' +
+                    '<div><h6 class="fw-bold mb-1">Instructions for Counselling</h6>' +
+                    '<p class="mb-1 small">You have been called for counselling. Please visit <strong>' + $('<span>').text(collegeName || 'the college').html() + '</strong> between <strong>' + csStart + '</strong> and <strong>' + csEnd + '</strong>.</p>' +
+                    '<p class="mb-1 small">&#x1F4CB;&ensp;Bring all original documents, mark sheets, category/community certificate, and a recent passport-size photograph.</p>' +
+                    '<p class="mb-0 small text-on-surface-variant">Seat allotment will be done on a first-come-first-served basis within your category during counselling.</p>' +
+                    '</div></div>';
+
+                var tbody = '';
+                $.each(cs.entries || [], function(i, entry) {
+                    tbody += '<tr><td class="text-on-surface-variant">' + (i+1) + '</td>' +
+                        '<td><code class="small">' + $('<span>').text(entry.appNo || '').html() + '</code></td>' +
+                        '<td>' + $('<span>').text(entry.name || '—').html() + '</td>' +
+                        '<td class="small text-on-surface-variant">' + $('<span>').text(entry.course || '—').html() + '</td></tr>';
+                });
+
+                $('#publicListModalIcon').text('record_voice_over');
+                $('#publicListModalTitle').text(cs.name || 'Counselling Session');
+                $('#publicListSubtitle').text((cs.entries || []).length + ' student(s) called — ' + (collegeName || '') + (cs.year ? ' · AY ' + cs.year + '–' + (cs.year+1) : ''));
+                $('#publicListInstructions').html(instrHtml);
+                $('#publicListBody').html(tbody || '<tr><td colspan="4" class="text-center text-on-surface-variant py-3">No entries</td></tr>');
+                $('#publicListFootnote').text('This list is published by ' + (collegeName || 'the college') + '. Contact the college for any discrepancies.');
+                new bootstrap.Modal(document.getElementById('publicListModal')).show();
             }
         });
     }
@@ -986,6 +1072,17 @@
             populateCollegeStickyHeader();
             showSection('section-dashboard');
         }
+
+        // Live notices ticker
+        buildNoticeTicker();
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'emmis_ca_meritlists' || e.key === 'emmis_ca_counselling_sessions') {
+                buildNoticeTicker();
+            }
+        });
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) buildNoticeTicker();
+        });
 
         // -- Dashboard --
         $(document).on('click', '.btn-new-application', function (e) {
