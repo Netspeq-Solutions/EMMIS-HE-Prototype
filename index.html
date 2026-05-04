@@ -146,6 +146,44 @@
         </div>
     </footer>
 
+    <!-- ===== PUBLIC LIST MODAL ===== -->
+    <div class="modal fade" id="publicListModal" tabindex="-1" aria-labelledby="publicListModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background:var(--clr-primary);color:#fff;">
+                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="publicListModalLabel">
+                        <span class="material-symbols-outlined" id="publicListModalIcon" style="font-size:22px;">format_list_numbered</span>
+                        <span id="publicListModalTitle">Student List</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <!-- Instructions banner -->
+                    <div id="publicListInstructions" class="p-4" style="background:rgba(0,107,88,0.06);border-bottom:1px solid rgba(0,107,88,0.15);">
+                    </div>
+                    <!-- Student table -->
+                    <div class="p-4">
+                        <p class="fw-semibold mb-2 small text-on-surface-variant" id="publicListSubtitle"></p>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle" id="publicListTable">
+                                <thead style="background:var(--clr-surface-variant);">
+                                    <tr>
+                                        <th class="fw-bold small">#</th>
+                                        <th class="fw-bold small">Application No.</th>
+                                        <th class="fw-bold small">Name</th>
+                                        <th class="fw-bold small">Course / Program</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="publicListBody"></tbody>
+                            </table>
+                        </div>
+                        <p class="small text-on-surface-variant mt-3 mb-0" id="publicListFootnote"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- jQuery + Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
