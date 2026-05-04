@@ -3262,13 +3262,9 @@
         $('#btnSwitchCollege').show();
     }
 
-    function showCollegePicker() {
-        // Hide sidebar + main content sections, show picker full-width
-        $('.sidebar-admin').hide();
-        $('.admin-main').css('margin-left', '0');
-        $('#adminCollegeName').text('');
-        $('#btnSwitchCollege').hide();
+    var _collegePickerModal = null;
 
+    function showCollegePicker(allowClose) {
         // Build picker cards
         var $grid = $('#collegePickerGrid').empty();
         $.each(ALL_COLLEGES, function (_, c) {
@@ -3290,21 +3286,27 @@
             $grid.append(card);
         });
 
-        // Show picker section (it lives inside .admin-main, already full-width now)
-        $('.ca-section').hide();
-        $('#section-ca-college-select').show();
+        // Show close button only when switching (a college is already selected)
+        $('#btnCloseCollegePicker').toggle(!!allowClose);
+
+        if (!_collegePickerModal) {
+            _collegePickerModal = new bootstrap.Modal(document.getElementById('collegePickerModal'), {
+                backdrop: allowClose ? true : 'static',
+                keyboard: !!allowClose
+            });
+        } else {
+            // Update backdrop behaviour depending on context
+            _collegePickerModal._config.backdrop = allowClose ? true : 'static';
+            _collegePickerModal._config.keyboard = !!allowClose;
+        }
+        _collegePickerModal.show();
     }
 
     function selectCollegeAndEnter(college) {
         sessionStorage.setItem('emmis_ca_college_id', String(college.id));
         applyCollegeInfo(college);
 
-        // Restore sidebar layout
-        $('.sidebar-admin').show();
-        $('.admin-main').css('margin-left', '16rem');
-
-        // Navigate to dashboard
-        $('#section-ca-college-select').hide();
+        if (_collegePickerModal) _collegePickerModal.hide();
         showSection('section-ca-dashboard');
     }
 
@@ -3329,10 +3331,9 @@
             if (college) selectCollegeAndEnter(college);
         });
 
-        // Switch College button
+        // Switch College button — allow closing (college already selected)
         $(document).on('click', '#btnSwitchCollege', function () {
-            sessionStorage.removeItem('emmis_ca_college_id');
-            showCollegePicker();
+            showCollegePicker(true);
         });
 
         // Check if a college was previously selected this session
@@ -3346,8 +3347,8 @@
             }
         }
 
-        // No college selected — show picker
-        showCollegePicker();
+        // No college selected — show picker (not dismissible)
+        showCollegePicker(false);
     });
 
 })(jQuery);
