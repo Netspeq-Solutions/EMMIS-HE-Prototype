@@ -120,49 +120,16 @@
         </div>
         <!-- Stats Row -->
         <div class="row g-4 mb-5">
-            <div class="col-sm-6"><div class="stat-card"><div class="stat-label">Total Applications</div><div class="stat-value">1</div><span class="material-symbols-outlined stat-icon">school</span></div></div>
-            <div class="col-sm-6"><div class="stat-card"><div class="stat-label">Drafts</div><div class="stat-value">1</div><span class="material-symbols-outlined stat-icon">edit_document</span></div></div>
+            <div class="col-sm-6"><div class="stat-card"><div class="stat-label">Total Applications</div><div class="stat-value" id="statTotal">0</div><span class="material-symbols-outlined stat-icon">school</span></div></div>
+            <div class="col-sm-6"><div class="stat-card"><div class="stat-label">Drafts</div><div class="stat-value" id="statDrafts">0</div><span class="material-symbols-outlined stat-icon">edit_document</span></div></div>
         </div>
         <!-- Filters -->
         <div class="row g-3 mb-4">
             <div class="col-sm"><div class="input-group"><span class="input-group-text bg-surface-low border-end-0"><span class="material-symbols-outlined text-on-surface-variant">search</span></span><input type="text" class="form-control border-start-0 bg-surface-low" id="dashboardSearch" placeholder="Search by College or ID..." style="border-color:var(--clr-outline-variant);"></div></div>
             <div class="col-sm-auto"><select class="form-select bg-surface-low" style="border-color:var(--clr-outline-variant);"><option value="all">All Statuses</option><option value="draft">Draft</option><option value="submitted">Submitted</option><option value="incomplete">Incomplete</option></select></div>
         </div>
-        <!-- Application Cards -->
-        <div class="row g-4">
-
-            <!-- Card 2: Draft -->
-            <div class="col-12 col-lg-6">
-                <div class="card application-card h-100">
-                    <div class="card-body p-4 d-flex flex-column">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex gap-3 align-items-center">
-                                <div class="rounded-circle bg-surface-container d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><span class="material-symbols-outlined text-outline fs-4">account_balance</span></div>
-                                <div><h5 class="fw-bold mb-0 fs-6">Nar Bahadur Bhandari Degree College</h5><p class="mb-0 small text-on-surface-variant">ID: 2026002198</p></div>
-                            </div>
-                            <span class="badge badge-draft rounded-pill px-3 py-1 small">Draft</span>
-                        </div>
-                        <p class="fw-medium mb-1">B.A. Political Science</p>
-                        <p class="small text-on-surface-variant d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>Started: Nov 05, 2023</p>
-                        <div class="mt-auto pt-3 border-top" style="border-color:rgba(188,201,195,0.2)!important;">
-                            <button class="btn btn-surface btn-sm w-100 fw-medium btn-continue-app">Continue</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ghost Card: New Application -->
-            <div class="col-12 col-lg-6">
-                <div class="card h-100 d-flex align-items-center justify-content-center text-center p-4 btn-new-application" style="border:2px dashed var(--clr-outline-variant); background:transparent; cursor:pointer; min-height:250px;" role="button">
-                    <div>
-                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 bg-surface-high" style="width:64px;height:64px;"><span class="material-symbols-outlined fs-2">add</span></div>
-                        <h5 class="fw-bold mb-2">Apply to another course</h5>
-                        <p class="small text-on-surface-variant mb-3">Explore more programs and submit a new application.</p>
-                        <span class="fw-medium d-inline-flex align-items-center gap-1" style="color:var(--clr-primary);">Apply New <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span></span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Application Cards — rendered dynamically by renderDashboard() -->
+        <div class="row g-4" id="appCardsRow"></div>
     </div>
 </section>
 
@@ -596,7 +563,7 @@
         </div>
         <!-- Content -->
         <div class="p-4 p-md-5 d-flex flex-column gap-4">
-            <div class="text-center"><span class="small fw-medium text-on-surface-variant d-block mb-2">Application Reference Number</span><div class="d-inline-flex align-items-center gap-2 bg-surface-container py-2 px-4 rounded-2 border" style="border-color:var(--clr-surface-variant)!important;"><span class="material-symbols-outlined" style="color:var(--clr-primary);">tag</span><span class="fw-semibold fs-5 font-monospace tracking-widest">SKM-2025-GDC-00841</span></div></div>
+            <div class="text-center"><span class="small fw-medium text-on-surface-variant d-block mb-2">Application Reference Number</span><div class="d-inline-flex align-items-center gap-2 bg-surface-container py-2 px-4 rounded-2 border" style="border-color:var(--clr-surface-variant)!important;"><span class="material-symbols-outlined" style="color:var(--clr-primary);">tag</span><span class="fw-semibold fs-5 font-monospace tracking-widest" id="ackRefNumber">—</span></div></div>
             <!-- Preferences Summary -->
             <div class="bg-surface-low rounded-2 p-4 border" style="border-color:rgba(222,228,224,0.5)!important;">
                 <h6 class="small fw-semibold text-uppercase d-flex align-items-center gap-2 mb-3" style="letter-spacing:.1em; color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:16px;">summarize</span>Summary of Preferences</h6>

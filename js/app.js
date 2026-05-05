@@ -173,45 +173,86 @@
     // 2. LOCAL STORAGE HELPERS
     // ============================================================
 
-    var APP_KEY = 'emmis_he_application';
+    var APPS_KEY = 'emmis_he_applications';
+    var CURRENT_APP_KEY = 'emmis_he_current_app_id';
+    var APP_KEY_LEGACY = 'emmis_he_application';
     var MOBILE_KEY = 'emmis_he_mobile';
 
-    function getApplication() {
-        var data = localStorage.getItem(APP_KEY);
-        if (data) { try { return JSON.parse(data); } catch (e) { return null; } }
-        return null;
+    function getAllApplications() {
+        try { return JSON.parse(localStorage.getItem(APPS_KEY)) || []; } catch (e) { return []; }
     }
-
-    function saveApplication(appData) {
-        localStorage.setItem(APP_KEY, JSON.stringify(appData));
+    function saveAllApplications(apps) { localStorage.setItem(APPS_KEY, JSON.stringify(apps)); }
+    function getApplicationById(id) {
+        var found = null;
+        $.each(getAllApplications(), function (_, a) { if (a.applicationId === id) { found = a; return false; } });
+        return found;
     }
-
-    function getOrCreateApplication() {
-        var app = getApplication();
-        if (!app) {
-            app = {
-                applicationId: generateAppId(),
-                collegeId: 1, collegeName: "Sikkim Government College",
-                step1: { rollNo: "SKBSE2025-1142", candidateName: "Tenzin Dorje Bhutia", board: "Sikkim Board", stream: "Arts", mobile: "9876543210", gender: "Male", email: "tenzin.dorje@gmail.com", category: "Sikkimese", coiNumber: "COI-SK-2019-004821", pwd: "No" },
-                step2: { dob: "2006-08-14", community: "ST", fatherName: "Karma Bhutia", fatherContact: "9800112233", motherName: "Diki Bhutia", district: "Gangtok", pincode: "737101", permanentAddress: "Near Enchey Monastery, Upper Sichey, Gangtok", country: "India", state: "Sikkim" },
-                step3: { subject_1: "English", marks_1: 78, total_1: 100, subject_2: "Political Science", marks_2: 82, total_2: 100, subject_3: "Economics", marks_3: 74, total_3: 100, subject_4: "History", marks_4: 69, total_4: 100, subject_5: "Geography", marks_5: 71, total_5: 100 },
-                step4: { pref1Program: "Bachelor of Arts", pref1Course: "B.A. Political Science", pref2Program: "Bachelor of Arts", pref2Course: "B.A. Economics", pref3Program: "", pref3Course: "" },
-                step5: { paymentMethod: "Online", transactionId: "TXN202604281142", amount: 200, status: "paid" },
-                currentStep: 1, status: "draft"
-            };
-            saveApplication(app);
-        }
+    function getCurrentAppId() { return localStorage.getItem(CURRENT_APP_KEY) || null; }
+    function setCurrentAppId(id) { localStorage.setItem(CURRENT_APP_KEY, id); }
+    function getApplication() { var id = getCurrentAppId(); return id ? getApplicationById(id) : null; }
+    function saveApplication(app) {
+        var apps = getAllApplications(), idx = -1;
+        $.each(apps, function (i, a) { if (a.applicationId === app.applicationId) { idx = i; return false; } });
+        if (idx >= 0) apps[idx] = app; else apps.push(app);
+        saveAllApplications(apps);
+    }
+    function createNewApplication(collegeId) {
+        var yr = new Date().getFullYear();
+        var app = {
+            applicationId: generateAppId(),
+            startedAt: new Date().toISOString(),
+            collegeId: collegeId || 1,
+            step1: { rollNo: 'SKBSE' + yr + '-' + (Math.floor(Math.random() * 9000) + 1000), candidateName: 'Tenzin Dorje Bhutia', board: 'Sikkim Board', stream: 'Arts', mobile: '9876543210', gender: 'Male', email: 'tenzin.dorje@gmail.com', category: 'Sikkimese', coiNumber: 'COI-SK-2019-004821', pwd: 'No' },
+            step2: { dob: '2006-08-14', community: 'ST', fatherName: 'Karma Bhutia', fatherContact: '9800112233', motherName: 'Diki Bhutia', district: 'Gangtok', pincode: '737101', permanentAddress: 'Near Enchey Monastery, Upper Sichey, Gangtok', country: 'India', state: 'Sikkim' },
+            step3: { subject_1: 'English', marks_1: 78, total_1: 100, subject_2: 'Political Science', marks_2: 82, total_2: 100, subject_3: 'Economics', marks_3: 74, total_3: 100, subject_4: 'History', marks_4: 69, total_4: 100, subject_5: 'Geography', marks_5: 71, total_5: 100 },
+            step4: { pref1Program: '', pref1Course: '', pref2Program: '', pref2Course: '', pref3Program: '', pref3Course: '' },
+            step5: { paymentMethod: 'Online', amount: 200, status: 'pending' },
+            currentStep: 1, status: 'draft'
+        };
+        saveApplication(app);
+        setCurrentAppId(app.applicationId);
         return app;
     }
-
+    function getOrCreateApplication() {
+        var app = getApplication();
+        if (!app) { app = createNewApplication(1); }
+        return app;
+    }
     function saveStepData(stepKey, data) {
         var app = getOrCreateApplication();
         app[stepKey] = $.extend(true, app[stepKey] || {}, data);
         saveApplication(app);
     }
-
-    function clearApplication() { localStorage.removeItem(APP_KEY); }
-    function generateAppId() { return "SK-2024-" + (Math.floor(Math.random() * 9000000) + 1000000); }
+    function clearApplication() {
+        var id = getCurrentAppId();
+        if (!id) return;
+        var apps = getAllApplications(), filtered = [];
+        $.each(apps, function (_, a) { if (a.applicationId !== id) filtered.push(a); });
+        saveAllApplications(filtered);
+        localStorage.removeItem(CURRENT_APP_KEY);
+    }
+    function migrateOldStorage() {
+        var oldRaw = localStorage.getItem(APP_KEY_LEGACY);
+        if (!oldRaw) return;
+        try {
+            var oldApp = JSON.parse(oldRaw);
+            if (oldApp && oldApp.applicationId) {
+                var apps = getAllApplications(), exists = false;
+                $.each(apps, function (_, a) { if (a.applicationId === oldApp.applicationId) { exists = true; return false; } });
+                if (!exists) {
+                    if (!oldApp.startedAt) oldApp.startedAt = new Date().toISOString();
+                    apps.push(oldApp);
+                    saveAllApplications(apps);
+                }
+                if (!getCurrentAppId()) setCurrentAppId(oldApp.applicationId);
+            }
+        } catch (e) {}
+        localStorage.removeItem(APP_KEY_LEGACY);
+    }
+    function generateAppId() {
+        var yr = new Date().getFullYear();
+        return 'SKM-' + yr + '-' + String(Math.floor(Math.random() * 9000000) + 1000000);
+    }
     function generateTxnId() { return "TXN" + (Math.floor(Math.random() * 9000000000) + 1000000000); }
     function saveMobile(m) { localStorage.setItem(MOBILE_KEY, m); }
     function getMobile() { return localStorage.getItem(MOBILE_KEY) || ''; }
@@ -222,6 +263,71 @@
     // ============================================================
     // 3. SECTION NAVIGATION (application.html)
     // ============================================================
+
+    function renderDashboard() {
+        var apps = getAllApplications();
+        var totalApps = apps.length, draftApps = 0;
+        $.each(apps, function (_, a) { if (a.status === 'draft') draftApps++; });
+        $('#statTotal').text(totalApps);
+        $('#statDrafts').text(draftApps);
+
+        var cardsHtml = '';
+        $.each(apps, function (_, app) {
+            var collegeName = app.collegeName || '\u2014';
+            if (app.collegeId) {
+                $.each(COLLEGES, function (_, c) {
+                    if (c.id === parseInt(app.collegeId, 10)) { collegeName = c.name; return false; }
+                });
+            }
+            var course = (app.step4 && app.step4.pref1Course) ? app.step4.pref1Course : '\u2014';
+            var appId  = app.applicationId || '\u2014';
+            var status = app.status || 'draft';
+            var statusLabel = status === 'submitted' ? 'Submitted' : 'Draft';
+            var statusBadge = status === 'submitted' ? 'badge-submitted' : 'badge-draft';
+            var dateLabel = 'In progress';
+            if (app.startedAt) {
+                try {
+                    var d = new Date(app.startedAt);
+                    dateLabel = 'Started: ' + d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+                } catch (e) {}
+            }
+            var safeId = $('<span>').text(appId).html();
+            var actionBtn = status === 'submitted'
+                ? '<button class="btn btn-surface btn-sm w-100 fw-medium" disabled><span class="material-symbols-outlined me-1" style="font-size:14px;">check_circle</span>Submitted</button>'
+                : '<button class="btn btn-surface btn-sm w-100 fw-medium btn-continue-app" data-app-id="' + safeId + '">Continue</button>';
+            cardsHtml +=
+                '<div class="col-12 col-lg-6">' +
+                '<div class="card application-card h-100">' +
+                '<div class="card-body p-4 d-flex flex-column">' +
+                '<div class="d-flex justify-content-between align-items-start mb-3">' +
+                '<div class="d-flex gap-3 align-items-center">' +
+                '<div class="rounded-circle bg-surface-container d-flex align-items-center justify-content-center" style="width:48px;height:48px;"><span class="material-symbols-outlined text-outline fs-4">account_balance</span></div>' +
+                '<div><h5 class="fw-bold mb-0 fs-6">' + $('<span>').text(collegeName).html() + '</h5>' +
+                '<p class="mb-0 small text-on-surface-variant">ID: ' + safeId + '</p></div>' +
+                '</div>' +
+                '<span class="badge ' + statusBadge + ' rounded-pill px-3 py-1 small">' + statusLabel + '</span>' +
+                '</div>' +
+                '<p class="fw-medium mb-1">' + $('<span>').text(course).html() + '</p>' +
+                '<p class="small text-on-surface-variant d-flex align-items-center gap-1">' +
+                '<span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>' + dateLabel + '</p>' +
+                '<div class="mt-auto pt-3 border-top" style="border-color:rgba(188,201,195,0.2)!important;">' +
+                actionBtn +
+                '</div></div></div></div>';
+        });
+
+        // Ghost card: Apply to a new course
+        cardsHtml +=
+            '<div class="col-12 col-lg-6">' +
+            '<div class="card h-100 d-flex align-items-center justify-content-center text-center p-4 btn-new-application" style="border:2px dashed var(--clr-outline-variant); background:transparent; cursor:pointer; min-height:250px;" role="button">' +
+            '<div>' +
+            '<div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3 bg-surface-high" style="width:64px;height:64px;"><span class="material-symbols-outlined fs-2">add</span></div>' +
+            '<h5 class="fw-bold mb-2">Apply to another course</h5>' +
+            '<p class="small text-on-surface-variant mb-3">Explore more programs and submit a new application.</p>' +
+            '<span class="fw-medium d-inline-flex align-items-center gap-1" style="color:var(--clr-primary);">Apply New <span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span></span>' +
+            '</div></div></div>';
+
+        $('#appCardsRow').html(cardsHtml);
+    }
 
     function showSection(sectionId) {
         // Hide all sections
@@ -240,6 +346,9 @@
             'section-step7': 0
         };
         var step = stepMap[sectionId] || 0;
+
+        // Refresh dashboard counts and card when navigating there
+        if (sectionId === 'section-dashboard') { renderDashboard(); }
 
         // Toggle sidebar + stepper visibility
         if (sectionId === 'section-dashboard' || sectionId === 'section-step7') {
@@ -1049,26 +1158,30 @@
     }
 
     function initApplication() {
-        // If user arrived via an invite link, tag the application with the token.
-        // The link is NOT marked as used yet — that happens only on final submission.
-        var pendingInvite = localStorage.getItem('emmis_he_invite_pending');
-        if (pendingInvite) {
-            localStorage.removeItem('emmis_he_invite_pending');
-            var inviteApp = getOrCreateApplication();
-            inviteApp.isRecommendation = true;   // flag so admin registration shows recommendation banner
-            inviteApp.inviteToken = pendingInvite;   // tag so submission handler can use it
-            saveApplication(inviteApp);
-        }
-        // If user came via "Apply Now", save the selected college to app data
+        // If user came via "Apply Now", create a fresh application for the selected college
         var pendingCollege = localStorage.getItem('emmis_he_selected_college');
+        var pendingInvite  = localStorage.getItem('emmis_he_invite_pending');
         if (pendingCollege) {
             localStorage.removeItem('emmis_he_selected_college');
-            var app = getOrCreateApplication();
-            app.collegeId = parseInt(pendingCollege, 10);
-            saveApplication(app);
+            var newCollegeApp = createNewApplication(parseInt(pendingCollege, 10));
+            // Attach invite/recommendation token if arriving via a recommendation link
+            if (pendingInvite) {
+                localStorage.removeItem('emmis_he_invite_pending');
+                newCollegeApp.isRecommendation = true;
+                newCollegeApp.inviteToken = pendingInvite;
+                saveApplication(newCollegeApp);
+            }
             populateCollegeStickyHeader();
             showSection('section-step1');
         } else {
+            // Handle standalone invite link (no college redirect)
+            if (pendingInvite) {
+                localStorage.removeItem('emmis_he_invite_pending');
+                var inviteApp = getOrCreateApplication();
+                inviteApp.isRecommendation = true;
+                inviteApp.inviteToken = pendingInvite;
+                saveApplication(inviteApp);
+            }
             populateCollegeStickyHeader();
             showSection('section-dashboard');
         }
@@ -1091,7 +1204,10 @@
         });
         $(document).on('click', '.btn-continue-app', function (e) {
             e.preventDefault();
-            var app = getOrCreateApplication();
+            var appId = $(this).data('app-id');
+            if (appId) setCurrentAppId(appId);
+            var app = getApplication() || getOrCreateApplication();
+            prefillFormInputs(app);
             showSection('section-step' + (app.currentStep || 1));
         });
 
@@ -1300,6 +1416,7 @@
                 }
             }
 
+            $('#ackRefNumber').text(app.applicationId || '\u2014');
             $('#submitConfirmModal').modal('hide');
             showSection('section-step7');
         });
@@ -1396,13 +1513,9 @@
             }
         }
 
-        // If stored application has no name (stale/empty from old session), reset to demo defaults
-        var _appForPrefill = getOrCreateApplication();
-        if (!(_appForPrefill.step1 && _appForPrefill.step1.candidateName)) {
-            localStorage.removeItem(APP_KEY);
-            _appForPrefill = getOrCreateApplication();
-        }
-        prefillFormInputs(_appForPrefill);
+        // Prefill forms with the currently active application
+        var _appForPrefill = getApplication();
+        if (_appForPrefill) prefillFormInputs(_appForPrefill);
     }
 
     function saveCurrentForm(stepNumber) {
@@ -1545,6 +1658,7 @@
     // ============================================================
 
     $(function () {
+        migrateOldStorage();
         var page = $('body').data('page');
         if (page === 'college-listing') initCollegeListing();
         else if (page === 'otp-login') initOTPLogin();
