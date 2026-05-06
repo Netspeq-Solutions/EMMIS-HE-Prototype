@@ -48,8 +48,8 @@
         <a href="#" class="sidebar-nav-item" data-step="2"><span class="material-symbols-outlined">person</span>Personal Details</a>
         <a href="#" class="sidebar-nav-item" data-step="3"><span class="material-symbols-outlined">school</span>Academic History</a>
         <a href="#" class="sidebar-nav-item" data-step="4"><span class="material-symbols-outlined">account_balance</span>Course Preferences</a>
-        <a href="#" class="sidebar-nav-item" data-step="5"><span class="material-symbols-outlined">payments</span>Final Payments</a>
-        <a href="#" class="sidebar-nav-item" data-step="6"><span class="material-symbols-outlined">assignment_turned_in</span>Preview &amp; Submit</a>
+        <a href="#" class="sidebar-nav-item" data-step="5"><span class="material-symbols-outlined">assignment_turned_in</span>Preview Application</a>
+        <a href="#" class="sidebar-nav-item" data-step="6"><span class="material-symbols-outlined">payments</span>Final Payments</a>
     </nav>
 </aside>
 
@@ -98,9 +98,9 @@
         <div class="stepper-line" data-after-step="3"></div>
         <div class="stepper-step" data-step="4"><div class="stepper-dot"></div><span class="stepper-label">Course Pref</span></div>
         <div class="stepper-line" data-after-step="4"></div>
-        <div class="stepper-step" data-step="5"><div class="stepper-dot"></div><span class="stepper-label">Payment</span></div>
+        <div class="stepper-step" data-step="5"><div class="stepper-dot"></div><span class="stepper-label">Preview</span></div>
         <div class="stepper-line" data-after-step="5"></div>
-        <div class="stepper-step" data-step="6"><div class="stepper-dot"></div><span class="stepper-label">Preview</span></div>
+        <div class="stepper-step" data-step="6"><div class="stepper-dot"></div><span class="stepper-label">Payment</span></div>
     </div>
 </div>
 
@@ -110,8 +110,15 @@
 <section class="app-section px-3 px-md-5 py-4" id="section-dashboard">
     <div class="container-fluid" style="max-width:1200px;">
         <div class="mb-5">
-            <h2 class="fs-2 fw-bold tracking-tight mb-1">My Applications</h2>
-            <p class="text-on-surface-variant">Manage and track your admission progress across various institutions.</p>
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+                <div>
+                    <h2 class="fs-2 fw-bold tracking-tight mb-1">My Applications</h2>
+                    <p class="text-on-surface-variant mb-0">Manage and track your admission progress across various institutions.</p>
+                </div>
+                <button class="btn btn-outline-primary fw-semibold px-4 d-flex align-items-center gap-2 btn-track-status flex-shrink-0" style="height:42px;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">manage_search</span>Track Application Status
+                </button>
+            </div>
         </div>
         <!-- Govt-only eligibility notice -->
         <div class="d-flex align-items-start gap-3 rounded-3 px-4 py-3 mb-4" style="background:rgba(191,233,218,0.15); border:1px solid var(--clr-secondary-fixed);">
@@ -196,7 +203,7 @@
                     <ul class="small mb-0" style="line-height:1.8; color:var(--clr-on-surface-variant); padding-left:1rem;">
                         <li>Enter your name exactly as it appears on your Class XII marksheet.</li>
                         <li>Ensure your mobile number is active — OTP will be sent for verification.</li>
-                        <li>Sikkimese applicants must upload COI/RC certificate.</li>
+                        <li>Sikkimese applicants must have COI/RC certificate.</li>
                         <li>All fields marked with * are mandatory.</li>
                     </ul>
                 </div>
@@ -244,7 +251,7 @@
             </div>
             <div class="col-md-4 order-1 order-md-2">
                 <div class="p-4 rounded-3 bg-surface-low mb-3"><h6 class="fw-bold d-flex align-items-center gap-2 mb-2" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:18px;">info</span>Personal Information</h6><p class="small mb-0" style="color:var(--clr-on-surface-variant); line-height:1.6;">Please provide your permanent details as they appear in your official certificates. Fields marked with * are mandatory.</p></div>
-                <div class="p-4 rounded-3" style="background:rgba(191,233,218,0.1); border-left:4px solid var(--clr-secondary);"><h6 class="fw-bold text-uppercase small mb-2" style="font-size:.7rem; color:var(--clr-secondary); letter-spacing:.05em;">Notice</h6><p class="small mb-0" style="color:var(--clr-on-secondary-container); line-height:1.6;">Ensure your Community certificate is ready for upload if applying under reserved categories.</p></div>
+                <!-- <div class="p-4 rounded-3" style="background:rgba(191,233,218,0.1); border-left:4px solid var(--clr-secondary);"><h6 class="fw-bold text-uppercase small mb-2" style="font-size:.7rem; color:var(--clr-secondary); letter-spacing:.05em;">Notice</h6><p class="small mb-0" style="color:var(--clr-on-secondary-container); line-height:1.6;">Ensure your Community certificate is ready for upload if applying under reserved categories.</p></div> -->
             </div>
         </div>
     </div>
@@ -394,9 +401,9 @@
 <!-- ╔══════════════════════════════════════════╗ -->
 <!-- ║     SECTION: STEP 5 — PAYMENT             ║ -->
 <!-- ╚══════════════════════════════════════════╝ -->
-<section class="app-section px-3 px-md-5 py-4" id="section-step5" style="display:none;">
+<section class="app-section px-3 px-md-5 py-4" id="section-step6" style="display:none;">
     <div class="mx-auto" style="max-width:1100px;">
-        <div class="mb-4"><span class="badge rounded-pill fw-bold px-3 py-1 mb-2" style="font-size:.625rem; background:var(--clr-tertiary-container); color:var(--clr-on-tertiary-container);">STEP 5 OF 6</span><h1 class="display-6 fw-extrabold tracking-tight mb-1">Final Payments</h1><p class="fs-6 text-on-surface-variant" style="max-width:600px;">Review your fee breakdown and proceed to the secure payment gateway.</p></div>
+        <div class="mb-4"><span class="badge rounded-pill fw-bold px-3 py-1 mb-2" style="font-size:.625rem; background:var(--clr-tertiary-container); color:var(--clr-on-tertiary-container);">STEP 6 OF 6</span><h1 class="display-6 fw-extrabold tracking-tight mb-1">Final Payments</h1><p class="fs-6 text-on-surface-variant" style="max-width:600px;">Review your fee breakdown and proceed to the secure payment gateway.</p></div>
         <div class="row g-4">
             <!-- Payment Redirect -->
             <div class="col-md-8 order-2 order-md-1">
@@ -439,20 +446,23 @@
         </div>
         <!-- Footer Nav -->
         <div class="d-flex flex-wrap justify-content-between align-items-center pt-5 mt-4 border-top gap-3">
-            <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-on-surface-variant);"><span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>Back to Course Preferences</button>
-            <div class="d-flex align-items-center gap-3"><span class="fst-italic small text-outline">Final step after payment</span><button class="btn btn-surface px-5 py-2 fw-bold btn-proceed-preview" disabled style="opacity:.6;">Proceed to Submit</button></div>
+            <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-on-surface-variant);"><span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>Back to Preview</button>
+            <div class="d-flex align-items-center gap-3"><span class="fst-italic small text-outline">Submit after completing payment</span><button class="btn btn-primary px-5 py-2 fw-bold d-flex align-items-center gap-2 shadow-lg btn-submit-application" disabled style="opacity:.6;"><span class="material-symbols-outlined">send</span>Submit Application</button></div>
         </div>
     </div>
 </section>
 
 <!-- ╔══════════════════════════════════════════╗ -->
-<!-- ║   SECTION: STEP 6 — PREVIEW & SUBMIT      ║ -->
+<!-- ║   SECTION: STEP 5 — PREVIEW APPLICATION   ║ -->
 <!-- ╚══════════════════════════════════════════╝ -->
-<section class="app-section px-3 px-md-5 py-4" id="section-step6" style="display:none;">
+<section class="app-section px-3 px-md-5 py-4" id="section-step5" style="display:none;">
     <div class="mx-auto" style="max-width:1100px;">
         <div class="row g-4">
             <div class="col-md-8 order-2 order-md-1">
-                <div class="mb-4 ps-3" style="border-left:4px solid var(--clr-primary);"><h1 class="fs-3 fw-extrabold tracking-tight mb-1">Final Review</h1><p class="text-secondary fs-6">Please review all details carefully before submission. Changes cannot be made after.</p></div>
+                <div class="mb-4">
+                    <span class="badge rounded-pill fw-bold px-3 py-1 mb-2 d-inline-block" style="font-size:.625rem; background:var(--clr-tertiary-container); color:var(--clr-on-tertiary-container);">STEP 5 OF 6</span>
+                    <div class="ps-3" style="border-left:4px solid var(--clr-primary);"><h1 class="fs-3 fw-extrabold tracking-tight mb-1">Final Review</h1><p class="text-secondary fs-6">Please review all details carefully before proceeding to payment.</p></div>
+                </div>
 
                 <!-- Primary Information -->
                 <div class="card p-4 rounded-3 mb-3">
@@ -495,7 +505,8 @@
                         <table class="table table-sm mb-0">
                             <thead class="bg-surface-container"><tr class="fw-bold small" style="color:var(--clr-on-surface-variant);"><th class="py-2 px-3">Subject</th><th class="py-2 px-3">Theory+Practical Marks</th><th class="py-2 px-3">Total Marks</th><th class="py-2 px-3">Status</th></tr></thead>
                             <tbody id="previewSubjectsBody"></tbody>
-                            <tfoot class="bg-surface-low fw-bold"><tr><td class="px-3 py-2" style="color:var(--clr-primary);" id="previewAggregate">Aggregate: —</td><td class="px-3 py-2" colspan="3" id="previewTotalMarks">Total: —</td></tr></tfoot>
+                            <!-- <tfoot class="bg-surface-low fw-bold"><tr><td class="px-3 py-2" style="color:var(--clr-primary);" id="previewAggregate">Aggregate: —</td><td class="px-3 py-2" colspan="3" id="previewTotalMarks">Total: —</td></tr></tfoot> -->
+                             <tfoot class="bg-surface-low fw-bold"><tr><td></td><td class="px-3 py-2" colspan="3" id="previewTotalMarks">Total: —</td></tr></tfoot>
                         </table>
                     </div>
                 </div>
@@ -510,24 +521,15 @@
                     </div>
                 </div>
 
-                <!-- Payment Status -->
-                <div class="card p-4 rounded-3 mb-4">
-                    <div class="d-flex justify-content-between mb-3"><h6 class="small fw-bold text-uppercase" style="letter-spacing:.1em; color:var(--clr-secondary);"><span class="material-symbols-outlined me-1" style="font-size:16px; vertical-align:middle;">receipt_long</span>Payment Status</h6><button class="btn btn-link p-0 small fw-semibold text-decoration-none btn-edit-section" id="btnEditPayment" data-step="5" style="color:var(--clr-primary);">Edit Section</button></div>
-                    <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background:rgba(107,217,188,0.15);">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="rounded-circle bg-white d-flex align-items-center justify-content-center shadow-sm" style="width:40px;height:40px;"><span class="material-symbols-outlined filled" style="color:var(--clr-primary);font-variation-settings:'FILL' 1;">check_circle</span></div>
-                            <div><p class="fw-bold mb-0" style="color:var(--clr-on-primary-container);" id="previewPayStatus">PAID</p><p class="small mb-0" style="color:var(--clr-on-primary-container);">Transaction ID: <span id="previewTxnId">—</span></p></div>
-                        </div>
-                        <div class="text-end"><p class="fs-5 fw-bold mb-0" style="color:var(--clr-on-primary-container);" id="previewPayAmount">₹ —</p><p class="small mb-0" style="color:var(--clr-on-primary-container);" id="previewPayMethod">—</p></div>
-                    </div>
-                </div>
-
                 <!-- Declaration -->
                 <div class="declaration-box mb-4"><label class="d-flex align-items-start gap-3 cursor-pointer"><input type="checkbox" class="form-check-input mt-1" id="declarationCheck" style="width:1.2em;height:1.2em;"><span class="small fw-medium" style="line-height:1.7;">I hereby declare that all information provided in this application is true, complete, and correct to the best of my knowledge. I understand that if any information is found false, my candidature/admission is liable to be canceled without any notice or compensation.</span></label></div>
                 <!-- Actions -->
-                <div class="d-flex flex-column flex-md-row gap-3 justify-content-end pt-3 pb-5">
-                    <button class="btn btn-outline-primary px-5 py-3 fw-bold d-flex align-items-center justify-content-center gap-2 btn-print-draft no-print"><span class="material-symbols-outlined">print</span>Print Draft</button>
-                    <button class="btn btn-primary px-5 py-3 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-lg btn-submit-application"><span class="material-symbols-outlined">send</span>Submit Application</button>
+                <div class="d-flex flex-wrap justify-content-between align-items-center pt-3 pb-5 border-top gap-3">
+                    <button class="btn btn-link fw-bold text-decoration-none d-flex align-items-center gap-1 btn-back" style="color:var(--clr-on-surface-variant);"><span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>Back</button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-outline-primary px-4 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 btn-print-draft no-print"><span class="material-symbols-outlined">print</span>Print Draft</button>
+                        <button class="btn btn-primary px-5 py-2 fw-bold btn-proceed-payment d-flex align-items-center gap-2"><span class="material-symbols-outlined" style="font-size:18px;">arrow_forward</span>Proceed to Payment</button>
+                    </div>
                 </div>
             </div>
 
@@ -539,8 +541,7 @@
                     <div class="text-start">
                         <div class="d-flex justify-content-between py-2 border-bottom small"><span class="text-on-surface-variant">College</span><span class="fw-semibold" id="previewCollege">—</span></div>
                         <div class="d-flex justify-content-between py-2 border-bottom small"><span class="text-on-surface-variant">Stream</span><span class="fw-semibold" id="previewStreamSide">—</span></div>
-                        <div class="d-flex justify-content-between py-2 border-bottom small"><span class="text-on-surface-variant">Aggregate</span><span class="fw-semibold" style="color:var(--clr-primary);" id="previewAggSide">—</span></div>
-                        <div class="d-flex justify-content-between py-2 small"><span class="text-on-surface-variant">Payment</span><span class="fw-semibold" style="color:var(--clr-primary);" id="previewPaySide">—</span></div>
+                        <!-- <div class="d-flex justify-content-between py-2 border-bottom small"><span class="text-on-surface-variant">Aggregate</span><span class="fw-semibold" style="color:var(--clr-primary);" id="previewAggSide">—</span></div> -->
                     </div>
                 </div>
             </div>
@@ -567,19 +568,58 @@
             <!-- Preferences Summary -->
             <div class="bg-surface-low rounded-2 p-4 border" style="border-color:rgba(222,228,224,0.5)!important;">
                 <h6 class="small fw-semibold text-uppercase d-flex align-items-center gap-2 mb-3" style="letter-spacing:.1em; color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:16px;">summarize</span>Summary of Preferences</h6>
-                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">First Preference</span><span class="small text-on-surface-variant">B.A. Political Science (Hons.)</span></div><span class="badge rounded-1 px-2 py-1 small fw-semibold" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);">Priority 1</span></div>
-                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Second Preference</span><span class="small text-on-surface-variant">B.A. History</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 2</span></div>
-                <div class="d-flex justify-content-between align-items-start"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Third Preference</span><span class="small text-on-surface-variant">B.A. Sociology</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 3</span></div>
+                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">First Preference</span><span class="small text-on-surface-variant" id="ackPref1">—</span></div><span class="badge rounded-1 px-2 py-1 small fw-semibold" style="background:var(--clr-secondary-container);color:var(--clr-on-secondary-container);">Priority 1</span></div>
+                <div class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Second Preference</span><span class="small text-on-surface-variant" id="ackPref2">—</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 2</span></div>
+                <div class="d-flex justify-content-between align-items-start" id="ackPref3Row"><div><span class="d-block small fw-medium text-on-surface-variant mb-1" style="font-size:.75rem;">Third Preference</span><span class="small text-on-surface-variant" id="ackPref3">—</span></div><span class="badge rounded-1 px-2 py-1 small fw-medium" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">Priority 3</span></div>
             </div>
             <!-- Actions -->
             <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
                 <button class="btn btn-primary px-4 py-3 fw-medium d-flex align-items-center justify-content-center gap-2 btn-download-ack"><span class="material-symbols-outlined">download</span>Download Acknowledgement PDF</button>
-                <button class="btn btn-outline-primary px-4 py-3 fw-medium d-flex align-items-center justify-content-center gap-2 btn-back-dashboard"><span class="material-symbols-outlined">track_changes</span>Track Application Status</button>
+                <button class="btn btn-outline-primary px-4 py-3 fw-medium d-flex align-items-center justify-content-center gap-2 btn-track-status"><span class="material-symbols-outlined">track_changes</span>Track Application Status</button>
             </div>
         </div>
         <!-- Footer note -->
         <div class="bg-surface-low py-3 px-4 text-center border-top" style="border-color:var(--clr-surface-variant)!important;"><p class="small text-on-surface-variant d-flex align-items-center justify-content-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:16px;">mail</span>An email confirmation has been sent to your registered address.</p></div>
     </div>
+    </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║   SECTION: TRACK APPLICATION STATUS         ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<section class="app-section px-3 py-5" id="section-track-status" style="display:none;">
+    <div class="container" style="max-width:760px;">
+        <!-- Page header -->
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <button class="btn btn-sm btn-surface fw-semibold d-flex align-items-center gap-1 btn-back-dashboard"><span class="material-symbols-outlined" style="font-size:18px;">arrow_back</span>My Applications</button>
+        </div>
+        <div class="text-center mb-5">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width:64px;height:64px;background:var(--clr-primary-container);">
+                <span class="material-symbols-outlined fs-3" style="color:var(--clr-on-primary-container);">track_changes</span>
+            </div>
+            <h1 class="fs-3 fw-bold tracking-tight mb-2">Track Application Status</h1>
+            <p class="text-on-surface-variant" style="max-width:480px;margin:0 auto;">Enter your Application Reference Number to see your current status, merit list selection, and counselling invitations.</p>
+        </div>
+
+        <!-- Search box -->
+        <div class="card p-4 rounded-3 mb-4">
+            <label class="form-label fw-bold mb-2">Application Reference Number</label>
+            <div class="input-group input-group-lg">
+                <span class="input-group-text bg-surface-low border-end-0"><span class="material-symbols-outlined text-on-surface-variant">tag</span></span>
+                <input type="text" class="form-control border-start-0 bg-surface-low font-monospace text-uppercase" id="trackAppNoInput" placeholder="e.g. SK-2026-SGC-00001" autocomplete="off" style="letter-spacing:.05em;">
+                <button class="btn btn-primary fw-bold px-4" id="btnTrackSearch"><span class="material-symbols-outlined" style="font-size:18px;vertical-align:-3px;">search</span> Search</button>
+            </div>
+            <div class="form-text mt-2">Your reference number was sent to your registered email and is shown on your acknowledgement page.</div>
+        </div>
+
+        <!-- Initial prompt (shown before search) -->
+        <div id="trackInitPrompt" class="text-center py-4">
+            <span class="material-symbols-outlined d-block mb-2" style="font-size:40px;color:var(--clr-outline);">manage_search</span>
+            <p class="text-on-surface-variant small mb-0">Enter your application number above and click <strong>Search</strong> to see your status.</p>
+        </div>
+
+        <!-- Result container -->
+        <div id="trackResult"></div>
     </div>
 </section>
 

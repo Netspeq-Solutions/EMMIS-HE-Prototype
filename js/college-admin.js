@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    EMMIS HE — College Admin Portal
    jQuery Application Logic (Single-Page Architecture)
    ============================================================ */
@@ -30,9 +30,154 @@
         id: null,
         name: "",
         code: "",
-        session: "2026-27",
+        session: "2026",
         district: ""
     };
+
+    // 3-letter code map for app ID generation — mirrors app.js COLLEGE_CODES
+    var COLLEGE_CODES_MAP = {1:'SGC', 2:'DEN', 3:'SAC', 4:'NGC', 5:'MAN', 6:'SOR', 7:'NBB', 8:'RHE', 9:'GCB', 10:'WPC', 11:'LIN', 12:'SSG'};
+
+    // Returns the 3-letter code for the currently selected college (default SGC)
+    function getCollegeCode() { return COLLEGE_CODES_MAP[COLLEGE_INFO.id] || 'SGC'; }
+
+    // Remap an SGC-based seed appNo to the current college's code
+    function remapAppNo(appNo) {
+        var code = getCollegeCode();
+        if (code === 'SGC') return appNo;
+        return appNo.replace(/^(SK-\d{4}-)SGC(-\d+)$/, '$1' + code + '$2');
+    }
+
+    // Returns the seed STUDENTS array — seed data is SGC-only; other colleges start empty
+    // Map pref1Program + pref1Course text values from app.js to a COURSES id in college-admin.js
+    function inferCourseId(prefProgram, prefCourse) {
+        var c = (prefCourse  || '').toLowerCase().trim();
+        var p = (prefProgram || '').toLowerCase().trim();
+        // 1. Exact match on COURSES name
+        for (var i = 0; i < COURSES.length; i++) {
+            if (COURSES[i].name.toLowerCase() === c) return COURSES[i].id;
+        }
+        // 2. Substring match — stored course contains a COURSES name (or vice versa)
+        for (var i = 0; i < COURSES.length; i++) {
+            var cn = COURSES[i].name.toLowerCase();
+            if (c && c.indexOf(cn) >= 0) return COURSES[i].id;
+            if (c && cn.indexOf(c) >= 0) return COURSES[i].id;
+        }
+        // 3. First-word prefix match (e.g. "b.com" → bcom, "b.sc." → bsc-phy)
+        var cFirst = c.split(' ')[0];
+        if (cFirst) {
+            for (var i = 0; i < COURSES.length; i++) {
+                if (COURSES[i].name.toLowerCase().indexOf(cFirst) === 0) return COURSES[i].id;
+            }
+        }
+        // 4. Program keyword fallback — pick first matching course
+        for (var i = 0; i < COURSES.length; i++) {
+            var cn = COURSES[i].name.toLowerCase();
+            if (p.indexOf('commerce') >= 0 && cn.indexOf('com') >= 0)   return COURSES[i].id;
+            if (p.indexOf('science')  >= 0 && cn.indexOf('b.sc') >= 0)  return COURSES[i].id;
+            if (p.indexOf('arts')     >= 0 && cn.indexOf('b.a.') >= 0)  return COURSES[i].id;
+        }
+        return '';
+    }
+
+    // Convert a raw live application (from emmis_he_applications) to the STUDENTS-compatible format
+    function liveAppToStudent(a) {
+        var s1 = a.step1 || {}, s2 = a.step2 || {}, s3 = a.step3 || {}, s4 = a.step4 || {}, s5 = a.step5 || {};
+        // Compute aggregate percentage from step3 numbered subject inputs
+        var totalObt = 0, totalMax = 0, subjects = [];
+        for (var k = 1; k <= 10; k++) {
+            var sn = s3['subject_' + k] || '';
+            var sm = parseFloat(s3['marks_' + k]);
+            var st = parseFloat(s3['total_' + k]);
+            if (isNaN(sm) && !sn) break;
+            sm = isNaN(sm) ? 0 : sm;
+            st = isNaN(st) || st <= 0 ? 100 : st;
+            if (sn || sm > 0) {
+                subjects.push({ name: sn, marks: sm, total: st });
+                totalObt += sm; totalMax += st;
+            }
+        }
+        var marksPct = totalMax > 0 ? parseFloat(((totalObt / totalMax) * 100).toFixed(1)) : 0;
+        var p1Prog   = s4.pref1Program || '';
+        var p1Course = (s4.pref1Course && s4.pref1Course !== 'Select Course') ? s4.pref1Course : '';
+        var p2Prog   = (s4.pref2Program && s4.pref2Program !== 'Select Course') ? s4.pref2Program : '';
+        var p3Prog   = (s4.pref3Program && s4.pref3Program !== 'Select Course') ? s4.pref3Program : '';
+        // Resolve to a COURSES id so dashboard/filter comparisons work correctly
+        var courseId = inferCourseId(p1Prog, p1Course) || p1Prog;
+        return {
+            appNo:             a.applicationId,
+            name:              s1.candidateName || '',
+            course:            courseId,
+            marks:             marksPct,
+            status:            (a.status === 'submitted' ? 'applied' : a.status) || 'applied',
+            photo:             '',
+            rollNo:            s1.rollNo || '',
+            board:             s1.board  || '',
+            stream:            s1.stream || '',
+            gender:            s1.gender || '',
+            mobile:            s1.mobile || '',
+            email:             s1.email  || '',
+            category:          s1.category   || '',
+            coiNumber:         s1.coiNumber  || '',
+            pwd:               s1.pwd        || 'No',
+            dob:               s2.dob        || '',
+            community:         s2.community  || '',
+            fatherName:        s2.fatherName    || '',
+            fatherContact:     s2.fatherContact || '',
+            motherName:        s2.motherName    || '',
+            district:          s2.district      || '',
+            pincode:           s2.pincode       || '',
+            permanentAddress:  s2.permanentAddress || '',
+            state:             s2.state || '',
+            subjects:          subjects,
+            pref1:             p1Prog + (p1Course ? ' — ' + p1Course : ''),
+            pref2:             p2Prog,
+            pref3:             p3Prog,
+            appFee: {
+                txn:    s5.transactionId  || '',
+                amount: s5.amount         || 200,
+                status: s5.status === 'paid' ? 'Paid' : 'Pending',
+                method: s5.paymentMethod  || ''
+            },
+            collegeId: a.collegeId,
+            _isLive: true
+        };
+    }
+
+    // Returns live submitted applications from localStorage for the current college
+    function getLiveStudents() {
+        var result = [];
+        try {
+            var liveApps = JSON.parse(localStorage.getItem('emmis_he_applications') || '[]');
+            $.each(liveApps, function(_, a) {
+                if (parseInt(a.collegeId, 10) === COLLEGE_INFO.id && a.status !== 'draft') {
+                    result.push(liveAppToStudent(a));
+                }
+            });
+        } catch(e) {}
+        return result;
+    }
+
+    function getActiveStudents() {
+        var code = getCollegeCode();
+        var liveStudents = getLiveStudents();
+        if (code === 'SGC') {
+            // SGC has seed data — merge with live apps, avoiding duplicates
+            var seedIds = {};
+            $.each(STUDENTS, function(_, s) { seedIds[s.appNo] = true; });
+            var extras = $.grep(liveStudents, function(s) { return !seedIds[s.appNo]; });
+            return STUDENTS.concat(extras);
+        }
+        // All other colleges: only real submitted applications
+        return liveStudents;
+    }
+
+    // Whether MERIT_LISTS was successfully loaded from localStorage (vs. seed fallback)
+    var _meritListsLoaded = false;
+
+    // Returns MERIT_LISTS (always loaded from localStorage; seed is intentionally empty)
+    function getActiveMeritLists() {
+        return MERIT_LISTS;
+    }
 
     var COURSES = [
         { id: "bcom", name: "B.Com (Hons)", seats: 60, fee: 5000 },
@@ -50,7 +195,7 @@
 
     var STUDENTS = [
         {
-            appNo: "SK-2026-1001", name: "Tshering Dorjee Bhutia", course: "bcom", marks: 78.5, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00001", name: "Tshering Dorjee Bhutia", course: "bcom", marks: 78.5, status: "applied", photo: "",
             rollNo: "12345/24", board: "CBSE", stream: "Commerce", gender: "Male", mobile: "9876543210", email: "tshering.bhutia@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0012", pwd: "No", dob: "2006-05-12", community: "ST",
             fatherName: "Karma Sangay Bhutia", fatherContact: "9876000001", motherName: "Doma Bhutia",
@@ -60,7 +205,7 @@
             appFee: {txn:"TXN2024100112",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1002", name: "Pema Wangchuk Lepcha", course: "bcom", marks: 76.2, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00002", name: "Pema Wangchuk Lepcha", course: "bcom", marks: 76.2, status: "applied", photo: "",
             rollNo: "12346/24", board: "Sikkim Board", stream: "Commerce", gender: "Male", mobile: "9876543211", email: "pema.lepcha@yahoo.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0034", pwd: "No", dob: "2006-03-22", community: "ST",
             fatherName: "Sonam Lepcha", fatherContact: "9876000002", motherName: "Yangki Lepcha",
@@ -70,7 +215,7 @@
             appFee: {txn:"TXN2024100215",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1003", name: "Diki Yangzom Sherpa", course: "bcom", marks: 82.1, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00003", name: "Diki Yangzom Sherpa", course: "bcom", marks: 82.1, status: "applied", photo: "",
             rollNo: "12347/24", board: "ICSE", stream: "Commerce", gender: "Female", mobile: "9876543212", email: "diki.sherpa@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0056", pwd: "No", dob: "2005-11-15", community: "OBC",
             fatherName: "Dawa Sherpa", fatherContact: "9876000003", motherName: "Phuti Sherpa",
@@ -80,7 +225,7 @@
             appFee: {txn:"TXN2024100309",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1004", name: "Rajesh Kumar Rai", course: "ba-polsci", marks: 71.3, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00004", name: "Rajesh Kumar Rai", course: "ba-polsci", marks: 71.3, status: "applied", photo: "",
             rollNo: "12348/24", board: "Sikkim Board", stream: "Arts", gender: "Male", mobile: "9876543213", email: "rajesh.rai04@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0078", pwd: "No", dob: "2006-07-08", community: "OBC",
             fatherName: "Hari Kumar Rai", fatherContact: "9876000004", motherName: "Sita Rai",
@@ -90,7 +235,7 @@
             appFee: {txn:"TXN2024100418",amount:200,status:"Paid",method:"Cash"}
         },
         {
-            appNo: "SK-2026-1005", name: "Anjali Tamang", course: "ba-polsci", marks: 68.9, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00005", name: "Anjali Tamang", course: "ba-polsci", marks: 68.9, status: "applied", photo: "",
             rollNo: "12349/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543214", email: "anjali.tamang@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0090", pwd: "No", dob: "2006-01-30", community: "SC",
             fatherName: "Bikram Tamang", fatherContact: "9876000005", motherName: "Kamala Tamang",
@@ -100,7 +245,7 @@
             appFee: {txn:"TXN2024100522",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1006", name: "Sonam Tshering Bhutia", course: "bsc-phy", marks: 85.4, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00006", name: "Sonam Tshering Bhutia", course: "bsc-phy", marks: 85.4, status: "applied", photo: "",
             rollNo: "12350/24", board: "CBSE", stream: "Science", gender: "Male", mobile: "9876543215", email: "sonam.tshering@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0102", pwd: "No", dob: "2005-09-18", community: "ST",
             fatherName: "Passang Bhutia", fatherContact: "9876000006", motherName: "Lhamu Bhutia",
@@ -110,7 +255,7 @@
             appFee: {txn:"TXN2024100603",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1007", name: "Nima Doma Bhutia", course: "bsc-phy", marks: 79.8, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00007", name: "Nima Doma Bhutia", course: "bsc-phy", marks: 79.8, status: "applied", photo: "",
             rollNo: "12351/24", board: "Sikkim Board", stream: "Science", gender: "Female", mobile: "9876543216", email: "nima.doma@yahoo.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0114", pwd: "No", dob: "2006-04-05", community: "ST",
             fatherName: "Thendup Bhutia", fatherContact: "9876000007", motherName: "Passang Lhamu Bhutia",
@@ -120,7 +265,7 @@
             appFee: {txn:"TXN2024100711",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1008", name: "Prakash Chettri", course: "ba-eng", marks: 74.6, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00008", name: "Prakash Chettri", course: "ba-eng", marks: 74.6, status: "applied", photo: "",
             rollNo: "12352/24", board: "ICSE", stream: "Arts", gender: "Male", mobile: "9876543217", email: "prakash.chettri@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0126", pwd: "No", dob: "2006-06-25", community: "General",
             fatherName: "Gopal Chettri", fatherContact: "9876000008", motherName: "Maya Chettri",
@@ -130,7 +275,7 @@
             appFee: {txn:"TXN2024100818",amount:200,status:"Paid",method:"Cash"}
         },
         {
-            appNo: "SK-2026-1009", name: "Lhamu Diki Sherpa", course: "ba-eng", marks: 81.0, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00009", name: "Lhamu Diki Sherpa", course: "ba-eng", marks: 81.0, status: "applied", photo: "",
             rollNo: "12353/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543218", email: "lhamu.sherpa@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0138", pwd: "No", dob: "2005-12-10", community: "OBC",
             fatherName: "Mingma Sherpa", fatherContact: "9876000009", motherName: "Dawa Sherpa",
@@ -140,7 +285,7 @@
             appFee: {txn:"TXN2024100905",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1010", name: "Tenzing Norgay Lepcha", course: "bcom", marks: 69.5, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00010", name: "Tenzing Norgay Lepcha", course: "bcom", marks: 69.5, status: "applied", photo: "",
             rollNo: "12354/24", board: "Sikkim Board", stream: "Commerce", gender: "Male", mobile: "9876543219", email: "tenzing.lepcha@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0150", pwd: "No", dob: "2006-02-14", community: "ST",
             fatherName: "Dawa Lepcha", fatherContact: "9876000010", motherName: "Chungki Lepcha",
@@ -150,7 +295,7 @@
             appFee: {txn:"TXN2024101015",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1011", name: "Kesang Ongmu", course: "ba-polsci", marks: 73.2, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00011", name: "Kesang Ongmu", course: "ba-polsci", marks: 73.2, status: "applied", photo: "",
             rollNo: "12355/24", board: "Sikkim Board", stream: "Arts", gender: "Female", mobile: "9876543220", email: "kesang.ongmu@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0162", pwd: "No", dob: "2006-08-19", community: "ST",
             fatherName: "Norbu Ongmu", fatherContact: "9876000011", motherName: "Dolma Ongmu",
@@ -160,7 +305,7 @@
             appFee: {txn:"TXN2024101122",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1012", name: "Bikash Gurung", course: "bsc-phy", marks: 77.1, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00012", name: "Bikash Gurung", course: "bsc-phy", marks: 77.1, status: "applied", photo: "",
             rollNo: "12356/24", board: "CBSE", stream: "Science", gender: "Male", mobile: "9876543221", email: "bikash.gurung@yahoo.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0174", pwd: "No", dob: "2006-10-03", community: "OBC",
             fatherName: "Ram Gurung", fatherContact: "9876000012", motherName: "Sarita Gurung",
@@ -170,7 +315,7 @@
             appFee: {txn:"TXN2024101209",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1013", name: "Yangchen Dolma", course: "ba-eng", marks: 88.3, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00013", name: "Yangchen Dolma", course: "ba-eng", marks: 88.3, status: "applied", photo: "",
             rollNo: "12357/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543222", email: "yangchen.dolma@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0186", pwd: "No", dob: "2005-07-28", community: "ST",
             fatherName: "Paljor Dolma", fatherContact: "9876000013", motherName: "Sonam Dolma",
@@ -180,7 +325,7 @@
             appFee: {txn:"TXN2024101316",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1014", name: "Sanjay Subba", course: "bcom", marks: 65.7, status: "applied", photo: "", isRecommendation: true,
+            appNo: "SK-2026-SGC-00014", name: "Sanjay Subba", course: "bcom", marks: 65.7, status: "applied", photo: "", isRecommendation: true,
             rollNo: "12358/24", board: "Sikkim Board", stream: "Commerce", gender: "Male", mobile: "9876543223", email: "sanjay.subba@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0198", pwd: "No", dob: "2006-11-11", community: "SC",
             fatherName: "Man Bahadur Subba", fatherContact: "9876000014", motherName: "Dhan Maya Subba",
@@ -190,7 +335,7 @@
             appFee: {txn:"TXN2024101420",amount:200,status:"Paid",method:"Cash"}
         },
         {
-            appNo: "SK-2026-1015", name: "Phurba Lhamu Tamang", course: "ba-polsci", marks: 70.4, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00015", name: "Phurba Lhamu Tamang", course: "ba-polsci", marks: 70.4, status: "applied", photo: "",
             rollNo: "12359/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543224", email: "phurba.tamang@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0210", pwd: "No", dob: "2006-05-01", community: "SC",
             fatherName: "Dorjee Tamang", fatherContact: "9876000015", motherName: "Yangchen Tamang",
@@ -200,7 +345,7 @@
             appFee: {txn:"TXN2024101508",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1016", name: "Rinzin Dorjee", course: "bsc-phy", marks: 83.9, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00016", name: "Rinzin Dorjee", course: "bsc-phy", marks: 83.9, status: "applied", photo: "",
             rollNo: "12360/24", board: "ICSE", stream: "Science", gender: "Male", mobile: "9876543225", email: "rinzin.dorjee@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0222", pwd: "No", dob: "2005-08-16", community: "General",
             fatherName: "Lopsang Dorjee", fatherContact: "9876000016", motherName: "Lhaki Dorjee",
@@ -210,7 +355,7 @@
             appFee: {txn:"TXN2024101612",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1017", name: "Dechen Wangmo", course: "ba-eng", marks: 79.2, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00017", name: "Dechen Wangmo", course: "ba-eng", marks: 79.2, status: "applied", photo: "",
             rollNo: "12361/24", board: "CBSE", stream: "Arts", gender: "Female", mobile: "9876543226", email: "dechen.wangmo@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0234", pwd: "No", dob: "2006-03-09", community: "General",
             fatherName: "Jigme Wangmo", fatherContact: "9876000017", motherName: "Karma Wangmo",
@@ -220,7 +365,7 @@
             appFee: {txn:"TXN2024101718",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1018", name: "Karma Tshering Lepcha", course: "bcom", marks: 72.8, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00018", name: "Karma Tshering Lepcha", course: "bcom", marks: 72.8, status: "applied", photo: "",
             rollNo: "12362/24", board: "Sikkim Board", stream: "Commerce", gender: "Male", mobile: "9876543227", email: "karma.lepcha@yahoo.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0246", pwd: "No", dob: "2006-09-22", community: "ST",
             fatherName: "Sonam Tshering", fatherContact: "9876000018", motherName: "Mingma Lepcha",
@@ -230,7 +375,7 @@
             appFee: {txn:"TXN2024101822",amount:200,status:"Paid",method:"Online"}
         },
         {
-            appNo: "SK-2026-1019", name: "Passang Diki", course: "ba-polsci", marks: 67.5, status: "applied", photo: "", isRecommendation: true,
+            appNo: "SK-2026-SGC-00019", name: "Passang Diki", course: "ba-polsci", marks: 67.5, status: "applied", photo: "", isRecommendation: true,
             rollNo: "12363/24", board: "Sikkim Board", stream: "Arts", gender: "Female", mobile: "9876543228", email: "passang.diki@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0258", pwd: "No", dob: "2006-01-15", community: "ST",
             fatherName: "Tashi Diki", fatherContact: "9876000019", motherName: "Pema Diki",
@@ -240,7 +385,7 @@
             appFee: {txn:"TXN2024101905",amount:200,status:"Paid",method:"Cash"}
         },
         {
-            appNo: "SK-2026-1020", name: "Suraj Pradhan", course: "bcom", marks: 75.0, status: "applied", photo: "",
+            appNo: "SK-2026-SGC-00020", name: "Suraj Pradhan", course: "bcom", marks: 75.0, status: "applied", photo: "",
             rollNo: "12364/24", board: "CBSE", stream: "Commerce", gender: "Male", mobile: "9876543229", email: "suraj.pradhan@gmail.com",
             category: "Sikkimese", coiNumber: "COI/SK/2024/0270", pwd: "No", dob: "2006-04-18", community: "General",
             fatherName: "Krishna Pradhan", fatherContact: "9876000020", motherName: "Gita Pradhan",
@@ -251,36 +396,8 @@
         }
     ];
 
-    // Pre-built merit lists (entries-based: each entry has appNo, program, course)
-    var MERIT_LISTS = [
-        {
-            id: "ML-001", name: "Merit List 1", date: "2024-10-20", session: "2026-27", program: "",
-            entries: [
-                { appNo: "SK-2026-1003", program: "B.Com (Hons)", course: "Accounting & Finance" },
-                { appNo: "SK-2026-1001", program: "B.Com (Hons)", course: "Accounting & Finance" },
-                { appNo: "SK-2026-1020", program: "B.Com (Hons)", course: "General" },
-                { appNo: "SK-2026-1011", program: "B.A. Political Science", course: "Political Science" },
-                { appNo: "SK-2026-1004", program: "B.A. Political Science", course: "Political Science" },
-                { appNo: "SK-2026-1006", program: "B.Sc. Physics", course: "Physics" },
-                { appNo: "SK-2026-1016", program: "B.Sc. Physics", course: "Physics" },
-                { appNo: "SK-2026-1013", program: "B.A. English (Hons)", course: "English Literature" },
-                { appNo: "SK-2026-1009", program: "B.A. English (Hons)", course: "English Literature" }
-            ]
-        },
-        {
-            id: "ML-002", name: "Merit List 2", date: "2024-11-05", session: "2026-27", program: "",
-            entries: [
-                { appNo: "SK-2026-1002", program: "B.Com (Hons)", course: "Business Management" },
-                { appNo: "SK-2026-1018", program: "B.Com (Hons)", course: "General" },
-                { appNo: "SK-2026-1015", program: "B.A. Political Science", course: "Political Science" },
-                { appNo: "SK-2026-1005", program: "B.A. Political Science", course: "Political Science" },
-                { appNo: "SK-2026-1007", program: "B.Sc. Physics", course: "Physics" },
-                { appNo: "SK-2026-1012", program: "B.Sc. Physics", course: "Physics" },
-                { appNo: "SK-2026-1008", program: "B.A. English (Hons)", course: "English Literature" },
-                { appNo: "SK-2026-1017", program: "B.A. English (Hons)", course: "English Literature" }
-            ]
-        }
-    ];
+    // Pre-built merit lists — intentionally empty; upload via college admin portal
+    var MERIT_LISTS = [];
 
     // Registration data (keyed by appNo)
     var REGISTRATIONS = {};
@@ -295,7 +412,29 @@
     // ============================================================
 
     function getStudentByApp(appNo) {
+        // Direct match (seed data uses SGC codes; this hits when COLLEGE_INFO is SGC)
         for (var i = 0; i < STUDENTS.length; i++) { if (STUDENTS[i].appNo === appNo) return STUDENTS[i]; }
+        // Convert non-SGC appNo to SGC equivalent for seed lookup (e.g. SK-2026-DEN-00001 → SK-2026-SGC-00001)
+        var sgcEquiv = appNo.replace(/^(SK-\d{4}-)[A-Z]{2,4}(-\d+)$/, '$1SGC$2');
+        if (sgcEquiv !== appNo) {
+            for (var i2 = 0; i2 < STUDENTS.length; i2++) {
+                if (STUDENTS[i2].appNo === sgcEquiv) {
+                    var copy = $.extend({}, STUDENTS[i2]);
+                    copy.appNo = appNo; // return with the requested (non-SGC) code
+                    return copy;
+                }
+            }
+        }
+        // Also check live applications submitted through the student portal
+        try {
+            var liveApps = JSON.parse(localStorage.getItem('emmis_he_applications') || '[]');
+            for (var j = 0; j < liveApps.length; j++) {
+                var a = liveApps[j];
+                if (a.applicationId === appNo) {
+                    return liveAppToStudent(a);
+                }
+            }
+        } catch(e) {}
         return null;
     }
     function getCourseName(cid) {
@@ -322,7 +461,7 @@
         if (activeSession) return activeSession;
         // Fall back to most recent merit list session
         var latestSession = null;
-        $.each(MERIT_LISTS, function(_, ml) {
+        $.each(getActiveMeritLists(), function(_, ml) {
             if (!latestSession || (ml.session || ml.year || '') > latestSession) latestSession = ml.session || String(ml.year || '');
         });
         if (latestSession) return latestSession;
@@ -366,7 +505,7 @@
 
     function getMeritListsForApp(appNo) {
         var lists = [];
-        $.each(MERIT_LISTS, function(_, ml) {
+        $.each(getActiveMeritLists(), function(_, ml) {
             $.each(ml.entries, function(__, entry) {
                 if (entry.appNo === appNo) {
                     lists.push({ id: ml.id, name: ml.name });
@@ -380,31 +519,24 @@
         var d = localStorage.getItem('emmis_ca_registrations');
         if (d) { try { REGISTRATIONS = JSON.parse(d); } catch(e) { REGISTRATIONS = {}; } }
     }
-    function saveRegistrations() { localStorage.setItem('emmis_ca_registrations', JSON.stringify(REGISTRATIONS)); }
+    function loadRegistrations() {
+        REGISTRATIONS = {};
+        var key = 'emmis_ca_registrations_' + (COLLEGE_INFO.id || 'default');
+        var d = localStorage.getItem(key);
+        if (d) { try { REGISTRATIONS = JSON.parse(d); } catch(e) { REGISTRATIONS = {}; } }
+    }
+    function saveRegistrations() {
+        localStorage.setItem('emmis_ca_registrations_' + (COLLEGE_INFO.id || 'default'), JSON.stringify(REGISTRATIONS));
+    }
 
-    // Recommendations: keyed by appNo — from invite-link applications (app.js) + seed data
+    // Recommendations: keyed by appNo — from invite-link applications + seed data
     var RECOMMENDATIONS_SET = {};
     function loadRecommendations() {
-        // From shared store written by app.js when student arrives via invite link
+        RECOMMENDATIONS_SET = {};
         var recs = JSON.parse(localStorage.getItem('emmis_ca_recommendations') || '[]');
         $.each(recs, function(_, r) { RECOMMENDATIONS_SET[r.appNo] = r; });
-        // Also mark seed students that have isRecommendation:true in STUDENTS array
-        $.each(STUDENTS, function(_, s) {
-            if (s.isRecommendation) RECOMMENDATIONS_SET[s.appNo] = { appNo: s.appNo, seed: true };
-        });
-    }
-    function isStudentRecommendation(appNo) {
-        return !!RECOMMENDATIONS_SET[appNo];
-    }
-
-    // Recommendations: load appNos that came via invite link (from student portal)
-    var RECOMMENDATIONS_SET = {}; // keyed by appNo
-    function loadRecommendations() {
-        // From shared store written by app.js
-        var recs = JSON.parse(localStorage.getItem('emmis_ca_recommendations') || '[]');
-        $.each(recs, function(_, r) { RECOMMENDATIONS_SET[r.appNo] = r; });
-        // Also mark seed students that have isRecommendation:true in STUDENTS array
-        $.each(STUDENTS, function(_, s) {
+        // Also mark seed students that have isRecommendation:true (using remapped appNos)
+        $.each(getActiveStudents(), function(_, s) {
             if (s.isRecommendation) RECOMMENDATIONS_SET[s.appNo] = { appNo: s.appNo, seed: true };
         });
     }
@@ -413,30 +545,47 @@
     }
 
     function loadMeritLists() {
-        var d = localStorage.getItem('emmis_ca_meritlists');
+        MERIT_LISTS = []; // always reset before loading so switching colleges never leaks data
+        _meritListsLoaded = false;
+        var key = 'emmis_ca_meritlists_' + (COLLEGE_INFO.id || 'default');
+        var d = localStorage.getItem(key);
         if (d) {
             try {
                 var parsed = JSON.parse(d);
                 // Validate new format (entries-based); discard old format (students/statuses)
                 if (parsed.length > 0 && parsed[0].entries) {
                     MERIT_LISTS = parsed;
+                    _meritListsLoaded = true;
                     // Backward compat: ensure session and program fields exist
                     $.each(MERIT_LISTS, function(_, ml) {
                         if (!ml.session) ml.session = '2024-25';
                         if (ml.program === undefined) ml.program = '';
                     });
                 } else {
-                    localStorage.removeItem('emmis_ca_meritlists');
+                    localStorage.removeItem(key);
                 }
             } catch(e) {}
         }
     }
-    function saveMeritLists() { localStorage.setItem('emmis_ca_meritlists', JSON.stringify(MERIT_LISTS)); }
+    function saveMeritLists() {
+        var key = 'emmis_ca_meritlists_' + (COLLEGE_INFO.id || 'default');
+        localStorage.setItem(key, JSON.stringify(MERIT_LISTS));
+        _meritListsLoaded = true;
+        // Rebuild global aggregate so student portal track status can read across all colleges
+        var all = [];
+        for (var cid = 1; cid <= 12; cid++) {
+            var d = localStorage.getItem('emmis_ca_meritlists_' + cid);
+            if (d) { try { var l = JSON.parse(d); if (Array.isArray(l)) all = all.concat(l); } catch(e) {} }
+        }
+        localStorage.setItem('emmis_ca_meritlists', JSON.stringify(all));
+    }
 
     // ── Counselling Sessions ──────────────────────────────────────
     var COUNSELLING_SESSIONS = [];
     function loadCounsellingSessions() {
-        var d = localStorage.getItem('emmis_ca_counselling_sessions');
+        COUNSELLING_SESSIONS = [];
+        var key = 'emmis_ca_counselling_sessions_' + (COLLEGE_INFO.id || 'default');
+        var d = localStorage.getItem(key);
         if (d) {
             try {
                 var parsed = JSON.parse(d);
@@ -445,7 +594,15 @@
         }
     }
     function saveCounsellingSessions() {
-        localStorage.setItem('emmis_ca_counselling_sessions', JSON.stringify(COUNSELLING_SESSIONS));
+        var key = 'emmis_ca_counselling_sessions_' + (COLLEGE_INFO.id || 'default');
+        localStorage.setItem(key, JSON.stringify(COUNSELLING_SESSIONS));
+        // Rebuild global aggregate so student portal track status can read across all colleges
+        var all = [];
+        for (var cid = 1; cid <= 12; cid++) {
+            var d = localStorage.getItem('emmis_ca_counselling_sessions_' + cid);
+            if (d) { try { var l = JSON.parse(d); if (Array.isArray(l)) all = all.concat(l); } catch(e) {} }
+        }
+        localStorage.setItem('emmis_ca_counselling_sessions', JSON.stringify(all));
     }
 
     function loadAdmissionSchedules() {
@@ -516,15 +673,19 @@
 
     function renderDashboard() {
         // KPIs
-        var totalApps = STUDENTS.length;
+        var activeStudents = getActiveStudents();
+        var activeMeritLists = getActiveMeritLists();
+        var totalApps = activeStudents.length;
         var meritListedSet = {}, registered = 0;
-        $.each(MERIT_LISTS, function(_, ml) {
+        $.each(activeMeritLists, function(_, ml) {
             $.each(ml.entries, function(__, entry) {
                 meritListedSet[entry.appNo] = true;
             });
         });
         var admitted = Object.keys(meritListedSet).length;
+        var _regCollegeCode = getCollegeCode();
         $.each(REGISTRATIONS, function(app, reg) {
+            if (app.indexOf('-' + _regCollegeCode + '-') < 0) return; // skip other-college entries
             if (reg.feeCollected) registered++;
         });
         var totalSeats = 0;
@@ -541,8 +702,8 @@
         $.each(COURSES, function(_, c) {
             var apps = 0, adm = 0, reg = 0;
             var admSet = {};
-            $.each(STUDENTS, function(__, s) { if (s.course === c.id) apps++; });
-            $.each(MERIT_LISTS, function(__, ml) {
+            $.each(activeStudents, function(__, s) { if (s.course === c.id) apps++; });
+            $.each(activeMeritLists, function(__, ml) {
                 $.each(ml.entries, function(___, entry) {
                     var s = getStudentByApp(entry.appNo);
                     if (s && s.course === c.id) admSet[entry.appNo] = true;
@@ -550,6 +711,7 @@
             });
             adm = Object.keys(admSet).length;
             $.each(REGISTRATIONS, function(app, r) {
+                if (app.indexOf('-' + _regCollegeCode + '-') < 0) return; // skip other-college entries
                 var s = getStudentByApp(app);
                 if (s && s.course === c.id && r.feeCollected) reg++;
             });
@@ -563,7 +725,7 @@
 
         // Gender donut
         var male = 0, female = 0;
-        $.each(STUDENTS, function(_, s) {
+        $.each(activeStudents, function(_, s) {
             if (s.gender === 'Male') male++;
             else if (s.gender === 'Female') female++;
         });
@@ -582,7 +744,7 @@
 
         // Community bars
         var communities = {};
-        $.each(STUDENTS, function(_, s) { communities[s.community] = (communities[s.community] || 0) + 1; });
+        $.each(activeStudents, function(_, s) { communities[s.community] = (communities[s.community] || 0) + 1; });
         var $bars = $('#communityBars').empty();
         var maxComm = Math.max.apply(null, $.map(communities, function(v) { return v; }));
         var barColors = { 'ST': 'var(--clr-primary)', 'SC': 'var(--clr-tertiary)', 'OBC': 'var(--clr-secondary)', 'General': 'var(--clr-outline)' };
@@ -725,7 +887,12 @@
         var $wrap = $('#scheduleCards').empty();
         var sched = getCollegeSchedule();
         if (!sched) {
-            $wrap.html('<div class="text-center py-4 text-on-surface-variant small">No session configured for this year yet. Fill in the form above and save.</div>');
+            $wrap.html(
+                '<div class="text-center py-5">' +
+                '<span class="material-symbols-outlined d-block mb-2" style="font-size:48px;color:var(--clr-outline);">event_busy</span>' +
+                '<p class="text-on-surface-variant mb-0">No session configured for this year yet. Fill in the form above and save.</p>' +
+                '</div>'
+            );
             return;
         }
         var year = sched.year || parseInt(sched.session, 10) || '—';
@@ -734,193 +901,251 @@
         var overrides = sched.overrides || [];
         var inviteLinks = sched.inviteLinks || [];
 
-        var html = '<div class="border rounded-3 overflow-hidden">';
+        // Load merit list and counselling data for this college/year
+        var allMl = [];
+        try { allMl = JSON.parse(localStorage.getItem('emmis_ca_meritlists') || '[]'); } catch(e) {}
+        var collegeMl = $.grep(allMl, function(ml) {
+            var mlYear = ml.year || parseInt(ml.session, 10) || 0;
+            if (mlYear !== year) return false;
+            if (COLLEGE_INFO.id && ml.collegeId && String(ml.collegeId) !== String(COLLEGE_INFO.id)) return false;
+            return true;
+        });
 
-        // ─── Session header ───
-        html += '<div class="p-4" style="background:var(--clr-surface-low);">' +
-            '<div class="d-flex justify-content-between align-items-start gap-3">' +
-            '<div>' +
-            '<h6 class="fw-bold mb-1 d-flex align-items-center gap-2">Admission Year ' + year + '</h6>' +
-            '<p class="small text-on-surface-variant mb-1">Application: ' + ((sched.defaultWindow && sched.defaultWindow.appOpen) || '—') + ' &rarr; ' + ((sched.defaultWindow && sched.defaultWindow.appClose) || '—') + '</p>' +
-            (sched.appFee ? '<p class="small text-on-surface-variant mb-0">Fee: \u20b9' + sched.appFee + '</p>' : '<p class="small text-on-surface-variant mb-0">Fee: Free</p>') +
-            (sched.prospectusName ? '<p class="small text-on-surface-variant mb-0 mt-1"><span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">description</span> ' + $('<span>').text(sched.prospectusName).html() + '</p>' : '') +
-            '</div>' +
-            '<div class="d-flex flex-column align-items-end gap-2">' +
-            '<span class="badge rounded-pill fw-bold" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">ACTIVE</span>' +
-            '<div class="d-flex gap-2">' +
-            '<button class="btn btn-sm btn-outline-primary fw-bold btn-edit-schedule d-flex align-items-center gap-1" data-key="' + schedKey + '"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">edit</span>Edit Session</button>' +
-            '<button class="btn btn-sm btn-outline-danger fw-bold btn-delete-schedule d-flex align-items-center gap-1" data-key="' + schedKey + '"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">delete</span>Delete</button>' +
-            '</div></div>' +
-            '</div></div>';
+        var allCs = [];
+        try { allCs = JSON.parse(localStorage.getItem('emmis_ca_counselling_sessions') || '[]'); } catch(e) {}
+        var collegeCs = $.grep(allCs, function(cs) {
+            var csYear = cs.year || 0;
+            if (csYear !== year) return false;
+            if (COLLEGE_INFO.id && cs.collegeId && String(cs.collegeId) !== String(COLLEGE_INFO.id)) return false;
+            return true;
+        });
 
-        // ─── Important Notification sub-section ───
-        html += '<div class="p-4 border-top">' +
-            '<div class="d-flex justify-content-between align-items-center mb-1 gap-2">' +
-            '<h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-secondary);">campaign</span>Important Notification / Announcement</h6>' +
-            '<span class="small fw-semibold" id="notifSavedIndicator" style="display:none;color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">check_circle</span> Saved <span id="notifSavedAt"></span></span>' +
-            '</div>' +
-            '<p class="small text-on-surface-variant mb-2">This message appears on the public college listing. Update at any time independently of the session configuration.</p>' +
-            '<textarea class="form-control mb-2" id="cfgNotification" rows="3" placeholder="e.g., Verification of original documents starts from May 12. Bring all originals.">' + $('<span>').text(notifText).html() + '</textarea>' +
-            '<div class="d-flex justify-content-end">' +
-            '<button class="btn btn-outline-secondary btn-sm fw-bold d-flex align-items-center gap-2" id="btnSaveNotification"><span class="material-symbols-outlined" style="font-size:14px;">save</span>Update Notification</button>' +
-            '</div></div>';
+        var mlCount = collegeMl.length;
+        var csCount = collegeCs.length;
+        var ovrCount = overrides.length;
+        var invCount = inviteLinks.length;
 
-        // ─── Application Closing Date Overrides sub-section ───
-        html += '<div class="p-4 border-top">' +
-            '<div class="d-flex justify-content-between align-items-start mb-1 gap-2">' +
-            '<div><h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-tertiary);">date_range</span>Application Closing Date Overrides</h6>' +
-            '<p class="small text-on-surface-variant mt-1 mb-0">Extend the application closing date for specific programs or courses beyond the default.</p></div>' +
-            '<button class="btn btn-outline-primary btn-sm fw-bold flex-shrink-0 d-flex align-items-center gap-1" id="btnShowAddOverride"><span class="material-symbols-outlined" style="font-size:16px;">add</span>Add Override</button>' +
-            '</div>' +
-            '<div id="overrideAddForm" class="p-3 rounded-3 mt-3" style="display:none;background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">' +
-            '<div class="row g-2 align-items-end">' +
-            '<div class="col-md-3"><label class="form-label fw-bold small mb-1">Program</label>' +
-            '<select class="form-select form-select-sm" id="ovrProgram"><option value="">All Programs</option><option value="B.Com">B.Com</option><option value="B.A">B.A</option><option value="B.Sc">B.Sc</option></select></div>' +
-            '<div class="col-md-4"><label class="form-label fw-bold small mb-1">Course <span class="fw-normal text-on-surface-variant">(optional)</span></label>' +
-            '<select class="form-select form-select-sm" id="ovrCourse"><option value="">All Courses in Program</option></select></div>' +
-            '<div class="col-md-3"><label class="form-label fw-bold small mb-1">Override Closing Date *</label>' +
-            '<input type="date" class="form-control form-control-sm" id="ovrEndDate"></div>' +
-            '<div class="col-md-2 d-flex gap-2">' +
-            '<button class="btn btn-primary btn-sm fw-bold flex-grow-1" id="btnSaveOverride">Add</button>' +
-            '<button class="btn btn-surface btn-sm fw-bold" id="btnCancelOverride">\u00d7</button></div>' +
-            '</div><p class="small text-on-surface-variant mt-2 mb-0" id="ovrDateHint"></p>' +
-            '</div>' +
-            '<div id="overrideList" class="mt-3"></div>' +
-            '</div>';
+        var appOpen  = formatYmdToDisplay((sched.defaultWindow && sched.defaultWindow.appOpen)  || '');
+        var appClose = formatYmdToDisplay((sched.defaultWindow && sched.defaultWindow.appClose) || '');
 
-        // ─── Merit Lists summary sub-section ───
-        {
-            var allMl = JSON.parse(localStorage.getItem('emmis_ca_meritlists') || '[]');
-            var collegeMl = $.grep(allMl, function(ml) {
-                var mlYear = ml.year || parseInt(ml.session, 10) || 0;
-                if (mlYear !== year) return false;
-                if (COLLEGE_INFO.id && ml.collegeId && String(ml.collegeId) !== String(COLLEGE_INFO.id)) return false;
-                return true;
-            });
-            html += '<div class="p-4 border-top">';
-            html += '<div class="d-flex justify-content-between align-items-start mb-2 gap-2">' +
-                '<h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">format_list_numbered</span>Merit Lists — AY ' + year + '</h6>' +
-                '<a href="#" class="btn btn-sm btn-outline-primary fw-bold flex-shrink-0 d-flex align-items-center gap-1 btn-goto-section" data-section="section-ca-merit-manage"><span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span>Manage All</a>' +
-                '</div>';
-            if (collegeMl.length === 0) {
-                html += '<p class="small text-on-surface-variant mb-0">No merit lists uploaded for this session yet. <a href="#" class="fw-semibold btn-goto-section" data-section="section-ca-merit-upload">Upload one now</a>.</p>';
-            } else {
-                // Group by program
-                var mlGroups = {}, mlGroupOrder = [];
-                $.each(collegeMl, function(_, ml) {
-                    var prog = ml.program || 'Other';
-                    if (!mlGroups[prog]) { mlGroups[prog] = []; mlGroupOrder.push(prog); }
-                    mlGroups[prog].push(ml);
-                });
-                html += '<div class="d-flex flex-column gap-3">';
-                $.each(mlGroupOrder, function(_, prog) {
-                    html += '<div>' +
-                        '<div class="d-flex align-items-center gap-2 mb-2">' +
-                        '<span class="material-symbols-outlined" style="font-size:14px;color:var(--clr-primary);">school</span>' +
-                        '<span class="fw-bold text-uppercase" style="font-size:.7rem;letter-spacing:.06em;color:var(--clr-primary);">' + $('<span>').text(prog).html() + '</span>' +
-                        '</div>' +
-                        '<div class="d-flex flex-column gap-2">';
-                    $.each(mlGroups[prog], function(_, ml) {
-                        var total = (ml.entries || []).length;
-                        var published = ml.published;
-                        var admDates = (ml.admissionStart && ml.admissionEnd)
-                            ? (ml.admissionStart + ' – ' + ml.admissionEnd)
-                            : 'Dates not set';
-                        var pubBadge = published
-                            ? '<span class="badge rounded-pill" style="background:rgba(107,217,188,0.25);color:var(--clr-on-primary-container);font-size:.65rem;">Published</span>'
-                            : '<span class="badge rounded-pill" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.65rem;">Draft</span>';
-                        html += '<div class="d-flex justify-content-between align-items-center p-2 px-3 rounded-3" style="background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">' +
-                            '<div class="d-flex align-items-center gap-3 flex-grow-1 min-width-0">' +
-                            '<div class="flex-grow-1 min-width-0">' +
-                            '<span class="fw-semibold small d-block text-truncate">' + $('<span>').text(ml.name).html() + (ml.course ? ' <span class="fw-normal text-on-surface-variant">— ' + $('<span>').text(ml.course).html() + '</span>' : '') + '</span>' +
-                            '<span class="small text-on-surface-variant">Admission: ' + admDates + ' &nbsp;·&nbsp; ' + total + ' entries</span>' +
-                            '</div>' +
-                            pubBadge +
-                            '</div>' +
-                            '<button class="btn btn-sm fw-bold btn-toggle-ml-publish flex-shrink-0 ms-2" data-ml-id="' + ml.id + '" style="font-size:.7rem;padding:2px 10px;' + (published ? 'background:rgba(186,26,26,0.08);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);' : 'background:rgba(0,107,88,0.1);color:var(--clr-primary);border:1px solid rgba(0,107,88,0.2);') + '">' +
-                            '<span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">' + (published ? 'unpublished' : 'publish') + '</span>' +
-                            (published ? 'Unpublish' : 'Publish') + '</button>' +
-                            '</div>';
-                    });
-                    html += '</div></div>';
-                });
-                html += '</div>';
-            }
-            html += '</div>';
+        var html = '';
+
+        // ─── Session header card ───
+        html += '<div class="card rounded-3 overflow-hidden mb-3">';
+        // Header strip
+        html += '<div class="p-4" style="background:var(--clr-surface-low);">';
+        html += '<div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">';
+        html += '<div>';
+        html += '<div class="d-flex align-items-center gap-2 mb-2">';
+        html += '<span class="material-symbols-outlined" style="font-size:22px;color:var(--clr-primary);">event_available</span>';
+        html += '<h5 class="fw-bold mb-0">Admission Year ' + year + '</h5>';
+        html += '<span class="badge rounded-pill fw-bold" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);">ACTIVE</span>';
+        html += '</div>';
+        html += '<div class="d-flex flex-wrap gap-4 mt-1">';
+        html += '<div><span class="d-block text-on-surface-variant" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;">App Opens</span>';
+        html += '<span class="fw-semibold small">' + (appOpen || '—') + '</span></div>';
+        html += '<div><span class="d-block text-on-surface-variant" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;">App Closes</span>';
+        html += '<span class="fw-semibold small">' + (appClose || '—') + '</span></div>';
+        html += '<div><span class="d-block text-on-surface-variant" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;">Prospectus Fee</span>';
+        html += '<span class="fw-semibold small">' + (sched.appFee ? '\u20b9' + sched.appFee : 'Free') + '</span></div>';
+        if (sched.prospectusName) {
+            html += '<div><span class="d-block text-on-surface-variant" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;">Prospectus</span>';
+            html += '<span class="fw-semibold small d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-1px;">description</span>' + $('<span>').text(sched.prospectusName).html() + '</span></div>';
         }
+        html += '</div></div>';
+        // Edit / Delete buttons
+        html += '<div class="d-flex gap-2 flex-shrink-0 align-items-start">';
+        html += '<button class="btn btn-sm btn-outline-primary fw-bold btn-edit-schedule d-flex align-items-center gap-1" data-key="' + schedKey + '"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">edit</span>Edit</button>';
+        html += '<button class="btn btn-sm btn-outline-danger fw-bold btn-delete-schedule d-flex align-items-center gap-1" data-key="' + schedKey + '"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">delete</span>Delete</button>';
+        html += '</div>';
+        html += '</div></div>';
 
-        // ─── Counselling Sessions summary sub-section ───
-        {
-            var allCs = JSON.parse(localStorage.getItem('emmis_ca_counselling_sessions') || '[]');
-            var collegeCs = $.grep(allCs, function(cs) {
-                var csYear = cs.year || 0;
-                if (csYear !== year) return false;
-                if (COLLEGE_INFO.id && cs.collegeId && String(cs.collegeId) !== String(COLLEGE_INFO.id)) return false;
-                return true;
+        // Quick stats row
+        html += '<div class="d-flex border-top" style="background:var(--clr-surface);">';
+        var statItems = [
+            { icon: 'format_list_numbered', label: 'Merit Lists',     count: mlCount,  color: 'var(--clr-primary)' },
+            { icon: 'record_voice_over',    label: 'Counselling',     count: csCount,  color: 'var(--clr-primary)' },
+            { icon: 'date_range',           label: 'Overrides',       count: ovrCount, color: 'var(--clr-tertiary)' },
+            { icon: 'link',                 label: 'Invite Links',    count: invCount, color: 'var(--clr-error)' }
+        ];
+        $.each(statItems, function(i, stat) {
+            html += '<div class="flex-fill text-center py-3 px-2' + (i < statItems.length - 1 ? ' border-end' : '') + '">';
+            html += '<span class="material-symbols-outlined d-block mb-1" style="font-size:20px;color:' + stat.color + ';">' + stat.icon + '</span>';
+            html += '<span class="fw-bold d-block lh-1 mb-1" style="font-size:1.1rem;">' + stat.count + '</span>';
+            html += '<span class="small text-on-surface-variant">' + stat.label + '</span>';
+            html += '</div>';
+        });
+        html += '</div>';
+        html += '</div>'; // end session header card
+
+        // ─── Tabbed detail card ───
+        html += '<div class="card rounded-3 overflow-hidden">';
+
+        // Nav pills
+        html += '<div class="px-3 pt-3 pb-0" style="background:var(--clr-surface-low);border-bottom:1px solid var(--clr-outline-variant);">';
+        html += '<ul class="nav nav-pills gap-1 overflow-auto pb-2" style="flex-wrap:nowrap;" role="tablist">';
+        var tabs = [
+            { id: 'tab-notif',     label: 'Notification',   icon: 'campaign',              badge: '' },
+            { id: 'tab-merits',    label: 'Merit Lists',     icon: 'format_list_numbered',  badge: mlCount  },
+            { id: 'tab-counsel',   label: 'Counselling',     icon: 'record_voice_over',     badge: csCount  },
+            { id: 'tab-overrides', label: 'Overrides',       icon: 'date_range',            badge: ovrCount },
+            { id: 'tab-links',     label: 'Invite Links',    icon: 'link',                  badge: invCount }
+        ];
+        $.each(tabs, function(i, tab) {
+            var active = i === 0 ? ' active' : '';
+            html += '<li class="nav-item flex-shrink-0" role="presentation">';
+            html += '<button class="nav-link' + active + ' d-flex align-items-center gap-1 fw-semibold" id="' + tab.id + '-tab" data-bs-toggle="pill" data-bs-target="#' + tab.id + '" type="button" role="tab" style="font-size:.78rem;padding:.4rem .8rem;white-space:nowrap;">';
+            html += '<span class="material-symbols-outlined" style="font-size:14px;">' + tab.icon + '</span>' + tab.label;
+            if (tab.badge !== '') html += ' <span class="badge rounded-pill fw-bold ms-1" style="font-size:.6rem;background:rgba(0,0,0,0.08);color:inherit;">' + tab.badge + '</span>';
+            html += '</button></li>';
+        });
+        html += '</ul></div>';
+
+        // Tab panes
+        html += '<div class="tab-content">';
+
+        // ── Notification tab ──
+        html += '<div class="tab-pane fade show active p-4" id="tab-notif" role="tabpanel">';
+        html += '<div class="d-flex justify-content-between align-items-start gap-2 mb-3">';
+        html += '<div>';
+        html += '<h6 class="fw-bold d-flex align-items-center gap-2 mb-1"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-secondary);">campaign</span>Public Announcement</h6>';
+        html += '<p class="small text-on-surface-variant mb-0">Displayed on the public college listing page. Update any time, independent of session configuration.</p>';
+        html += '</div>';
+        html += '<span class="small fw-semibold flex-shrink-0 ms-2" id="notifSavedIndicator" style="display:none;color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">check_circle</span> Saved <span id="notifSavedAt"></span></span>';
+        html += '</div>';
+        html += '<textarea class="form-control mb-3" id="cfgNotification" rows="3" placeholder="e.g., Document verification starts May 12. Bring all originals.">' + $('<span>').text(notifText).html() + '</textarea>';
+        html += '<div class="d-flex justify-content-end">';
+        html += '<button class="btn btn-outline-secondary btn-sm fw-bold d-flex align-items-center gap-2" id="btnSaveNotification"><span class="material-symbols-outlined" style="font-size:14px;">save</span>Update Notification</button>';
+        html += '</div></div>';
+
+        // ── Merit Lists tab ──
+        html += '<div class="tab-pane fade p-4" id="tab-merits" role="tabpanel">';
+        html += '<div class="d-flex justify-content-between align-items-start mb-3 gap-2">';
+        html += '<div><h6 class="fw-bold d-flex align-items-center gap-2 mb-1"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">format_list_numbered</span>Merit Lists — AY ' + year + '</h6>';
+        html += '<p class="small text-on-surface-variant mb-0">Publish merit lists so selected students can see their status on the Track Status page.</p></div>';
+        html += '<a href="#" class="btn btn-sm btn-outline-primary fw-bold flex-shrink-0 d-flex align-items-center gap-1 btn-goto-section" data-section="section-ca-merit-manage"><span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span>Manage All</a>';
+        html += '</div>';
+        if (collegeMl.length === 0) {
+            html += '<div class="text-center py-5 text-on-surface-variant">';
+            html += '<span class="material-symbols-outlined d-block mb-2" style="font-size:40px;color:var(--clr-outline);">format_list_numbered</span>';
+            html += '<p class="mb-2">No merit lists for AY ' + year + ' yet.</p>';
+            html += '<a href="#" class="btn btn-sm btn-outline-primary fw-bold btn-goto-section" data-section="section-ca-merit-upload">Upload Merit List</a>';
+            html += '</div>';
+        } else {
+            var mlGroups = {}, mlGroupOrder = [];
+            $.each(collegeMl, function(_, ml) {
+                var prog = ml.program || 'General';
+                if (!mlGroups[prog]) { mlGroups[prog] = []; mlGroupOrder.push(prog); }
+                mlGroups[prog].push(ml);
             });
-            html += '<div class="p-4 border-top">';
-            html += '<div class="d-flex justify-content-between align-items-start mb-2 gap-2">' +
-                '<h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">record_voice_over</span>Counselling — AY ' + year + '</h6>' +
-                '<a href="#" class="btn btn-sm btn-outline-primary fw-bold flex-shrink-0 d-flex align-items-center gap-1 btn-goto-section" data-section="section-ca-counselling-manage"><span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span>Manage All</a>' +
-                '</div>';
-            if (collegeCs.length === 0) {
-                html += '<p class="small text-on-surface-variant mb-0">No counselling sessions for this year. <a href="#" class="fw-semibold btn-goto-section" data-section="section-ca-counselling-upload">Create one now</a>.</p>';
-            } else {
+            html += '<div class="d-flex flex-column gap-3">';
+            $.each(mlGroupOrder, function(_, prog) {
+                html += '<div>';
+                html += '<span class="d-block fw-bold mb-2" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--clr-primary);">';
+                html += '<span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">school</span> ' + $('<span>').text(prog).html() + '</span>';
                 html += '<div class="d-flex flex-column gap-2">';
-                $.each(collegeCs, function(_, cs) {
-                    var total = (cs.entries || []).length;
-                    var published = cs.published;
-                    var counselDates = (cs.counsellingStart && cs.counsellingEnd)
-                        ? (cs.counsellingStart + ' – ' + cs.counsellingEnd)
-                        : 'Dates not set';
+                $.each(mlGroups[prog], function(_, ml) {
+                    var total = (ml.entries || []).length;
+                    var published = ml.published;
+                    var admDates = (ml.admissionStart && ml.admissionEnd) ? (formatYmdToDisplay(ml.admissionStart) + ' \u2013 ' + formatYmdToDisplay(ml.admissionEnd)) : 'Dates not set';
                     var pubBadge = published
                         ? '<span class="badge rounded-pill" style="background:rgba(107,217,188,0.25);color:var(--clr-on-primary-container);font-size:.65rem;">Published</span>'
                         : '<span class="badge rounded-pill" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.65rem;">Draft</span>';
-                    html += '<div class="d-flex justify-content-between align-items-center p-2 px-3 rounded-3" style="background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">' +
-                        '<div class="d-flex align-items-center gap-3 flex-grow-1 min-width-0">' +
-                        '<div class="flex-grow-1 min-width-0">' +
-                        '<span class="fw-semibold small d-block text-truncate">' + $('<span>').text(cs.name).html() + '</span>' +
-                        '<span class="small text-on-surface-variant">Counselling: ' + counselDates + ' &nbsp;·&nbsp; ' + total + ' entries</span>' +
-                        '</div>' +
-                        pubBadge +
-                        '</div>' +
-                        '<button class="btn btn-sm fw-bold btn-toggle-cs-publish flex-shrink-0 ms-2" data-cs-id="' + cs.id + '" style="font-size:.7rem;padding:2px 10px;' + (published ? 'background:rgba(186,26,26,0.08);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);' : 'background:rgba(0,107,88,0.1);color:var(--clr-primary);border:1px solid rgba(0,107,88,0.2);') + '">' +
-                        '<span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">' + (published ? 'unpublished' : 'publish') + '</span>' +
-                        (published ? 'Unpublish' : 'Publish') + '</button>' +
-                        '</div>';
+                    html += '<div class="d-flex justify-content-between align-items-center p-2 px-3 rounded-3" style="background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">';
+                    html += '<div class="d-flex align-items-center gap-3 flex-grow-1 min-width-0">';
+                    html += '<div class="flex-grow-1 min-width-0">';
+                    html += '<span class="fw-semibold small d-block text-truncate">' + $('<span>').text(ml.name).html() + (ml.course ? ' <span class="fw-normal text-on-surface-variant">\u2014 ' + $('<span>').text(ml.course).html() + '</span>' : '') + '</span>';
+                    html += '<span class="small text-on-surface-variant">Admission: ' + admDates + ' &nbsp;&middot;&nbsp; ' + total + ' entries</span>';
+                    html += '</div>' + pubBadge + '</div>';
+                    html += '<button class="btn btn-sm fw-bold btn-toggle-ml-publish flex-shrink-0 ms-2" data-ml-id="' + ml.id + '" style="font-size:.7rem;padding:2px 10px;' + (published ? 'background:rgba(186,26,26,0.08);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);' : 'background:rgba(0,107,88,0.1);color:var(--clr-primary);border:1px solid rgba(0,107,88,0.2);') + '">';
+                    html += '<span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">' + (published ? 'unpublished' : 'publish') + '</span> ';
+                    html += (published ? 'Unpublish' : 'Publish') + '</button>';
+                    html += '</div>';
                 });
-                html += '</div>';
-            }
+                html += '</div></div>';
+            });
             html += '</div>';
         }
-
-        // ─── Invite Links sub-section ───
-        {
-            html += '<div class="p-4 border-top">' +
-                '<div class="d-flex justify-content-between align-items-start mb-1 gap-2">' +
-                '<div><h6 class="fw-bold d-flex align-items-center gap-2 mb-0"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-error);">link</span>Invite Links</h6>' +
-                '<p class="small text-on-surface-variant mt-1 mb-0">Generate individual shareable links for invited students. Each link expires on first use or its validity date.</p></div>' +
-                '<button class="btn btn-sm fw-bold flex-shrink-0 d-flex align-items-center gap-1" id="btnShowInviteForm" style="background:rgba(186,26,26,0.1);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);">' +
-                '<span class="material-symbols-outlined" style="font-size:16px;">add_link</span>Generate Link</button>' +
-                '</div>' +
-                '<div id="inviteAddForm" class="p-3 rounded-3 mt-3" style="display:none;background:rgba(186,26,26,0.04);border:1px solid rgba(186,26,26,0.15);">' +
-                '<div class="row g-2 align-items-end">' +
-                '<div class="col-md-5"><label class="form-label fw-bold small mb-1">Label / Student Name <span class="fw-normal text-on-surface-variant">(optional)</span></label>' +
-                '<input type="text" class="form-control form-control-sm" id="inviteLinkLabel" placeholder="e.g., Tenzin Bhutia"></div>' +
-                '<div class="col-md-3"><label class="form-label fw-bold small mb-1">Valid Until <span class="fw-normal text-on-surface-variant">(optional)</span></label>' +
-                '<input type="date" class="form-control form-control-sm" id="inviteLinkValidUntil"></div>' +
-                '<div class="col-md-4 d-flex gap-2 align-items-end">' +
-                '<button class="btn btn-sm fw-bold flex-grow-1" id="btnGenerateInvite" style="background:var(--clr-error);color:#fff;">Generate</button>' +
-                '<button class="btn btn-surface btn-sm fw-bold" id="btnCancelInvite">\u00d7</button>' +
-                '</div></div></div>' +
-                '<div id="inviteLinksList" class="mt-3"></div>' +
-                '</div>';
-        }
-
         html += '</div>';
+
+        // ── Counselling tab ──
+        html += '<div class="tab-pane fade p-4" id="tab-counsel" role="tabpanel">';
+        html += '<div class="d-flex justify-content-between align-items-start mb-3 gap-2">';
+        html += '<div><h6 class="fw-bold d-flex align-items-center gap-2 mb-1"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-primary);">record_voice_over</span>Counselling — AY ' + year + '</h6>';
+        html += '<p class="small text-on-surface-variant mb-0">Publish counselling call lists so students can see if they have been invited for counselling.</p></div>';
+        html += '<a href="#" class="btn btn-sm btn-outline-primary fw-bold flex-shrink-0 d-flex align-items-center gap-1 btn-goto-section" data-section="section-ca-counselling-manage"><span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span>Manage All</a>';
+        html += '</div>';
+        if (collegeCs.length === 0) {
+            html += '<div class="text-center py-5 text-on-surface-variant">';
+            html += '<span class="material-symbols-outlined d-block mb-2" style="font-size:40px;color:var(--clr-outline);">record_voice_over</span>';
+            html += '<p class="mb-2">No counselling sessions for AY ' + year + ' yet.</p>';
+            html += '<a href="#" class="btn btn-sm btn-outline-primary fw-bold btn-goto-section" data-section="section-ca-counselling-upload">Create Session</a>';
+            html += '</div>';
+        } else {
+            html += '<div class="d-flex flex-column gap-2">';
+            $.each(collegeCs, function(_, cs) {
+                var total = (cs.entries || []).length;
+                var published = cs.published;
+                var csDates = (cs.counsellingStart && cs.counsellingEnd) ? (formatYmdToDisplay(cs.counsellingStart) + ' \u2013 ' + formatYmdToDisplay(cs.counsellingEnd)) : 'Dates not set';
+                var pubBadge = published
+                    ? '<span class="badge rounded-pill" style="background:rgba(107,217,188,0.25);color:var(--clr-on-primary-container);font-size:.65rem;">Published</span>'
+                    : '<span class="badge rounded-pill" style="background:rgba(186,26,26,0.1);color:var(--clr-error);font-size:.65rem;">Draft</span>';
+                html += '<div class="d-flex justify-content-between align-items-center p-2 px-3 rounded-3" style="background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">';
+                html += '<div class="d-flex align-items-center gap-3 flex-grow-1 min-width-0">';
+                html += '<div class="flex-grow-1 min-width-0">';
+                html += '<span class="fw-semibold small d-block text-truncate">' + $('<span>').text(cs.name).html() + '</span>';
+                html += '<span class="small text-on-surface-variant">Counselling: ' + csDates + ' &nbsp;&middot;&nbsp; ' + total + ' entries</span>';
+                html += '</div>' + pubBadge + '</div>';
+                html += '<button class="btn btn-sm fw-bold btn-toggle-cs-publish flex-shrink-0 ms-2" data-cs-id="' + cs.id + '" style="font-size:.7rem;padding:2px 10px;' + (published ? 'background:rgba(186,26,26,0.08);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);' : 'background:rgba(0,107,88,0.1);color:var(--clr-primary);border:1px solid rgba(0,107,88,0.2);') + '">';
+                html += '<span class="material-symbols-outlined" style="font-size:13px;vertical-align:-2px;">' + (published ? 'unpublished' : 'publish') + '</span> ';
+                html += (published ? 'Unpublish' : 'Publish') + '</button>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+
+        // ── Overrides tab ──
+        html += '<div class="tab-pane fade p-4" id="tab-overrides" role="tabpanel">';
+        html += '<div class="d-flex justify-content-between align-items-start mb-3 gap-2">';
+        html += '<div><h6 class="fw-bold d-flex align-items-center gap-2 mb-1"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-tertiary);">date_range</span>Application Closing Date Overrides</h6>';
+        html += '<p class="small text-on-surface-variant mb-0">Extend the application closing date for specific programs or courses beyond the default session closing date.</p></div>';
+        html += '<button class="btn btn-outline-primary btn-sm fw-bold flex-shrink-0 d-flex align-items-center gap-1" id="btnShowAddOverride"><span class="material-symbols-outlined" style="font-size:16px;">add</span>Add Override</button>';
+        html += '</div>';
+        html += '<div id="overrideAddForm" class="p-3 rounded-3 mb-3" style="display:none;background:var(--clr-surface-low);border:1px solid var(--clr-outline-variant);">';
+        html += '<div class="row g-2 align-items-end">';
+        html += '<div class="col-md-3"><label class="form-label fw-bold small mb-1">Program</label><select class="form-select form-select-sm" id="ovrProgram"><option value="">All Programs</option><option value="B.Com">B.Com</option><option value="B.A">B.A</option><option value="B.Sc">B.Sc</option></select></div>';
+        html += '<div class="col-md-4"><label class="form-label fw-bold small mb-1">Course <span class="fw-normal text-on-surface-variant">(optional)</span></label><select class="form-select form-select-sm" id="ovrCourse"><option value="">All Courses in Program</option></select></div>';
+        html += '<div class="col-md-3"><label class="form-label fw-bold small mb-1">Override Closing Date *</label><input type="date" class="form-control form-control-sm" id="ovrEndDate"></div>';
+        html += '<div class="col-md-2 d-flex gap-2"><button class="btn btn-primary btn-sm fw-bold flex-grow-1" id="btnSaveOverride">Add</button><button class="btn btn-surface btn-sm fw-bold" id="btnCancelOverride">\u00d7</button></div>';
+        html += '</div><p class="small text-on-surface-variant mt-2 mb-0" id="ovrDateHint"></p>';
+        html += '</div>';
+        html += '<div id="overrideList"></div>';
+        html += '</div>';
+
+        // ── Invite Links tab ──
+        html += '<div class="tab-pane fade p-4" id="tab-links" role="tabpanel">';
+        html += '<div class="d-flex justify-content-between align-items-start mb-3 gap-2">';
+        html += '<div><h6 class="fw-bold d-flex align-items-center gap-2 mb-1"><span class="material-symbols-outlined" style="font-size:18px;color:var(--clr-error);">link</span>Invite Links</h6>';
+        html += '<p class="small text-on-surface-variant mb-0">Generate individual shareable links for specific students. Each link expires after first use or its validity date.</p></div>';
+        html += '<button class="btn btn-sm fw-bold flex-shrink-0 d-flex align-items-center gap-1" id="btnShowInviteForm" style="background:rgba(186,26,26,0.1);color:var(--clr-error);border:1px solid rgba(186,26,26,0.2);">';
+        html += '<span class="material-symbols-outlined" style="font-size:16px;">add_link</span>Generate Link</button>';
+        html += '</div>';
+        html += '<div id="inviteAddForm" class="p-3 rounded-3 mb-3" style="display:none;background:rgba(186,26,26,0.04);border:1px solid rgba(186,26,26,0.15);">';
+        html += '<div class="row g-2 align-items-end">';
+        html += '<div class="col-md-5"><label class="form-label fw-bold small mb-1">Label / Student Name <span class="fw-normal text-on-surface-variant">(optional)</span></label><input type="text" class="form-control form-control-sm" id="inviteLinkLabel" placeholder="e.g., Tenzin Bhutia"></div>';
+        html += '<div class="col-md-3"><label class="form-label fw-bold small mb-1">Valid Until <span class="fw-normal text-on-surface-variant">(optional)</span></label><input type="date" class="form-control form-control-sm" id="inviteLinkValidUntil"></div>';
+        html += '<div class="col-md-4 d-flex gap-2 align-items-end"><button class="btn btn-sm fw-bold flex-grow-1" id="btnGenerateInvite" style="background:var(--clr-error);color:#fff;">Generate</button><button class="btn btn-surface btn-sm fw-bold" id="btnCancelInvite">\u00d7</button></div>';
+        html += '</div></div>';
+        html += '<div id="inviteLinksList"></div>';
+        html += '</div>';
+
+        html += '</div>'; // tab-content
+        html += '</div>'; // tabbed detail card
+
         $wrap.html(html);
 
-        // Populate sub-lists
+        // Populate sub-lists after HTML is in DOM
         renderOverrideList(overrides, schedKey);
         renderInviteLinksList(inviteLinks, schedKey);
     }
@@ -984,7 +1209,7 @@
             var inviteLinks = s.inviteLinks || [];
 
             // Count merit lists and counselling sessions for this year
-            var mlCount = $.grep(MERIT_LISTS, function(ml) {
+            var mlCount = $.grep(getActiveMeritLists(), function(ml) {
                 return (ml.collegeId === COLLEGE_INFO.id) && ((ml.year || parseInt(ml.session, 10) || 0) === year);
             }).length;
             var csCount = $.grep(COUNSELLING_SESSIONS, function(cs) {
@@ -1005,7 +1230,7 @@
                 'Admission Year ' + year +
                 '</h5>' +
                 '<p class="small text-on-surface-variant mb-0">Application: ' + appOpen + ' &rarr; ' + appClose + '</p>' +
-                (s.appFee ? '<p class="small text-on-surface-variant mb-0">Fee: ₹' + s.appFee + '</p>' : '<p class="small text-on-surface-variant mb-0">Fee: Free</p>') +
+                (s.appFee ? '<p class="small text-on-surface-variant mb-0">Prospectus Fee: ₹' + s.appFee + '</p>' : '<p class="small text-on-surface-variant mb-0">Prospectus Fee: Free</p>') +
                 (s.prospectusName ? '<p class="small text-on-surface-variant mb-0 mt-1"><span class="material-symbols-outlined align-middle" style="font-size:13px;vertical-align:-2px;">description</span> ' + $('<span>').text(s.prospectusName).html() + '</p>' : '') +
                 '</div>' +
                 '<span class="badge rounded-pill fw-bold" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);">PAST</span>' +
@@ -1080,7 +1305,10 @@
 
         var $tbody = $('#registeredBody').empty();
         var hasAny = false;
+        var currentCollegeCode = getCollegeCode();
         $.each(REGISTRATIONS, function(appNo, reg) {
+            // Guard: only show registrations belonging to this college (prevents cross-college leakage)
+            if (appNo.indexOf('-' + currentCollegeCode + '-') < 0) return;
             var s = getStudentByApp(appNo);
             if (!s) return;
             if (!isStudentCurrentSession(s)) return; // skip previous session students
@@ -1116,7 +1344,7 @@
             var $dropdown = $input.closest('.autocomplete-wrap').find('.reg-search-dropdown');
             var q = $input.val().toLowerCase().trim();
             if (q.length < 2) { $dropdown.removeClass('show').empty(); return; }
-            var results = $.grep(STUDENTS, function (s) {
+            var results = $.grep(getActiveStudents(), function (s) {
                 if (!isStudentCurrentSession(s)) return false;
                 return s.appNo.toLowerCase().indexOf(q) >= 0 || s.name.toLowerCase().indexOf(q) >= 0;
             });
@@ -1384,6 +1612,37 @@
         $('#rcptDate').text(new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}));
     }
 
+    var DOC_LABELS = [
+        { key: 'marksheet', short: 'XII Marksheet' },
+        { key: 'community', short: 'Community Cert' },
+        { key: 'coi',       short: 'COI/Domicile' },
+        { key: 'photo',     short: 'Photo' },
+        { key: 'tc',        short: 'TC' }
+    ];
+
+    function getDocStatusHtml(appNo) {
+        var reg = REGISTRATIONS[appNo];
+        if (!reg || !reg.documents) {
+            // Not yet at verification booth — show all as pending
+            return '<span class="text-on-surface-variant" style="font-size:.72rem;">—&nbsp;Not verified</span>';
+        }
+        var docs = reg.documents;
+        var uploaded = 0;
+        var chips = $.map(DOC_LABELS, function(d) {
+            var ok = !!docs[d.key];
+            if (ok) uploaded++;
+            return '<span title="' + d.short + '" style="display:inline-flex;align-items:center;gap:2px;font-size:.6rem;font-weight:600;padding:1px 5px;border-radius:99px;margin:1px;' +
+                (ok ? 'background:rgba(0,107,88,0.12);color:var(--clr-primary);' : 'background:rgba(186,26,26,0.1);color:var(--clr-error);') + '">' +
+                '<span class="material-symbols-outlined" style="font-size:10px;">' + (ok ? 'check_circle' : 'cancel') + '</span>' +
+                d.short + '</span>';
+        }).join('');
+        var total = DOC_LABELS.length;
+        var allOk = uploaded === total;
+        var summary = '<div style="font-size:.65rem;font-weight:700;margin-bottom:2px;color:' + (allOk ? 'var(--clr-primary)' : 'var(--clr-error)') + '">' +
+            uploaded + '/' + total + ' verified</div>';
+        return summary + chips;
+    }
+
     function updateDocPendingAlert() {
         var allDocs = ['docMarksheet', 'docCommunity', 'docCOI', 'docPhoto', 'docTC'];
         var docLabels = {
@@ -1485,7 +1744,7 @@
     function populateYearDropdowns() {
         // Collect all years from ML and CS for this college
         var years = {};
-        $.each(MERIT_LISTS, function(_, ml) {
+        $.each(getActiveMeritLists(), function(_, ml) {
             if (COLLEGE_INFO.id && ml.collegeId && String(ml.collegeId) !== String(COLLEGE_INFO.id)) return;
             var y = parseInt(ml.year, 10) || 0;
             if (y) years[y] = true;
@@ -1520,7 +1779,7 @@
         var filterYear = $('#mlFilterYear').val() || 'all';
         var filterProgram = $('#mlFilterProgram').val() || 'all';
 
-        var visible = $.grep(MERIT_LISTS, function(ml) {
+        var visible = $.grep(getActiveMeritLists(), function(ml) {
             // Filter by college (allow null/undefined collegeId for backward compat)
             if (COLLEGE_INFO.id && ml.collegeId != null && String(ml.collegeId) !== String(COLLEGE_INFO.id)) return false;
             if (filterYear !== 'all') {
@@ -1536,7 +1795,7 @@
         $('#mlManageCount').text(visible.length + ' list' + (visible.length !== 1 ? 's' : ''));
 
         if (visible.length === 0) {
-            $container.html('<div class="col-12 text-center py-5 text-on-surface-variant"><p class="fs-5 fw-semibold mb-2">No Merit Lists Found</p><p>' + (MERIT_LISTS.length === 0 ? 'Upload your first merit list to get started.' : 'No lists match the selected filters.') + '</p></div>');
+            $container.html('<div class="col-12 text-center py-5 text-on-surface-variant"><p class="fs-5 fw-semibold mb-2">No Merit Lists Found</p><p>' + (getActiveMeritLists().length === 0 ? 'Upload your first merit list to get started.' : 'No lists match the selected filters.') + '</p></div>');
             return;
         }
 
@@ -1666,7 +1925,7 @@
 
     function openMeritListDetail(mlId) {
         var ml = null;
-        $.each(MERIT_LISTS, function(_, m) { if (m.id === mlId) ml = m; });
+        $.each(getActiveMeritLists(), function(_, m) { if (m.id === mlId) ml = m; });
         if (!ml) return;
 
         currentMlEntries = ml.entries;
@@ -1899,9 +2158,10 @@
     }
 
     function isStudentMeritListed(appNo) {
-        for (var i = 0; i < MERIT_LISTS.length; i++) {
-            for (var j = 0; j < MERIT_LISTS[i].entries.length; j++) {
-                if (MERIT_LISTS[i].entries[j].appNo === appNo) return true;
+        var aml = getActiveMeritLists();
+        for (var i = 0; i < aml.length; i++) {
+            for (var j = 0; j < aml[i].entries.length; j++) {
+                if (aml[i].entries[j].appNo === appNo) return true;
             }
         }
         return false;
@@ -1946,7 +2206,7 @@
         }
 
         // Tab counts (base filter only, ignoring status + view tab)
-        var basePassed = $.grep(STUDENTS, baseFilter);
+        var basePassed = $.grep(getActiveStudents(), baseFilter);
         var cntAll    = basePassed.length;
         var cntMerit  = $.grep(basePassed, function(s) { return isStudentMeritListed(s.appNo); }).length;
         var cntReg    = $.grep(basePassed, function(s) {
@@ -2042,6 +2302,7 @@
                 '<td class="small">' + s.gender + '</td>' +
                 '<td class="small">' + s.community + '</td>' +
                 '<td>' + mlHtml + '</td>' +
+                '<td style="min-width:130px;">' + getDocStatusHtml(s.appNo) + '</td>' +
                 '<td><span class="status-pill" style="background:' + st.bg + ';color:' + st.color + ';white-space:nowrap;">' + st.label + '</span></td>' +
                 '<td><button class="btn btn-sm btn-outline-primary fw-bold open-reg-btn py-1 px-2" data-app="' + s.appNo + '" style="font-size:.75rem;">View &rarr;</button></td>' +
                 '</tr>'
@@ -2247,7 +2508,7 @@
     }
 
     function updateExportEstimate() {
-        var count = applyExportFilters(STUDENTS).length;
+        var count = applyExportFilters(getActiveStudents()).length;
         $('#expEstimateCount').text(count + ' record' + (count !== 1 ? 's' : ''));
     }
 
@@ -2322,7 +2583,7 @@
     }
 
     function exportAppsCSVFiltered() {
-        var data = applyExportFilters(STUDENTS);
+        var data = applyExportFilters(getActiveStudents());
         if (!data.length) { showToast('No records match the selected filters.', 'warning'); return; }
 
         var f = getExportFilters();
@@ -3011,10 +3272,7 @@
             pendingEntries = [];
             var $tbody = $('#mlPreviewBody').empty();
             $.each(ids, function(i, id) {
-                var student = null;
-                $.each(STUDENTS, function(_, s) {
-                    if (s.appNo === id) { student = s; return false; }
-                });
+                var student = getStudentByApp(id);
                 if (student) {
                     matched++;
                     pendingEntries.push({ appNo: id, name: student.name, marks: student.marks || '' });
@@ -3119,8 +3377,7 @@
             pendingCsEntries = [];
             var $tbody = $('#csPreviewBody').empty();
             $.each(ids, function(i, id) {
-                var student = null;
-                $.each(STUDENTS, function(_, s) { if (s.appNo === id) { student = s; return false; } });
+                var student = getStudentByApp(id);
                 if (student) {
                     matched++;
                     pendingCsEntries.push({ appNo: id, name: student.name, marks: student.marks || '' });
@@ -3271,7 +3528,13 @@
         COLLEGE_INFO.name     = college.name;
         COLLEGE_INFO.code     = college.code;
         COLLEGE_INFO.district = college.district;
-        COLLEGE_INFO.session  = '2026-27';
+        COLLEGE_INFO.session  = '2026';
+
+        // Reload all college-scoped data for the newly selected college
+        loadRegistrations();
+        loadRecommendations();
+        loadMeritLists();
+        loadCounsellingSessions();
 
         var admYear = getCurrentAdmissionYear();
 

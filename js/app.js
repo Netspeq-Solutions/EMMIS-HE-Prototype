@@ -197,16 +197,12 @@
         saveAllApplications(apps);
     }
     function createNewApplication(collegeId) {
-        var yr = new Date().getFullYear();
+        var cid = parseInt(collegeId, 10) || 1;
         var app = {
-            applicationId: generateAppId(),
+            applicationId: generateAppId(cid),
             startedAt: new Date().toISOString(),
-            collegeId: collegeId || 1,
-            step1: { rollNo: 'SKBSE' + yr + '-' + (Math.floor(Math.random() * 9000) + 1000), candidateName: 'Tenzin Dorje Bhutia', board: 'Sikkim Board', stream: 'Arts', mobile: '9876543210', gender: 'Male', email: 'tenzin.dorje@gmail.com', category: 'Sikkimese', coiNumber: 'COI-SK-2019-004821', pwd: 'No' },
-            step2: { dob: '2006-08-14', community: 'ST', fatherName: 'Karma Bhutia', fatherContact: '9800112233', motherName: 'Diki Bhutia', district: 'Gangtok', pincode: '737101', permanentAddress: 'Near Enchey Monastery, Upper Sichey, Gangtok', country: 'India', state: 'Sikkim' },
-            step3: { subject_1: 'English', marks_1: 78, total_1: 100, subject_2: 'Political Science', marks_2: 82, total_2: 100, subject_3: 'Economics', marks_3: 74, total_3: 100, subject_4: 'History', marks_4: 69, total_4: 100, subject_5: 'Geography', marks_5: 71, total_5: 100 },
-            step4: { pref1Program: '', pref1Course: '', pref2Program: '', pref2Course: '', pref3Program: '', pref3Course: '' },
-            step5: { paymentMethod: 'Online', amount: 200, status: 'pending' },
+            collegeId: cid,
+            step1: {}, step2: {}, step3: {}, step4: {}, step5: {},
             currentStep: 1, status: 'draft'
         };
         saveApplication(app);
@@ -232,26 +228,59 @@
         localStorage.removeItem(CURRENT_APP_KEY);
     }
     function migrateOldStorage() {
+        // Phase 1: bring in single-app legacy key
         var oldRaw = localStorage.getItem(APP_KEY_LEGACY);
-        if (!oldRaw) return;
-        try {
-            var oldApp = JSON.parse(oldRaw);
-            if (oldApp && oldApp.applicationId) {
-                var apps = getAllApplications(), exists = false;
-                $.each(apps, function (_, a) { if (a.applicationId === oldApp.applicationId) { exists = true; return false; } });
-                if (!exists) {
-                    if (!oldApp.startedAt) oldApp.startedAt = new Date().toISOString();
-                    apps.push(oldApp);
-                    saveAllApplications(apps);
+        if (oldRaw) {
+            try {
+                var oldApp = JSON.parse(oldRaw);
+                if (oldApp && oldApp.applicationId) {
+                    var apps = getAllApplications(), exists = false;
+                    $.each(apps, function (_, a) { if (a.applicationId === oldApp.applicationId) { exists = true; return false; } });
+                    if (!exists) {
+                        if (!oldApp.startedAt) oldApp.startedAt = new Date().toISOString();
+                        apps.push(oldApp);
+                        saveAllApplications(apps);
+                    }
+                    if (!getCurrentAppId()) setCurrentAppId(oldApp.applicationId);
                 }
-                if (!getCurrentAppId()) setCurrentAppId(oldApp.applicationId);
+            } catch (e) {}
+            localStorage.removeItem(APP_KEY_LEGACY);
+        }
+
+        // Phase 2: re-ID any application whose ID is in the old format SK-YYYY-NNNN (no college code)
+        // Old format: SK-2026-1001  New format: SK-2026-SGC-00001
+        var oldIdPattern = /^SK-\d{4}-\d+$/;
+        var allApps = getAllApplications();
+        var changed = false;
+        var currentId = getCurrentAppId();
+        $.each(allApps, function (i, app) {
+            if (!app.applicationId || !oldIdPattern.test(app.applicationId)) return;
+            var cid = parseInt(app.collegeId, 10) || 1;
+            var newId = generateAppId(cid);
+            var oldId = app.applicationId;
+            app.applicationId = newId;
+            if (currentId === oldId) {
+                setCurrentAppId(newId);
+                currentId = newId;
             }
-        } catch (e) {}
-        localStorage.removeItem(APP_KEY_LEGACY);
+            changed = true;
+        });
+        if (changed) saveAllApplications(allApps);
     }
-    function generateAppId() {
+    // 3-character college identifier codes (mirrors college-admin.js ALL_COLLEGES codes)
+    var COLLEGE_CODES = {
+        1: 'SGC', 2: 'DEN', 3: 'SAC', 4: 'NGC', 5: 'MAN',
+        6: 'SOR', 7: 'NBB', 8: 'RHE', 9: 'GCB', 10: 'WPC',
+        11: 'LIN', 12: 'SSG'
+    };
+    function generateAppId(collegeId) {
         var yr = new Date().getFullYear();
-        return 'SKM-' + yr + '-' + String(Math.floor(Math.random() * 9000000) + 1000000);
+        var code = COLLEGE_CODES[parseInt(collegeId, 10)] || 'SKM';
+        var serialKey = 'emmis_he_serial_' + code + '_' + yr;
+        var serial = parseInt(localStorage.getItem(serialKey) || '0', 10) + 1;
+        localStorage.setItem(serialKey, serial);
+        var serialStr = String(serial).padStart(5, '0');
+        return 'SK-' + yr + '-' + code + '-' + serialStr;
     }
     function generateTxnId() { return "TXN" + (Math.floor(Math.random() * 9000000000) + 1000000000); }
     function saveMobile(m) { localStorage.setItem(MOBILE_KEY, m); }
@@ -266,20 +295,29 @@
 
     function renderDashboard() {
         var apps = getAllApplications();
-        var totalApps = apps.length, draftApps = 0;
-        $.each(apps, function (_, a) { if (a.status === 'draft') draftApps++; });
+        var totalApps = 0, draftApps = 0;
+        $.each(apps, function (_, a) {
+            // Skip empty drafts where the user never saved Step 1
+            if (a.status === 'draft' && !(a.step1 && a.step1.candidateName)) return;
+            totalApps++;
+            if (a.status === 'draft') draftApps++;
+        });
         $('#statTotal').text(totalApps);
         $('#statDrafts').text(draftApps);
 
         var cardsHtml = '';
         $.each(apps, function (_, app) {
+            // Skip empty drafts where the user never saved Step 1
+            if (app.status === 'draft' && !(app.step1 && app.step1.candidateName)) return;
             var collegeName = app.collegeName || '\u2014';
             if (app.collegeId) {
                 $.each(COLLEGES, function (_, c) {
                     if (c.id === parseInt(app.collegeId, 10)) { collegeName = c.name; return false; }
                 });
             }
-            var course = (app.step4 && app.step4.pref1Course) ? app.step4.pref1Course : '\u2014';
+            var course = (app.step4 && app.step4.pref1Course && app.step4.pref1Course !== 'Select Course') ? app.step4.pref1Course : '\u2014';
+            var pref2  = (app.step4 && app.step4.pref2Course && app.step4.pref2Course !== 'Select Course') ? app.step4.pref2Course : '';
+            var pref3  = (app.step4 && app.step4.pref3Course && app.step4.pref3Course !== 'Select Course') ? app.step4.pref3Course : '';
             var appId  = app.applicationId || '\u2014';
             var status = app.status || 'draft';
             var statusLabel = status === 'submitted' ? 'Submitted' : 'Draft';
@@ -291,10 +329,25 @@
                     dateLabel = 'Started: ' + d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
                 } catch (e) {}
             }
+            // Build preference pills
+            var prefHtml = '';
+            if (course !== '\u2014') {
+                prefHtml += '<span class="badge rounded-pill me-1 mb-1" style="background:var(--clr-primary-container);color:var(--clr-on-primary-container);font-size:.7rem;font-weight:600;"><span class="text-on-surface-variant me-1" style="font-size:.65rem;">P1</span>' + $('<span>').text(course).html() + '</span>';
+            }
+            if (pref2) prefHtml += '<span class="badge rounded-pill me-1 mb-1" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);font-size:.7rem;"><span class="me-1" style="font-size:.65rem;">P2</span>' + $('<span>').text(pref2).html() + '</span>';
+            if (pref3) prefHtml += '<span class="badge rounded-pill me-1 mb-1" style="background:var(--clr-surface-variant);color:var(--clr-on-surface-variant);font-size:.7rem;"><span class="me-1" style="font-size:.65rem;">P3</span>' + $('<span>').text(pref3).html() + '</span>';
+            if (!prefHtml) prefHtml = '<span class="small text-on-surface-variant">\u2014</span>';
             var safeId = $('<span>').text(appId).html();
+            var hasAppId = appId && appId !== '\u2014';
             var actionBtn = status === 'submitted'
-                ? '<button class="btn btn-surface btn-sm w-100 fw-medium" disabled><span class="material-symbols-outlined me-1" style="font-size:14px;">check_circle</span>Submitted</button>'
-                : '<button class="btn btn-surface btn-sm w-100 fw-medium btn-continue-app" data-app-id="' + safeId + '">Continue</button>';
+                ? '<div class="d-flex gap-2">' +
+                  '<button class="btn btn-surface btn-sm fw-medium flex-fill" disabled><span class="material-symbols-outlined me-1" style="font-size:14px;">check_circle</span>Submitted</button>' +
+                  (hasAppId ? '<button class="btn btn-outline-primary btn-sm fw-semibold btn-track-status d-flex align-items-center gap-1 flex-shrink-0" data-app-id="' + safeId + '" title="Track status"><span class="material-symbols-outlined" style="font-size:15px;">manage_search</span>Track</button>' : '') +
+                  '</div>'
+                : '<div class="d-flex gap-2">' +
+                  '<button class="btn btn-surface btn-sm fw-medium flex-fill btn-continue-app" data-app-id="' + safeId + '">Continue</button>' +
+                  (hasAppId ? '<button class="btn btn-outline-primary btn-sm fw-semibold btn-track-status d-flex align-items-center gap-1 flex-shrink-0" data-app-id="' + safeId + '" title="Track status"><span class="material-symbols-outlined" style="font-size:15px;">manage_search</span>Track</button>' : '') +
+                  '</div>';
             cardsHtml +=
                 '<div class="col-12 col-lg-6">' +
                 '<div class="card application-card h-100">' +
@@ -307,8 +360,8 @@
                 '</div>' +
                 '<span class="badge ' + statusBadge + ' rounded-pill px-3 py-1 small">' + statusLabel + '</span>' +
                 '</div>' +
-                '<p class="fw-medium mb-1">' + $('<span>').text(course).html() + '</p>' +
-                '<p class="small text-on-surface-variant d-flex align-items-center gap-1">' +
+                '<div class="mb-2">' + prefHtml + '</div>' +
+                '<p class="small text-on-surface-variant d-flex align-items-center gap-1 mb-0">' +
                 '<span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>' + dateLabel + '</p>' +
                 '<div class="mt-auto pt-3 border-top" style="border-color:rgba(188,201,195,0.2)!important;">' +
                 actionBtn +
@@ -351,7 +404,7 @@
         if (sectionId === 'section-dashboard') { renderDashboard(); }
 
         // Toggle sidebar + stepper visibility
-        if (sectionId === 'section-dashboard' || sectionId === 'section-step7') {
+        if (sectionId === 'section-dashboard' || sectionId === 'section-step7' || sectionId === 'section-track-status') {
             // Fully hide sidebar — must remove d-md-flex since it uses !important
             $('#appSidebar').removeClass('d-md-flex').addClass('d-none');
             $('#collegeStickyHeader').hide();
@@ -365,8 +418,8 @@
             updateStepper(step);
         }
 
-        // Populate preview when entering Step 6
-        if (sectionId === 'section-step6') {
+        // Populate preview when entering Step 5
+        if (sectionId === 'section-step5') {
             populatePreview();
         }
 
@@ -1183,7 +1236,13 @@
                 saveApplication(inviteApp);
             }
             populateCollegeStickyHeader();
-            showSection('section-dashboard');
+            // Check if user arrived via "Track Status" link from the public page
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('track') === '1') {
+                showSection('section-track-status');
+            } else {
+                showSection('section-dashboard');
+            }
         }
 
         // Live notices ticker
@@ -1361,21 +1420,16 @@
                 $btn.html('<span class="material-symbols-outlined me-2">check_circle</span>Payment Successful!').removeClass('btn-primary').addClass('btn-success');
                 $('#paymentSuccess').slideDown(300);
                 $('#txnId').text(txnId);
-                $('.btn-proceed-preview').prop('disabled', false).css('opacity', '1');
+                $('.btn-submit-application').prop('disabled', false).css('opacity', '1');
                 showToast('Payment completed successfully!');
             }, 2000);
         });
-        $(document).on('click', '.btn-proceed-preview', function (e) {
+        $(document).on('click', '.btn-proceed-payment', function (e) {
             e.preventDefault();
             showSection('section-step6');
         });
 
         // -- Preview: Populate --
-        $(document).on('click', '[data-show-section="section-step6"]', function () {
-            populatePreview();
-        });
-
-        // -- Preview: Submit --
         $(document).on('click', '.btn-submit-application', function () {
             if (!$('#declarationCheck').is(':checked')) {
                 $('#declarationCheck').closest('.declaration-box').addClass('border-danger');
@@ -1417,6 +1471,17 @@
             }
 
             $('#ackRefNumber').text(app.applicationId || '\u2014');
+            // Populate dynamic preference summary from saved step4 data
+            var s4 = app.step4 || {};
+            var p1 = (s4.pref1Course && s4.pref1Course !== 'Select Course') ? s4.pref1Course : (s4.pref1Program || '\u2014');
+            var p2 = (s4.pref2Course && s4.pref2Course !== 'Select Course') ? s4.pref2Course : (s4.pref2Program || '\u2014');
+            var p3 = (s4.pref3Course && s4.pref3Course !== 'Select Course') ? s4.pref3Course : (s4.pref3Program || 'Not specified');
+            $('#ackPref1').text(p1);
+            $('#ackPref2').text(p2);
+            $('#ackPref3').text(p3);
+            // Show/hide third preference row based on whether it was filled
+            var hasP3 = !!(s4.pref3Course && s4.pref3Course !== 'Select Course');
+            $('#ackPref3Row').toggle(hasP3);
             $('#submitConfirmModal').modal('hide');
             showSection('section-step7');
         });
@@ -1431,6 +1496,208 @@
         $(document).on('click', '.btn-back-dashboard', function (e) {
             e.preventDefault();
             showSection('section-dashboard');
+        });
+        $(document).on('click', '.btn-track-status', function (e) {
+            e.preventDefault();
+            var appId = $(this).data('app-id') || '';
+            if (appId) $('#trackAppNoInput').val(appId);
+            showSection('section-track-status');
+            if (appId) runTrackSearch(appId);
+            else { $('#trackResult').empty(); $('#trackInitPrompt').show(); }
+        });
+
+        // -- Track Application Status search --
+        function runTrackSearch(appNo) {
+            appNo = (appNo || '').trim().toUpperCase();
+            $('#trackInitPrompt').hide();
+            var $result = $('#trackResult').empty();
+            if (!appNo) {
+                $result.html('<div class="alert alert-warning rounded-3">Please enter an application number.</div>');
+                return;
+            }
+
+            // 1. Find application in storage
+            var allApps = getAllApplications();
+            var foundApp = null;
+            $.each(allApps, function (_, a) {
+                if ((a.applicationId || '').toUpperCase() === appNo) { foundApp = a; return false; }
+            });
+
+            // 2. Find merit list appearances
+            var meritHits = [];
+            try {
+                var allMl = JSON.parse(localStorage.getItem('emmis_ca_meritlists') || '[]');
+                $.each(allMl, function (_, ml) {
+                    if (!ml.published) return;
+                    $.each(ml.entries || [], function (__, entry) {
+                        if ((entry.appNo || '').toUpperCase() === appNo) {
+                            var collegeName = '';
+                            $.each(COLLEGES, function (_, c) { if (c.id === ml.collegeId) { collegeName = c.name; return false; } });
+                            meritHits.push({ listName: ml.name, program: ml.program || '', course: ml.course || '', admStart: ml.admissionStart || '', admEnd: ml.admissionEnd || '', college: collegeName || ml.collegeName || '' });
+                        }
+                    });
+                });
+            } catch(e) {}
+
+            // 3. Find counselling appearances
+            var counselHits = [];
+            try {
+                var allCs = JSON.parse(localStorage.getItem('emmis_ca_counselling_sessions') || '[]');
+                $.each(allCs, function (_, cs) {
+                    if (!cs.published) return;
+                    $.each(cs.entries || [], function (__, entry) {
+                        if ((entry.appNo || '').toUpperCase() === appNo) {
+                            var collegeName = '';
+                            $.each(COLLEGES, function (_, c) { if (c.id === cs.collegeId) { collegeName = c.name; return false; } });
+                            counselHits.push({ sessionName: cs.name, csStart: cs.counsellingStart || '', csEnd: cs.counsellingEnd || '', college: collegeName || cs.collegeName || '' });
+                        }
+                    });
+                });
+            } catch(e) {}
+
+            if (!foundApp && !meritHits.length && !counselHits.length) {
+                $result.html(
+                    '<div class="card p-5 text-center rounded-3 border">' +
+                    '<span class="material-symbols-outlined d-block mb-3 mx-auto" style="font-size:48px;color:var(--clr-outline);">search_off</span>' +
+                    '<h5 class="fw-bold mb-2">Application Not Found</h5>' +
+                    '<p class="text-on-surface-variant mb-0">No application with the number <strong>' + $('<span>').text(appNo).html() + '</strong> was found. Please double-check the number and try again.</p>' +
+                    '</div>'
+                );
+                return;
+            }
+
+            var html = '';
+
+            // Application summary block
+            if (foundApp) {
+                var collegeName = '—';
+                if (foundApp.collegeId) {
+                    $.each(COLLEGES, function (_, c) { if (c.id === parseInt(foundApp.collegeId, 10)) { collegeName = c.name; return false; } });
+                }
+                var s4 = foundApp.step4 || {};
+                var s1 = foundApp.step1 || {};
+                var statusBadge = foundApp.status === 'submitted'
+                    ? '<span class="badge rounded-pill px-3 py-1 fw-semibold" style="background:rgba(107,217,188,0.25);color:var(--clr-on-primary-container);">Submitted</span>'
+                    : '<span class="badge rounded-pill px-3 py-1 fw-semibold" style="background:rgba(255,180,0,0.15);color:#b36a00;">Draft</span>';
+                var submittedOn = '';
+                if (foundApp.startedAt) {
+                    try { submittedOn = new Date(foundApp.startedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch(e) {}
+                }
+                var p1 = (s4.pref1Course && s4.pref1Course !== 'Select Course') ? s4.pref1Course : (s4.pref1Program || '—');
+                var p2 = (s4.pref2Course && s4.pref2Course !== 'Select Course') ? s4.pref2Course : (s4.pref2Program || '');
+                var p3 = (s4.pref3Course && s4.pref3Course !== 'Select Course') ? s4.pref3Course : (s4.pref3Program || '');
+
+                html += '<div class="card rounded-3 mb-3 overflow-hidden">' +
+                    '<div class="p-4" style="background:var(--clr-surface-low);">' +
+                    '<div class="d-flex flex-wrap justify-content-between align-items-start gap-3">' +
+                    '<div>' +
+                    '<div class="d-flex align-items-center gap-2 mb-1">' +
+                    '<span class="material-symbols-outlined" style="font-size:20px;color:var(--clr-primary);">description</span>' +
+                    '<h6 class="fw-bold mb-0">Application Details</h6>' +
+                    '</div>' +
+                    '<code class="small d-block mb-2" style="color:var(--clr-primary);font-size:.85rem;">' + $('<span>').text(foundApp.applicationId).html() + '</code>' +
+                    '<div class="d-flex flex-wrap gap-3">' +
+                    '<span class="small text-on-surface-variant d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">account_balance</span>' + $('<span>').text(collegeName).html() + '</span>' +
+                    (s1.candidateName ? '<span class="small text-on-surface-variant d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">person</span>' + $('<span>').text(s1.candidateName).html() + '</span>' : '') +
+                    (submittedOn ? '<span class="small text-on-surface-variant d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">calendar_today</span>' + submittedOn + '</span>' : '') +
+                    '</div>' +
+                    '</div>' +
+                    statusBadge +
+                    '</div>' +
+                    '</div>' +
+                    // Preferences
+                    '<div class="p-4 border-top">' +
+                    '<h6 class="small fw-semibold text-uppercase mb-3" style="letter-spacing:.08em;color:var(--clr-on-surface-variant);">Course Preferences</h6>' +
+                    '<div class="d-flex flex-column gap-2">' +
+                    '<div class="d-flex align-items-center gap-3 p-2 rounded-2" style="background:var(--clr-surface-low);">' +
+                    '<span class="badge rounded-circle fw-bold" style="background:var(--clr-primary);color:#fff;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;">1</span>' +
+                    '<span class="small fw-medium">' + $('<span>').text(p1 || '—').html() + '</span>' +
+                    '</div>' +
+                    (p2 ? '<div class="d-flex align-items-center gap-3 p-2 rounded-2" style="background:var(--clr-surface-low);"><span class="badge rounded-circle fw-bold" style="background:var(--clr-secondary);color:#fff;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;">2</span><span class="small fw-medium">' + $('<span>').text(p2).html() + '</span></div>' : '') +
+                    (p3 ? '<div class="d-flex align-items-center gap-3 p-2 rounded-2" style="background:var(--clr-surface-low);"><span class="badge rounded-circle fw-bold" style="background:var(--clr-outline);color:#fff;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;">3</span><span class="small fw-medium">' + $('<span>').text(p3).html() + '</span></div>' : '') +
+                    '</div></div></div>';
+            } else {
+                // Application found via merit/counselling but not in local storage (e.g. another device)
+                html += '<div class="card rounded-3 mb-3 p-4" style="border:1px solid var(--clr-outline-variant);">' +
+                    '<div class="d-flex align-items-center gap-2 text-on-surface-variant small">' +
+                    '<span class="material-symbols-outlined" style="font-size:18px;">info</span>' +
+                    'Application <strong>' + $('<span>').text(appNo).html() + '</strong> found in college records.' +
+                    '</div></div>';
+            }
+
+            // Merit list results
+            if (meritHits.length) {
+                $.each(meritHits, function (_, hit) {
+                    var admDates = (hit.admStart && hit.admEnd)
+                        ? (formatYmdToDisplay(hit.admStart) + ' – ' + formatYmdToDisplay(hit.admEnd))
+                        : 'Contact college for dates';
+                    html += '<div class="card rounded-3 mb-3 overflow-hidden" style="border:2px solid rgba(107,217,188,0.5);">' +
+                        '<div class="p-4" style="background:rgba(107,217,188,0.08);">' +
+                        '<div class="d-flex align-items-start gap-3">' +
+                        '<div class="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width:48px;height:48px;background:var(--clr-primary-container);">' +
+                        '<span class="material-symbols-outlined filled" style="color:var(--clr-on-primary-container);font-variation-settings:\'FILL\' 1;">assignment_turned_in</span>' +
+                        '</div>' +
+                        '<div>' +
+                        '<h6 class="fw-bold mb-1" style="color:var(--clr-primary);">🎉 Congratulations! You are in the Merit List</h6>' +
+                        '<p class="small mb-1">You have been selected in <strong>' + $('<span>').text(hit.listName).html() + '</strong>' +
+                        (hit.program ? ' for <strong>' + $('<span>').text(hit.program + (hit.course ? ' — ' + hit.course : '')).html() + '</strong>' : '') + '.</p>' +
+                        (hit.college ? '<p class="small mb-1 text-on-surface-variant d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">account_balance</span>' + $('<span>').text(hit.college).html() + '</p>' : '') +
+                        '<div class="mt-2 p-3 rounded-2" style="background:rgba(0,107,88,0.07);border:1px solid rgba(0,107,88,0.15);">' +
+                        '<span class="small fw-semibold d-flex align-items-center gap-1" style="color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:14px;">event_available</span>Admission Dates: ' + admDates + '</span>' +
+                        '<p class="small text-on-surface-variant mt-1 mb-0">Please visit the college with all original documents, mark sheets, COI, and fee payment receipt.</p>' +
+                        '</div>' +
+                        '</div></div></div></div>';
+                });
+            }
+
+            // Counselling results
+            if (counselHits.length) {
+                $.each(counselHits, function (_, hit) {
+                    var csDates = (hit.csStart && hit.csEnd)
+                        ? (formatYmdToDisplay(hit.csStart) + ' – ' + formatYmdToDisplay(hit.csEnd))
+                        : 'Contact college for dates';
+                    html += '<div class="card rounded-3 mb-3 overflow-hidden" style="border:2px solid rgba(100,150,255,0.4);">' +
+                        '<div class="p-4" style="background:rgba(100,150,255,0.06);">' +
+                        '<div class="d-flex align-items-start gap-3">' +
+                        '<div class="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width:48px;height:48px;background:rgba(100,150,255,0.15);">' +
+                        '<span class="material-symbols-outlined" style="color:rgba(70,100,220,0.9);">record_voice_over</span>' +
+                        '</div>' +
+                        '<div>' +
+                        '<h6 class="fw-bold mb-1" style="color:rgba(70,100,220,0.9);">📣 You Have Been Called for Counselling</h6>' +
+                        '<p class="small mb-1">You have been invited to attend <strong>' + $('<span>').text(hit.sessionName).html() + '</strong>.</p>' +
+                        (hit.college ? '<p class="small mb-1 text-on-surface-variant d-flex align-items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px;">account_balance</span>' + $('<span>').text(hit.college).html() + '</p>' : '') +
+                        '<div class="mt-2 p-3 rounded-2" style="background:rgba(100,150,255,0.08);border:1px solid rgba(100,150,255,0.2);">' +
+                        '<span class="small fw-semibold d-flex align-items-center gap-1" style="color:rgba(70,100,220,0.9);"><span class="material-symbols-outlined" style="font-size:14px;">event</span>Counselling Dates: ' + csDates + '</span>' +
+                        '<p class="small text-on-surface-variant mt-1 mb-0">Bring all original documents, mark sheets, community certificate, and a recent passport-size photograph.</p>' +
+                        '</div>' +
+                        '</div></div></div></div>';
+                });
+            }
+
+            // If only the application exists but no merit/counselling
+            if (foundApp && !meritHits.length && !counselHits.length) {
+                var reviewMsg = foundApp.status === 'submitted'
+                    ? 'Your application has been received and is currently under review by the college. Merit lists are published periodically — please check back here.'
+                    : 'Your application is incomplete (Draft). Please continue and submit your application.';
+                html += '<div class="card rounded-3 p-4 mb-3" style="border:1px solid var(--clr-outline-variant);">' +
+                    '<div class="d-flex align-items-start gap-3">' +
+                    '<div class="d-inline-flex align-items-center justify-content-center rounded-circle flex-shrink-0" style="width:40px;height:40px;background:rgba(255,180,0,0.12);">' +
+                    '<span class="material-symbols-outlined" style="color:#b36a00;">hourglass_top</span>' +
+                    '</div>' +
+                    '<div>' +
+                    '<h6 class="fw-bold mb-1">' + (foundApp.status === 'submitted' ? 'Application Under Review' : 'Application Incomplete') + '</h6>' +
+                    '<p class="small text-on-surface-variant mb-0">' + reviewMsg + '</p>' +
+                    '</div></div></div>';
+            }
+
+            $result.html(html);
+        }
+
+        $(document).on('click', '#btnTrackSearch', function () {
+            runTrackSearch($('#trackAppNoInput').val());
+        });
+        $(document).on('keydown', '#trackAppNoInput', function (e) {
+            if (e.key === 'Enter') runTrackSearch($(this).val());
         });
 
         // -- Sign Out --
@@ -1509,7 +1776,7 @@
                     .removeClass('btn-primary').addClass('btn-success');
                 $('#paymentSuccess').show();
                 $('#txnId').text(s5.transactionId || '');
-                $('.btn-proceed-preview').prop('disabled', false).css('opacity', '1');
+                $('.btn-submit-application').prop('disabled', false).css('opacity', '1');
             }
         }
 
@@ -1571,7 +1838,6 @@
         if (app.collegeId) { $.each(COLLEGES, function (_, c) { if (c.id === parseInt(app.collegeId, 10)) { _previewCollege = c; return false; } }); }
         $('#previewCollege').text(_previewCollege ? _previewCollege.name : '—');
         $('#previewStreamSide').text(s1.stream || '—');
-        $('#previewPaySide').text(s5.status === 'paid' ? 'Paid' : 'Pending');
 
         // Primary Information
         $('#previewRollNo').text(s1.rollNo || '—');
@@ -1625,19 +1891,6 @@
         $('#previewPref2Course').text(s4.pref2Course || '—');
         $('#previewPref3Prog').text(s4.pref3Program || '—');
         $('#previewPref3Course').text(s4.pref3Course || '—');
-
-        // Payment
-        $('#previewTxnId').text(s5.transactionId || '—');
-        $('#previewPayAmount').text('₹ ' + (s5.amount || 200) + '.00');
-        $('#previewPayMethod').text(s5.paymentMethod || '—');
-        $('#previewPayStatus').text(s5.status === 'paid' ? 'PAID' : 'PENDING');
-
-        // Hide payment edit button if already paid
-        if (s5.status === 'paid') {
-            $('#btnEditPayment').hide();
-        } else {
-            $('#btnEditPayment').show();
-        }
     }
 
     // ============================================================
