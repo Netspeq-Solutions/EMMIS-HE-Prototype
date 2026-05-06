@@ -653,10 +653,12 @@
                     if (!ml.published) return;
                     var mlYear = ml.year || parseInt(ml.session, 10) || 0;
                     if (mlYear && mlYear !== year) return;
+                    // Only show merit lists belonging to this college
+                    if (ml.collegeId && schedule && ml.collegeId !== schedule.collegeId) return;
                     if (ml.admissionStart && ml.admissionEnd) {
                         var admEnd = new Date(ml.admissionEnd + 'T00:00:00');
                         if (admEnd >= today) {
-                            out.meritAdmissions.push({ name: ml.name, start: ml.admissionStart, end: ml.admissionEnd, course: ml.course || '' });
+                            out.meritAdmissions.push({ id: ml.id, collegeId: ml.collegeId, name: ml.name, start: ml.admissionStart, end: ml.admissionEnd, course: ml.course || '' });
                         }
                     }
                 });
@@ -669,10 +671,12 @@
                     if (!cs.published) return;
                     var csYear = cs.year || 0;
                     if (csYear && csYear !== year) return;
+                    // Only show counselling sessions belonging to this college
+                    if (cs.collegeId && schedule && cs.collegeId !== schedule.collegeId) return;
                     if (cs.counsellingStart && cs.counsellingEnd) {
                         var csEnd = new Date(cs.counsellingEnd + 'T00:00:00');
                         if (csEnd >= today) {
-                            out.counsellingSessions.push({ name: cs.name, start: cs.counsellingStart, end: cs.counsellingEnd });
+                            out.counsellingSessions.push({ id: cs.id, collegeId: cs.collegeId, name: cs.name, start: cs.counsellingStart, end: cs.counsellingEnd });
                         }
                     }
                 });
@@ -809,11 +813,21 @@
                 $.each(sv.meritAdmissions, function(_, ma) {
                     var startFmt = ma.start ? formatYmdToDisplay(ma.start) : 'TBA';
                     var endFmt   = ma.end   ? formatYmdToDisplay(ma.end)   : 'TBA';
+                    var safeId  = $('<span>').text(ma.id || '').html();
+                    var safeCid = ma.collegeId || c.id;
                     meritRowHtml +=
-                        '<div class="p-3 rounded-3" style="background:rgba(107,217,188,0.1);border:1px solid rgba(107,217,188,0.3);">' +
-                        '<span class="d-block text-uppercase fw-bold mb-1" style="font-size:.6rem; color:var(--clr-on-primary-container);">📋 ' + $('<span>').text(ma.name || 'Merit List').html() + (ma.course ? ' — ' + $('<span>').text(ma.course).html() : '') + '</span>' +
-                        '<span class="small fw-bold" style="color:var(--clr-on-primary-container);">Admission: ' + startFmt + ' – ' + endFmt + '</span>' +
-                        '</div>';
+                        '<button type="button" class="w-100 text-start p-3 rounded-3 ticker-view-link" ' +
+                        'data-type="merit" data-id="' + safeId + '" data-college-id="' + safeCid + '" ' +
+                        'style="background:rgba(107,217,188,0.12);border:1px solid rgba(107,217,188,0.4);cursor:pointer;">' +
+                        '<div class="d-flex justify-content-between align-items-center gap-2">' +
+                        '<div class="flex-grow-1" style="min-width:0;">' +
+                        '<span class="d-flex align-items-center gap-1 fw-bold mb-1" style="font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--clr-primary);"><span class="material-symbols-outlined" style="font-size:13px;">format_list_numbered</span>Merit List Published</span>' +
+                        '<span class="d-block fw-semibold text-truncate" style="font-size:.82rem;color:var(--clr-on-surface);">' + $('<span>').text(ma.name || 'Merit List').html() + (ma.course ? '<span class="fw-normal text-on-surface-variant"> &mdash; ' + $('<span>').text(ma.course).html() + '</span>' : '') + '</span>' +
+                        '<span class="d-block mt-1" style="font-size:.73rem;color:var(--clr-on-surface-variant);">&#128197; Admission: ' + startFmt + ' – ' + endFmt + '</span>' +
+                        '</div>' +
+                        '<span class="flex-shrink-0 d-flex align-items-center gap-1 fw-bold" style="font-size:.7rem;color:var(--clr-primary);">View<span class="material-symbols-outlined" style="font-size:15px;">arrow_forward</span></span>' +
+                        '</div>' +
+                        '</button>';
                 });
             }
 
@@ -823,11 +837,21 @@
                 $.each(sv.counsellingSessions, function(_, cs) {
                     var startFmt = cs.start ? formatYmdToDisplay(cs.start) : 'TBA';
                     var endFmt   = cs.end   ? formatYmdToDisplay(cs.end)   : 'TBA';
+                    var safeId  = $('<span>').text(cs.id || '').html();
+                    var safeCid = cs.collegeId || c.id;
                     counsellingHtml +=
-                        '<div class="p-3 rounded-3" style="background:rgba(100,150,255,0.08);border:1px solid rgba(100,150,255,0.25);">' +
-                        '<span class="d-block text-uppercase fw-bold mb-1" style="font-size:.6rem;color:var(--clr-on-secondary-container);">🎙️ ' + $('<span>').text(cs.name || 'Counselling').html() + '</span>' +
-                        '<span class="small fw-bold" style="color:var(--clr-on-secondary-container);">Counselling: ' + startFmt + ' – ' + endFmt + '</span>' +
-                        '</div>';
+                        '<button type="button" class="w-100 text-start p-3 rounded-3 ticker-view-link" ' +
+                        'data-type="counselling" data-id="' + safeId + '" data-college-id="' + safeCid + '" ' +
+                        'style="background:rgba(100,150,255,0.08);border:1px solid rgba(100,150,255,0.3);cursor:pointer;">' +
+                        '<div class="d-flex justify-content-between align-items-center gap-2">' +
+                        '<div class="flex-grow-1" style="min-width:0;">' +
+                        '<span class="d-flex align-items-center gap-1 fw-bold mb-1" style="font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--clr-secondary);"><span class="material-symbols-outlined" style="font-size:13px;">record_voice_over</span>Counselling Scheduled</span>' +
+                        '<span class="d-block fw-semibold text-truncate" style="font-size:.82rem;color:var(--clr-on-surface);">' + $('<span>').text(cs.name || 'Counselling Session').html() + '</span>' +
+                        '<span class="d-block mt-1" style="font-size:.73rem;color:var(--clr-on-surface-variant);">&#128197; ' + startFmt + ' – ' + endFmt + '</span>' +
+                        '</div>' +
+                        '<span class="flex-shrink-0 d-flex align-items-center gap-1 fw-bold" style="font-size:.7rem;color:var(--clr-secondary);">View<span class="material-symbols-outlined" style="font-size:15px;">arrow_forward</span></span>' +
+                        '</div>' +
+                        '</button>';
                 });
             }
 
