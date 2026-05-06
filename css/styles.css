@@ -268,7 +268,7 @@ a:hover {
     font-weight: 800;
     font-size: 1.25rem;
     letter-spacing: -0.02em;
-    border-bottom: 4px solid var(--clr-saffron-dark);
+    /* border-bottom: 4px solid var(--clr-saffron-dark); */
 }
 .navbar-portal .nav-link {
     color: rgba(255, 255, 255, 0.7);
