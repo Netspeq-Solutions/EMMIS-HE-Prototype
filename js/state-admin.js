@@ -9,7 +9,7 @@
     // 1. MOCK DATA
     // ============================================================
 
-    var SESSIONS = ["2024-25", "2023-24"];
+    var SESSIONS = ['2026', '2027'];
     var DISTRICTS = ["All", "Gangtok", "Pakyong", "Mangan", "Gyalshing", "Namchi", "Soreng"];
     var COURSE_TYPES = ["All", "B.A", "B.Sc", "B.Com", "B.A Law"];
 
@@ -24,25 +24,25 @@
 
     // Detailed data per college + course (mock)
     var DATA = [
-        { college: "sgc", district: "Gangtok", course: "B.Com", applications: 38, admitted: 14, registered: 10, seats: 60, male: 22, female: 16, st: 14, sc: 4, obc: 10, gen: 10, session: "2024-25" },
-        { college: "sgc", district: "Gangtok", course: "B.A", applications: 52, admitted: 20, registered: 16, seats: 98, male: 24, female: 28, st: 16, sc: 8, obc: 15, gen: 13, session: "2024-25" },
-        { college: "sgc", district: "Gangtok", course: "B.Sc", applications: 25, admitted: 10, registered: 8, seats: 40, male: 15, female: 10, st: 9, sc: 3, obc: 7, gen: 6, session: "2024-25" },
-        { college: "dnt", district: "Gyalshing", course: "B.A", applications: 75, admitted: 45, registered: 40, seats: 60, male: 35, female: 40, st: 25, sc: 10, obc: 22, gen: 18, session: "2024-25" },
-        { college: "dnt", district: "Gyalshing", course: "B.Sc", applications: 60, admitted: 30, registered: 28, seats: 40, male: 32, female: 28, st: 20, sc: 8, obc: 18, gen: 14, session: "2024-25" },
-        { college: "sac", district: "Pakyong", course: "B.A", applications: 90, admitted: 55, registered: 48, seats: 70, male: 42, female: 48, st: 32, sc: 14, obc: 26, gen: 18, session: "2024-25" },
-        { college: "sac", district: "Pakyong", course: "B.A Law", applications: 45, admitted: 20, registered: 18, seats: 30, male: 25, female: 20, st: 12, sc: 6, obc: 15, gen: 12, session: "2024-25" },
-        { college: "ngc", district: "Namchi", course: "B.Com", applications: 80, admitted: 42, registered: 38, seats: 50, male: 38, female: 42, st: 22, sc: 12, obc: 28, gen: 18, session: "2024-25" },
-        { college: "ngc", district: "Namchi", course: "B.A Law", applications: 55, admitted: 28, registered: 25, seats: 35, male: 28, female: 27, st: 15, sc: 8, obc: 18, gen: 14, session: "2024-25" },
-        { college: "mng", district: "Mangan", course: "B.A", applications: 65, admitted: 35, registered: 30, seats: 50, male: 30, female: 35, st: 28, sc: 8, obc: 16, gen: 13, session: "2024-25" },
-        { college: "mng", district: "Mangan", course: "B.Sc", applications: 40, admitted: 22, registered: 20, seats: 30, male: 22, female: 18, st: 18, sc: 5, obc: 10, gen: 7, session: "2024-25" },
-        { college: "srg", district: "Soreng", course: "B.A", applications: 50, admitted: 28, registered: 24, seats: 40, male: 24, female: 26, st: 22, sc: 6, obc: 12, gen: 10, session: "2024-25" },
-        // 2023-24 data (prior session for trend)
-        { college: "sgc", district: "Gangtok", course: "B.Com", applications: 32, admitted: 12, registered: 10, seats: 60, male: 18, female: 14, st: 12, sc: 4, obc: 8, gen: 8, session: "2023-24" },
-        { college: "sgc", district: "Gangtok", course: "B.A", applications: 45, admitted: 18, registered: 14, seats: 80, male: 20, female: 25, st: 14, sc: 6, obc: 13, gen: 12, session: "2023-24" },
-        { college: "dnt", district: "Gyalshing", course: "B.A", applications: 60, admitted: 38, registered: 35, seats: 60, male: 28, female: 32, st: 20, sc: 8, obc: 18, gen: 14, session: "2023-24" },
-        { college: "ngc", district: "Namchi", course: "B.Com", applications: 65, admitted: 35, registered: 30, seats: 50, male: 30, female: 35, st: 18, sc: 10, obc: 22, gen: 15, session: "2023-24" },
-        { college: "mng", district: "Mangan", course: "B.A", applications: 50, admitted: 28, registered: 25, seats: 50, male: 22, female: 28, st: 22, sc: 6, obc: 12, gen: 10, session: "2023-24" },
-        { college: "srg", district: "Soreng", course: "B.A", applications: 40, admitted: 22, registered: 20, seats: 40, male: 18, female: 22, st: 18, sc: 5, obc: 10, gen: 7, session: "2023-24" }
+        { college: "sgc", district: "Gangtok", course: "B.Com", applications: 38, admitted: 14, registered: 10, seats: 60, male: 22, female: 16, st: 14, sc: 4, obc: 10, gen: 10, session: "2026" },
+        { college: "sgc", district: "Gangtok", course: "B.A", applications: 52, admitted: 20, registered: 16, seats: 98, male: 24, female: 28, st: 16, sc: 8, obc: 15, gen: 13, session: "2026" },
+        { college: "sgc", district: "Gangtok", course: "B.Sc", applications: 25, admitted: 10, registered: 8, seats: 40, male: 15, female: 10, st: 9, sc: 3, obc: 7, gen: 6, session: "2026" },
+        { college: "dnt", district: "Gyalshing", course: "B.A", applications: 75, admitted: 45, registered: 40, seats: 60, male: 35, female: 40, st: 25, sc: 10, obc: 22, gen: 18, session: "2026" },
+        { college: "dnt", district: "Gyalshing", course: "B.Sc", applications: 60, admitted: 30, registered: 28, seats: 40, male: 32, female: 28, st: 20, sc: 8, obc: 18, gen: 14, session: "2026" },
+        { college: "sac", district: "Pakyong", course: "B.A", applications: 90, admitted: 55, registered: 48, seats: 70, male: 42, female: 48, st: 32, sc: 14, obc: 26, gen: 18, session: "2026" },
+        { college: "sac", district: "Pakyong", course: "B.A Law", applications: 45, admitted: 20, registered: 18, seats: 30, male: 25, female: 20, st: 12, sc: 6, obc: 15, gen: 12, session: "2026" },
+        { college: "ngc", district: "Namchi", course: "B.Com", applications: 80, admitted: 42, registered: 38, seats: 50, male: 38, female: 42, st: 22, sc: 12, obc: 28, gen: 18, session: "2026" },
+        { college: "ngc", district: "Namchi", course: "B.A Law", applications: 55, admitted: 28, registered: 25, seats: 35, male: 28, female: 27, st: 15, sc: 8, obc: 18, gen: 14, session: "2026" },
+        { college: "mng", district: "Mangan", course: "B.A", applications: 65, admitted: 35, registered: 30, seats: 50, male: 30, female: 35, st: 28, sc: 8, obc: 16, gen: 13, session: "2026" },
+        { college: "mng", district: "Mangan", course: "B.Sc", applications: 40, admitted: 22, registered: 20, seats: 30, male: 22, female: 18, st: 18, sc: 5, obc: 10, gen: 7, session: "2026" },
+        { college: "srg", district: "Soreng", course: "B.A", applications: 50, admitted: 28, registered: 24, seats: 40, male: 24, female: 26, st: 22, sc: 6, obc: 12, gen: 10, session: "2026" },
+        // 2025 data (prior year for trend comparison)
+        { college: "sgc", district: "Gangtok", course: "B.Com", applications: 32, admitted: 12, registered: 10, seats: 60, male: 18, female: 14, st: 12, sc: 4, obc: 8, gen: 8, session: "2025" },
+        { college: "sgc", district: "Gangtok", course: "B.A", applications: 45, admitted: 18, registered: 14, seats: 80, male: 20, female: 25, st: 14, sc: 6, obc: 13, gen: 12, session: "2025" },
+        { college: "dnt", district: "Gyalshing", course: "B.A", applications: 60, admitted: 38, registered: 35, seats: 60, male: 28, female: 32, st: 20, sc: 8, obc: 18, gen: 14, session: "2025" },
+        { college: "ngc", district: "Namchi", course: "B.Com", applications: 65, admitted: 35, registered: 30, seats: 50, male: 30, female: 35, st: 18, sc: 10, obc: 22, gen: 15, session: "2025" },
+        { college: "mng", district: "Mangan", course: "B.A", applications: 50, admitted: 28, registered: 25, seats: 50, male: 22, female: 28, st: 22, sc: 6, obc: 12, gen: 10, session: "2025" },
+        { college: "srg", district: "Soreng", course: "B.A", applications: 40, admitted: 22, registered: 20, seats: 40, male: 18, female: 22, st: 18, sc: 5, obc: 10, gen: 7, session: "2025" }
     ];
 
     // ============================================================
@@ -55,7 +55,7 @@
     }
 
     function filterData() {
-        var session = $('#filterSession').val() || '2024-25';
+        var session = $('#filterYear').val() || '2026';
         var district = $('#filterDistrict').val() || 'All';
         var college = $('#filterCollege').val() || 'All';
         var course = $('#filterCourse').val() || 'All';
@@ -256,16 +256,16 @@
         });
 
         // Session comparison
-        var currentSession = $('#filterSession').val() || '2024-25';
-        var prevSession = currentSession === '2024-25' ? '2023-24' : '2024-25';
-        var currTotal = sumField($.grep(DATA, function (d) { return d.session === currentSession; }), 'applications');
-        var prevTotal = sumField($.grep(DATA, function (d) { return d.session === prevSession; }), 'applications');
+        var currentYear = $('#filterYear').val() || '2026';
+        var prevYear = String(parseInt(currentYear, 10) - 1);
+        var currTotal = sumField($.grep(DATA, function (d) { return d.session === currentYear; }), 'applications');
+        var prevTotal = sumField($.grep(DATA, function (d) { return d.session === prevYear; }), 'applications');
         var growth = prevTotal > 0 ? Math.round(((currTotal - prevTotal) / prevTotal) * 100) : 0;
         $('#trendCurrent').text(currTotal);
-        $('#trendPrevious').text(prevTotal);
-        $('#trendGrowth').text((growth >= 0 ? '+' : '') + growth + '%').removeClass('up down').addClass(growth >= 0 ? 'up' : 'down');
-        $('#trendCurrentLabel').text(currentSession);
-        $('#trendPreviousLabel').text(prevSession);
+        $('#trendPrevious').text(prevTotal || '—');
+        $('#trendGrowth').text(prevTotal > 0 ? (growth >= 0 ? '+' : '') + growth + '%' : '—').removeClass('up down').addClass(growth >= 0 ? 'up' : 'down');
+        $('#trendCurrentLabel').text('Adm. Year ' + currentYear);
+        $('#trendPreviousLabel').text('Adm. Year ' + prevYear);
     }
 
     // ============================================================
