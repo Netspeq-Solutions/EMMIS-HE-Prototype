@@ -161,11 +161,11 @@
         var code = getCollegeCode();
         var liveStudents = getLiveStudents();
         if (code === 'SGC') {
-            // SGC has seed data — merge with live apps, avoiding duplicates
-            var seedIds = {};
-            $.each(STUDENTS, function(_, s) { seedIds[s.appNo] = true; });
-            var extras = $.grep(liveStudents, function(s) { return !seedIds[s.appNo]; });
-            return STUDENTS.concat(extras);
+            // SGC has seed data — live apps take priority; seed fills remaining slots
+            var liveIds = {};
+            $.each(liveStudents, function(_, s) { liveIds[s.appNo] = true; });
+            var seedOnly = $.grep(STUDENTS, function(s) { return !liveIds[s.appNo]; });
+            return liveStudents.concat(seedOnly);
         }
         // All other colleges: only real submitted applications
         return liveStudents;
@@ -412,7 +412,17 @@
     // ============================================================
 
     function getStudentByApp(appNo) {
-        // Direct match (seed data uses SGC codes; this hits when COLLEGE_INFO is SGC)
+        // Live applications take priority — check submitted portal apps first
+        try {
+            var liveApps = JSON.parse(localStorage.getItem('emmis_he_applications') || '[]');
+            for (var j = 0; j < liveApps.length; j++) {
+                var a = liveApps[j];
+                if (a.applicationId === appNo) {
+                    return liveAppToStudent(a);
+                }
+            }
+        } catch(e) {}
+        // Fall back to seed data (demo entries)
         for (var i = 0; i < STUDENTS.length; i++) { if (STUDENTS[i].appNo === appNo) return STUDENTS[i]; }
         // Convert non-SGC appNo to SGC equivalent for seed lookup (e.g. SK-2026-DEN-00001 → SK-2026-SGC-00001)
         var sgcEquiv = appNo.replace(/^(SK-\d{4}-)[A-Z]{2,4}(-\d+)$/, '$1SGC$2');
@@ -425,16 +435,6 @@
                 }
             }
         }
-        // Also check live applications submitted through the student portal
-        try {
-            var liveApps = JSON.parse(localStorage.getItem('emmis_he_applications') || '[]');
-            for (var j = 0; j < liveApps.length; j++) {
-                var a = liveApps[j];
-                if (a.applicationId === appNo) {
-                    return liveAppToStudent(a);
-                }
-            }
-        } catch(e) {}
         return null;
     }
     function getCourseName(cid) {
