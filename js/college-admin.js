@@ -2328,7 +2328,7 @@
 
         // Build header row
         var header = [
-            '#', 'Session', 'App No', 'Roll No', 'Name', 'Date of Birth', 'Gender',
+            '#', 'Admission Year', 'App No', 'Roll No', 'Name', 'Date of Birth', 'Gender',
             'Community', 'COI No.', 'PWD',
             'Mobile', 'Email',
             'Father Name', 'Father Contact', 'Mother Name',
@@ -2527,7 +2527,7 @@
         });
 
         var header = [
-            '#', 'Session', 'App No', 'Roll No', 'Name', 'Date of Birth', 'Gender',
+            '#', 'Admission Year', 'App No', 'Roll No', 'Name', 'Date of Birth', 'Gender',
             'Community', 'COI No.', 'PWD', 'Mobile', 'Email',
             'Father Name', 'Father Contact', 'Mother Name',
             'District', 'State', 'Pincode', 'Permanent Address',
@@ -2609,7 +2609,7 @@
 
             // One sheet per course
             $.each(groupOrder, function(_, courseId) {
-                var courseName = getCourseName(courseId) || courseId;
+                var courseName = courseId === '__unknown__' ? 'Other' : (getCourseName(courseId) || 'Other');
                 // Excel sheet names: max 31 chars, no special chars
                 var sheetName = courseName.replace(/[:\\\/?*\[\]]/g, '').substring(0, 31);
                 XLSX.utils.book_append_sheet(wb, buildExportSheet(groups[courseId]), sheetName);
