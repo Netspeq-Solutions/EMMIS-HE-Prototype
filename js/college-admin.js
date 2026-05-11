@@ -146,10 +146,15 @@
     // Returns live submitted applications from localStorage for the current college
     function getLiveStudents() {
         var result = [];
+        var expectedCode = getCollegeCode(); // e.g. 'SGC', 'DEN', etc.
+        // Valid app ID pattern: SK-YYYY-CODE-NNNNN where CODE matches this college
+        var validIdPattern = new RegExp('^SK-\\d{4}-' + expectedCode + '-\\d+$');
         try {
             var liveApps = JSON.parse(localStorage.getItem('emmis_he_applications') || '[]');
             $.each(liveApps, function(_, a) {
                 if (parseInt(a.collegeId, 10) === COLLEGE_INFO.id && a.status !== 'draft') {
+                    // Skip apps with malformed/fallback IDs (e.g. SKM code from invalid college selection)
+                    if (a.applicationId && !validIdPattern.test(a.applicationId)) return;
                     result.push(liveAppToStudent(a));
                 }
             });
